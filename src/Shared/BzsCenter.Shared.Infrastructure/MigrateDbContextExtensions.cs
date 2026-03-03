@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Savvy.Shared.Infrastructure.Extensions;
+namespace BzsCenter.Shared.Infrastructure;
 
 public static class MigrateDbContextExtensions
 {
@@ -64,6 +64,7 @@ public static class MigrateDbContextExtensions
 
         var retryCount = 10;
         var currentRetry = 0;
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalse
         while (currentRetry < retryCount)
         {
             try
@@ -86,21 +87,22 @@ public static class MigrateDbContextExtensions
                     if (seeder is not null)
                         await seeder(context, sp);
                 });
-                
+
                 return;
             }
             catch (Exception ex)
             {
                 currentRetry++;
                 activity?.SetExceptionTags(ex);
-                
+
                 if (currentRetry >= retryCount)
                 {
-                    logger.LogError(ex, "An error occurred while migrating the database used on context {DbContextName}",
+                    logger.LogError(ex,
+                        "An error occurred while migrating the database used on context {DbContextName}",
                         typeof(TContext).Name);
                     throw;
                 }
-                
+
                 logger.LogError(ex,
                     "An error occurred while migrating the database used on context {DbContextName}, current retry count: {RetryCount}",
                     typeof(TContext).Name, currentRetry);

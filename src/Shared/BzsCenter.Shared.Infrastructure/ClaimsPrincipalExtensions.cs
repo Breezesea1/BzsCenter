@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace Savvy.Shared.Infrastructure.Extensions;
+namespace BzsCenter.Shared.Infrastructure;
 
 public static class ClaimsPrincipalExtensions
 {

@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Savvy.Shared.Infrastructure.Extensions;
+﻿namespace BzsCenter.Shared.Infrastructure;
 
 public interface IMigrated
 {

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
+﻿using System.Diagnostics;
 
-namespace Savvy.Shared.Infrastructure.Extensions;
+namespace BzsCenter.Shared.Infrastructure;
 
 public static class ActivityExtensions
 {

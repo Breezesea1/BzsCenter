@@ -1,0 +1,147 @@
+############################################
+# .NET / dotnet common
+############################################
+
+# Build results
+**/[Bb]in/
+**/[Oo]bj/
+**/[Oo]ut/
+**/[Dd]ebug*/
+**/[Rr]elease*/
+**/x64/
+**/x86/
+**/AnyCPU/
+**/ARM/
+**/ARM64/
+
+# Logs
+*.log
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.tmp
+
+############################################
+# Visual Studio
+############################################
+.vs/
+# VS Test / coverage
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.vsp
+*.vspx
+*.vspscc
+*.psess
+*.testsettings
+*.runsettings
+
+# ClickOnce / publish artifacts (keep if you version them intentionally)
+**/publish/
+**/app.publish/
+
+############################################
+# JetBrains Rider / IntelliJ
+############################################
+.idea/
+*.sln.iml
+*.dotCover
+*.dotCover.*
+*.resharper
+_ReSharper*/
+*.ReSharper
+*.ReSharper.user
+**/.Rider*/
+
+############################################
+# VS Code
+############################################
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+############################################
+# NuGet
+############################################
+# packages/ (only if you still use packages.config style)
+packages/
+# NuGet v3 cache shouldn't be in repo, but included here for completeness
+# (usually not inside repo anyway)
+# .nuget/NuGet.exe
+# project.lock.json (old)
+project.lock.json
+# NuGet artifacts
+*.nupkg
+*.snupkg
+
+############################################
+# dotnet tools / artifacts
+############################################
+# Local tool manifest cache or tool outputs
+.dotnet/
+# dotnet user secrets - do NOT commit secrets
+**/secrets.json
+**/*.secrets.json
+
+############################################
+# ASP.NET / IIS / Kestrel
+############################################
+# Local IIS Express
+**/.vs/config/applicationhost.config
+# HTTPS dev cert (don’t commit)
+*.pfx
+*.p12
+
+############################################
+# Node / Frontend (if you have SPA/Blazor WASM tooling etc.)
+############################################
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+**/dist/
+**/.parcel-cache/
+**/.vite/
+
+############################################
+# Docker / Compose local volumes (only if inside repo)
+############################################
+**/docker-data/
+**/data/
+**/.docker/
+
+############################################
+# Azure / AWS / other tooling
+############################################
+# Azure Functions local settings
+local.settings.json
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+############################################
+# Misc
+############################################
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+# Code coverage outputs
+**/coverage/
+**/coverage.*
+# Generated files
+*.g.cs
+*.generated.cs

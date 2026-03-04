@@ -6,16 +6,45 @@ internal static class ServiceExtensions
 {
     private const string ForwardedHeadersSectionName = "ForwardedHeaders";
     private const string DataProtectionSectionName = "DataProtection";
+    private const string OidcSectionName = "Oidc";
 
-    internal static IServiceCollection AddIdpOptions(this IServiceCollection sc, IConfiguration configuration)
+
+    internal static IServiceCollection AddBzsIdp(this IServiceCollection sc, IConfiguration configuration)
     {
-        sc.AddOptions<BzsForwardedHeadersOptions>().Bind(configuration.GetSection(ForwardedHeadersSectionName));
+        _ = new IdpInternalService(sc, configuration);
+
         return sc;
     }
 
-    internal static IServiceCollection AddDataProtection(this IServiceCollection sc)
+    private class IdpInternalService(IServiceCollection sc, IConfiguration cfg)
     {
-        sc.AddDataProtectionKeyStorage(AppContext.,
-            builder.Configuration.GetRequiredSection("DataProtection").Value!);
+        internal IServiceCollection AddIdpOptions()
+        {
+            sc.AddOptions<BzsForwardedHeadersOptions>().Bind(cfg.GetSection(ForwardedHeadersSectionName));
+            sc.AddOptions<DataProtectionOptions>().Bind(cfg.GetSection(DataProtectionSectionName));
+            sc.AddOptions<OidcOptions>().Bind(cfg.GetSection(OidcSectionName));
+            return sc;
+        }
+
+        internal IServiceCollection AddDataProtection()
+        {
+#if !DEBUG
+            var options = cfg.GetSection(DataProtectionSectionName).Get<DataProtectionOptions>();
+            if (options is null)
+            {
+                throw new InvalidOperationException("DataProtection options are not configured.");
+            }
+#else
+            var options = new DataProtectionOptions()
+            {
+                ApplicationName = "BzsCenter.Idp.Test",
+                KeyLifetimeDays = 365,
+                StorageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DevDataProtectionKeys"),
+            };
+#endif
+
+            sc.AddDataProtectionKeyStorage(options);
+            return sc;
+        }
     }
 }

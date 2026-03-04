@@ -20,40 +20,38 @@ public static class ServiceExtensions
         /// <summary>
         /// 配置数据保护密钥存储，将加密密钥持久化到指定目录。
         /// </summary>
-        /// <param name="appName">应用程序名称，用于隔离不同应用的数据保护密钥。</param>
-        /// <param name="directoryPath">用于存储密钥的目录路径。</param>
-        /// <param name="keyLifetime">密钥的有效期，默认为 90 天。</param>
+        /// <param name="options">数据保护配置选项，包含应用程序名称、存储目录和密钥有效期。</param>
         /// <remarks>
         /// 此方法用于配置 ASP.NET Core 数据保护系统，将加密密钥持久化保存到文件系统。
         /// 默认情况下，密钥存储在内存中，应用重启后会丢失，导致用户登录状态失效。
         /// 通过将密钥持久化到指定目录，可以在应用重启后继续使用之前的密钥。
+        /// 
+        /// <paramref name="options"/> 参数说明：
+        /// - <see cref="DataProtectionOptions.ApplicationName"/>：应用程序名称，用于隔离不同应用的数据保护密钥
+        /// - <see cref="DataProtectionOptions.StorageDirectory"/>：用于路径
+        /// - <see cref="DataProtectionOptions.KeyLifetimeDays"/>：密钥的有效期（天数），默认为存储密钥的目录 90 天
         /// 
         /// 主要用途：
         /// - 加密身份验证 Cookie
         /// - 生成和验证防伪标记（CSRF Token）
         /// - 保护会话状态数据
         /// 
-        /// 如果未指定 <paramref name="keyLifetime"/> 或设置为默认值，将使用 90 天作为密钥有效期。
         /// 密钥过期后会自动生成新密钥。
         /// </remarks>
-        public IServiceCollection AddDataProtectionKeyStorage(string appName, string directoryPath,
-            TimeSpan keyLifetime = default)
+        public IServiceCollection AddDataProtectionKeyStorage(DataProtectionOptions options)
         {
-            if (keyLifetime == TimeSpan.Zero)
-                keyLifetime = TimeSpan.FromDays(90);
-
-            if (!Directory.Exists(directoryPath))
+            if (!Directory.Exists(options.StorageDirectory))
             {
                 if (OperatingSystem.IsWindows())
-                    Directory.CreateDirectory(directoryPath);
+                    Directory.CreateDirectory(options.StorageDirectory);
                 else
-                    Directory.CreateDirectory(directoryPath, LinuxDirMode);
+                    Directory.CreateDirectory(options.StorageDirectory, LinuxDirMode);
             }
 
             sc.AddDataProtection()
-                .SetApplicationName(appName)
-                .PersistKeysToFileSystem(new DirectoryInfo(directoryPath))
-                .SetDefaultKeyLifetime(keyLifetime);
+                .SetApplicationName(options.ApplicationName)
+                .PersistKeysToFileSystem(new DirectoryInfo(options.StorageDirectory))
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(options.KeyLifetimeDays));
 
             return sc;
         }

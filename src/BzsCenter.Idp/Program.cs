@@ -5,7 +5,7 @@ using BzsCenter.Shared.Infrastructure.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddIdpOptions(builder.Configuration)
+builder.Services.AddBzsIdp(builder.Configuration)
     .AddForwardedHeaders();
 
 

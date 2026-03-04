@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 
-namespace BzsCenter.Shared.Infrastructure;
+namespace BzsCenter.Shared.Infrastructure.Telemetry;
 
 public static class ActivityExtensions
 {

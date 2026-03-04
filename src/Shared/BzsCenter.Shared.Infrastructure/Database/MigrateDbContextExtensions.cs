@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
+using BzsCenter.Shared.Infrastructure.Telemetry;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace BzsCenter.Shared.Infrastructure;
+namespace BzsCenter.Shared.Infrastructure.Database;
 
 public static class MigrateDbContextExtensions
 {
@@ -109,29 +110,5 @@ public static class MigrateDbContextExtensions
                 await Task.Delay(TimeSpan.FromSeconds(2 + currentRetry * 2), cancellationToken);
             }
         }
-    }
-}
-
-/// <summary>
-///   Hosted service for migrating the database. 
-/// </summary>
-internal class MigrationService<TContext> : IMigrated where TContext : DbContext
-{
-    private readonly IServiceProvider _sp;
-    private readonly Func<TContext, IServiceProvider, Task>? _seeder;
-
-    public MigrationService(IServiceProvider sp)
-    {
-        _sp = sp;
-    }
-
-    public MigrationService(IServiceProvider sp, Func<TContext, IServiceProvider, Task> seeder) : this(sp)
-    {
-        _seeder = seeder;
-    }
-
-    public Task MigrateAsync(CancellationToken cancellationToken)
-    {
-        return _sp.MigrateDbContextAsync(_seeder, cancellationToken);
     }
 }

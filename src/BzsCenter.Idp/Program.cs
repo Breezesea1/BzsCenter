@@ -1,6 +1,13 @@
+using BzsCenter.Idp;
 using BzsCenter.Idp.Components;
+using BzsCenter.Shared.Infrastructure.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+builder.Services.AddIdpOptions(builder.Configuration)
+    .AddForwardedHeaders();
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()

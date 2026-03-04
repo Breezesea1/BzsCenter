@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace BzsCenter.Shared.Infrastructure;
+namespace BzsCenter.Shared.Infrastructure.AspNetCore;
 
 public static class ClaimsPrincipalExtensions
 {

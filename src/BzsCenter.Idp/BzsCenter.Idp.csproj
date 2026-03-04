@@ -14,12 +14,17 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
       <PackageReference Include="OpenIddict.AspNetCore" Version="7.2.0" />
       <PackageReference Include="OpenIddict.Server" Version="7.2.0" />
     </ItemGroup>
 
     <ItemGroup>
       <Folder Include="Services\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

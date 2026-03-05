@@ -1,6 +1,7 @@
 ﻿using BzsCenter.Shared.Infrastructure.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 
-namespace BzsCenter.Idp;
+namespace BzsCenter.Idp.Services;
 
 internal static class ServiceExtensions
 {
@@ -9,7 +10,8 @@ internal static class ServiceExtensions
     private const string OidcSectionName = "Oidc";
 
 
-    internal static IServiceCollection AddBzsIdp(this IServiceCollection sc, IConfiguration configuration)
+
+    internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration)
     {
         _ = new IdpInternalService(sc, configuration);
 

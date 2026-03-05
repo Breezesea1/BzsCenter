@@ -1,11 +1,12 @@
 using BzsCenter.Idp;
 using BzsCenter.Idp.Components;
+using BzsCenter.Idp.Services;
 using BzsCenter.Shared.Infrastructure.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddBzsIdp(builder.Configuration)
+builder.Services.AddIdpService(builder.Configuration)
     .AddForwardedHeaders();
 
 

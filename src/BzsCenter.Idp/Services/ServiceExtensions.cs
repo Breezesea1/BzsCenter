@@ -1,52 +1,37 @@
-﻿using BzsCenter.Shared.Infrastructure.AspNetCore;
+﻿using BzsCenter.Idp.Infra;
+using BzsCenter.Idp.Infra.Oidc;
 using Microsoft.EntityFrameworkCore;
 
 namespace BzsCenter.Idp.Services;
 
 internal static class ServiceExtensions
 {
-    private const string ForwardedHeadersSectionName = "ForwardedHeaders";
-    private const string DataProtectionSectionName = "DataProtection";
-    private const string OidcSectionName = "Oidc";
-
-
-
-    internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration)
+    internal static void EnrichFromAspire(this WebApplicationBuilder builder)
     {
-        _ = new IdpInternalService(sc, configuration);
-
-        return sc;
+        builder.EnrichNpgsqlDbContext<IdpDbContext>();
     }
 
-    private class IdpInternalService(IServiceCollection sc, IConfiguration cfg)
+
+    /// <summary>
+    /// 向服务集合注册 Identity Provider (IDP) 服务。
+    /// </summary>
+    /// <param name="sc">服务集合。</param>
+    /// <param name="configuration">应用程序配置。</param>
+    /// <returns>服务集合，用于链式调用。</returns>
+    internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration)
     {
-        internal IServiceCollection AddIdpOptions()
-        {
-            sc.AddOptions<BzsForwardedHeadersOptions>().Bind(cfg.GetSection(ForwardedHeadersSectionName));
-            sc.AddOptions<DataProtectionOptions>().Bind(cfg.GetSection(DataProtectionSectionName));
-            sc.AddOptions<OidcOptions>().Bind(cfg.GetSection(OidcSectionName));
-            return sc;
-        }
+        sc.AddForwardedHeaders();
 
-        internal IServiceCollection AddDataProtection()
-        {
-#if !DEBUG
-            var options = cfg.GetSection(DataProtectionSectionName).Get<DataProtectionOptions>();
-            if (options is null)
-            {
-                throw new InvalidOperationException("DataProtection options are not configured.");
-            }
-#else
-            var options = new DataProtectionOptions()
-            {
-                ApplicationName = "BzsCenter.Idp.Test",
-                KeyLifetimeDays = 365,
-                StorageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DevDataProtectionKeys"),
-            };
-#endif
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
-            sc.AddDataProtectionKeyStorage(options);
-            return sc;
-        }
+        sc.AddInfraServices(connectionString);
+
+        var registrar = new IdpServiceRegistrar(sc, configuration);
+        registrar.AddIdpOptions();
+        registrar.AddDataProtection();
+        registrar.AddOidc();
+
+        return sc;
     }
 }

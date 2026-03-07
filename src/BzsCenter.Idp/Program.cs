@@ -1,14 +1,11 @@
-using BzsCenter.Idp;
 using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Services;
-using BzsCenter.Shared.Infrastructure.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddIdpService(builder.Configuration)
-    .AddForwardedHeaders();
-
+builder.Services.AddIdpService(builder.Configuration);
+builder.EnrichFromAspire();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -25,7 +22,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+app.UseForwardedHeaders();
 app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseAntiforgery();
 

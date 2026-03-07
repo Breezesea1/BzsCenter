@@ -8,6 +8,8 @@ namespace BzsCenter.Idp.Infra;
 public sealed class IdpDbContext(DbContextOptions<IdpDbContext> options)
     : IdentityDbContext<BzsUser, BzsRole, Guid>(options)
 {
+    public DbSet<PermissionScopeMapping> PermissionScopeMappings => Set<PermissionScopeMapping>();
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         // 先调用基类以配置 Identity 模型

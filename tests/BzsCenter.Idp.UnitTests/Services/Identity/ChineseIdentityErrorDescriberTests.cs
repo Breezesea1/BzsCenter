@@ -1,6 +1,6 @@
-using BzsCenter.Idp.Services;
+using BzsCenter.Idp.Services.Identity;
 
-namespace BzsCenter.Idp.UnitTests.Services;
+namespace BzsCenter.Idp.UnitTests.Services.Identity;
 
 public class ChineseIdentityErrorDescriberTests
 {

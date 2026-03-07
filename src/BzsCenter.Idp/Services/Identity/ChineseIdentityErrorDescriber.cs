@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 
-namespace BzsCenter.Idp.Services;
+namespace BzsCenter.Idp.Services.Identity;
 
 public class ChineseIdentityErrorDescriber : IdentityErrorDescriber
 {

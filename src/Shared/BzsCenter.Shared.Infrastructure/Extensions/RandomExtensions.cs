@@ -1,4 +1,4 @@
-namespace BzsCenter.Shared.Infrastructure;
+namespace BzsCenter.Shared.Infrastructure.Extensions;
 
 public static class RandomExtensions
 {

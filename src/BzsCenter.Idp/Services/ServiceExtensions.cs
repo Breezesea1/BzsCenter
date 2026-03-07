@@ -1,5 +1,8 @@
-﻿using BzsCenter.Idp.Infra;
+using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
+using BzsCenter.Idp.Services.Authorization;
+using BzsCenter.Idp.Services.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BzsCenter.Idp.Services;
@@ -21,6 +24,7 @@ internal static class ServiceExtensions
     internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration)
     {
         sc.AddForwardedHeaders();
+        sc.AddMemoryCache();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         ArgumentException.ThrowIfNullOrEmpty(connectionString);
@@ -31,6 +35,15 @@ internal static class ServiceExtensions
         registrar.AddIdpOptions();
         registrar.AddDataProtection();
         registrar.AddOidc();
+
+        sc.AddScoped<IRoleService, RoleService>();
+        sc.AddScoped<IUserService, UserService>();
+        sc.AddScoped<IRolePermissionService, RolePermissionService>();
+        sc.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        sc.AddScoped<IdentitySeeder>();
+
+        sc.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        sc.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
         return sc;
     }

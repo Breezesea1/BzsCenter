@@ -1,8 +1,12 @@
 using BzsCenter.Idp.Domain;
 using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
+using BzsCenter.Idp.Services.Identity;
+using BzsCenter.Idp.Services.Authorization;
+using BzsCenter.Idp.Services.Oidc;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
+using OpenIddict.Server;
 
 namespace BzsCenter.Idp.Services;
 
@@ -14,12 +18,25 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     private const string ForwardedHeadersSectionName = "ForwardedHeaders";
     private const string DataProtectionSectionName = "DataProtection";
     private const string OidcSectionName = "Oidc";
+    private const string IdentitySectionName = "Identity";
+    private const string PermissionPolicySectionName = "PermissionPolicy";
 
     internal IServiceCollection AddIdpOptions()
     {
         sc.AddOptions<BzsForwardedHeadersOptions>().Bind(cfg.GetSection(ForwardedHeadersSectionName));
         sc.AddOptions<DataProtectionOptions>().Bind(cfg.GetSection(DataProtectionSectionName));
         sc.AddOptions<OidcOptions>().Bind(cfg.GetSection(OidcSectionName));
+        sc.AddOptions<IdentitySeedOptions>()
+            .Bind(cfg.GetSection(IdentitySectionName))
+            .Validate(
+                static o => !string.IsNullOrWhiteSpace(o.Admin.UserName),
+                "Identity:Admin:UserName is required.")
+            .Validate(
+                static o => !string.IsNullOrWhiteSpace(o.Admin.Password),
+                "Identity:Admin:Password is required.")
+            .ValidateOnStart();
+
+        sc.AddOptions<PermissionPolicyOptions>().Bind(cfg.GetSection(PermissionPolicySectionName));
         return sc;
     }
 
@@ -47,12 +64,13 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     internal IServiceCollection AddOidc()
     {
         var oidcOptions = cfg.GetSection(OidcSectionName).Get<OidcOptions>();
+        var identityOptions = cfg.GetSection(IdentitySectionName).Get<IdentitySeedOptions>() ?? new IdentitySeedOptions();
 
         sc.AddAuthorization();
         ConfigureAuthenticationSchemes();
         ConfigureIdentity();
         ConfigureApplicationCookie();
-        ConfigureOpenIddict(oidcOptions);
+        ConfigureOpenIddict(oidcOptions, identityOptions);
 
         return sc;
     }
@@ -81,7 +99,8 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             })
             .AddEntityFrameworkStores<IdpDbContext>()
             .AddDefaultTokenProviders()
-            .AddErrorDescriber<ChineseIdentityErrorDescriber>();
+            .AddErrorDescriber<ChineseIdentityErrorDescriber>()
+            .AddClaimsPrincipalFactory<PermissionClaimsPrincipalFactory>();
     }
 
     private void ConfigureApplicationCookie()
@@ -101,25 +120,34 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         });
     }
 
-    private void ConfigureOpenIddict(OidcOptions? oidcOptions)
+    private void ConfigureOpenIddict(OidcOptions? oidcOptions, IdentitySeedOptions identityOptions)
     {
         sc.AddOpenIddict()
-            .AddCore(options =>
-            {
-                options.UseEntityFrameworkCore().UseDbContext<IdpDbContext>();
-            })
+            .AddCore(options => { options.UseEntityFrameworkCore().UseDbContext<IdpDbContext>(); })
             .AddServer(options =>
             {
-                ConfigureOpenIddictEndpointsAndFlows(options);
+                ConfigureOpenIddictEndpointsAndFlows(options, identityOptions);
                 ConfigureOpenIddictCertificates(options, oidcOptions);
                 ConfigureOpenIddictAspNetCore(options);
                 ConfigureOpenIddictTokenLifetimes(options, oidcOptions);
+                ConfigureOpenIddictClaimDestinations(options);
             });
     }
 
-    private void ConfigureOpenIddictEndpointsAndFlows(OpenIddictServerBuilder options)
+    private void ConfigureOpenIddictEndpointsAndFlows(OpenIddictServerBuilder options, IdentitySeedOptions identityOptions)
     {
         var idpIssuer = cfg.GetRequiredSection("IdpIssuer").Value!;
+
+        var allScopes = identityOptions.AdditionalScopes
+            .Where(static scope => !string.IsNullOrWhiteSpace(scope))
+            .Select(static scope => scope.Trim())
+            .Append(OpenIddictConstants.Scopes.OpenId)
+            .Append(OpenIddictConstants.Scopes.Profile)
+            .Append(OpenIddictConstants.Scopes.Email)
+            .Append(OpenIddictConstants.Scopes.Roles)
+            .Append(OpenIddictConstants.Scopes.OfflineAccess)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
 
         options
             .SetIssuer(new Uri(idpIssuer))
@@ -132,14 +160,15 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             .RequireProofKeyForCodeExchange()
             .AllowClientCredentialsFlow();
 
-        options.RegisterScopes(
-            OpenIddictConstants.Scopes.OpenId,
-            OpenIddictConstants.Scopes.Profile,
-            OpenIddictConstants.Scopes.Email,
-            OpenIddictConstants.Scopes.Roles,
-            "api.read",
-            "api.write",
-            OpenIddictConstants.Scopes.OfflineAccess);
+        options.RegisterScopes(allScopes);
+    }
+
+    private static void ConfigureOpenIddictClaimDestinations(OpenIddictServerBuilder options)
+    {
+        options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
+        {
+            builder.UseScopedHandler<PermissionClaimDestinationsHandler>();
+        });
     }
 
     private void ConfigureOpenIddictCertificates(OpenIddictServerBuilder options, OidcOptions? oidcOptions)

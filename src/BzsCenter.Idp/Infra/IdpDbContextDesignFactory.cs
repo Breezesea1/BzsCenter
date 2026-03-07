@@ -22,7 +22,7 @@ public sealed class IdpDbContextDesignFactory : IDesignTimeDbContextFactory<IdpD
         }
 
         dbType ??= "pgsql";
-        connStr ??= "Host=localhost;Port=5432;Database=identityDb;Username=postgres;Password=postgres";
+        connStr ??= "Host=localhost;Port=5432;Database=idp_db;Username=postgres;Password=postgres";
 
         // ✅ 设计时直接用跟运行时一样的配置
         optionsBuilder.ConfigureIdentityDb(connStr);

@@ -8,8 +8,8 @@ namespace BzsCenter.Shared.Infrastructure.Database;
 
 public static class MigrateDbContextExtensions
 {
-    private static readonly string _activitySourceName = "DbMigrations";
-    private static readonly ActivitySource _activitySource = new(_activitySourceName);
+    private static readonly string ActivitySourceName = "DbMigrations";
+    private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
 
 
     extension(IServiceCollection sc)
@@ -21,7 +21,7 @@ public static class MigrateDbContextExtensions
             where TContext : DbContext
         {
             // Enable migration tracing
-            sc.AddOpenTelemetry().WithTracing(tracing => tracing.AddSource(_activitySourceName));
+            sc.AddOpenTelemetry().WithTracing(tracing => tracing.AddSource(ActivitySourceName));
             return sc.AddScoped<IMigrated>(sp =>
                 seeder is null
                     ? new MigrationService<TContext>(sp)
@@ -36,7 +36,7 @@ public static class MigrateDbContextExtensions
             where TContext : DbContext
         {
             // Enable migration tracing
-            sc.AddOpenTelemetry().WithTracing(tracing => tracing.AddSource(_activitySourceName));
+            sc.AddOpenTelemetry().WithTracing(tracing => tracing.AddSource(ActivitySourceName));
             return sc.AddKeyedScoped<IMigrated>(key, (sp, _) =>
                 seeder is null
                     ? new MigrationService<TContext>(sp)
@@ -61,7 +61,7 @@ public static class MigrateDbContextExtensions
         var context = scopeServices.GetRequiredService<TContext>();
 
 
-        using var activity = _activitySource.StartActivity($"Migration operation {typeof(TContext).Name}");
+        using var activity = ActivitySource.StartActivity($"Migration operation {typeof(TContext).Name}");
 
         var retryCount = 10;
         var currentRetry = 0;

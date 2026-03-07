@@ -11,6 +11,11 @@ internal sealed class IdentitySeeder(
     IOptions<IdentitySeedOptions> identityOptions,
     ILogger<IdentitySeeder> logger)
 {
+    /// <summary>
+    /// 执行初始化种子逻辑。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
         var options = identityOptions.Value;
@@ -88,6 +93,12 @@ internal sealed class IdentitySeeder(
         }
     }
 
+    /// <summary>
+    /// 执行初始化种子逻辑。
+    /// </summary>
+    /// <param name="options">参数options。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     private async Task SeedRolePermissionsAsync(IdentitySeedOptions options, CancellationToken cancellationToken)
     {
         var allConfiguredPermissions = options.RolePermissions.Values
@@ -118,6 +129,12 @@ internal sealed class IdentitySeeder(
         }
     }
 
+    /// <summary>
+    /// 判断条件是否成立。
+    /// </summary>
+    /// <param name="result">参数result。</param>
+    /// <param name="expectedErrorCode">参数expectedErrorCode。</param>
+    /// <returns>执行结果。</returns>
     private static bool IsSuccessOrExpectedConflict(IdentityResult result, string expectedErrorCode)
     {
         if (result.Succeeded)
@@ -128,6 +145,11 @@ internal sealed class IdentitySeeder(
         return result.Errors.Any(err => string.Equals(err.Code, expectedErrorCode, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// 确保前置条件满足。
+    /// </summary>
+    /// <param name="result">参数result。</param>
+    /// <param name="action">参数action。</param>
     private static void EnsureSuccess(IdentityResult result, string action)
     {
         if (result.Succeeded)

@@ -4,6 +4,10 @@ namespace BzsCenter.Idp.Services.Identity;
 
 public sealed class IdentitySeedOptions
 {
+    /// <summary>
+    /// 执行new。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     public SeedAdminOptions Admin { get; init; } = new();
     public string[] InitialRoles { get; init; } = [IdentitySeedConstants.UserRoleName];
 

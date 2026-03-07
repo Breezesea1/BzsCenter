@@ -9,6 +9,11 @@ namespace BzsCenter.Idp.Services.Oidc;
 internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService permissionScopeService)
     : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
 {
+    /// <summary>
+    /// 执行HandleAsync。
+    /// </summary>
+    /// <param name="context">参数context。</param>
+    /// <returns>执行结果。</returns>
     public async ValueTask HandleAsync(OpenIddictServerEvents.ProcessSignInContext context)
     {
         if (context.Principal is null)
@@ -71,6 +76,13 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
         });
     }
 
+    /// <summary>
+    /// 执行ShouldEmitPermissionClaim。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="grantedScopes">参数grantedScopes。</param>
+    /// <param name="permissionScopes">参数permissionScopes。</param>
+    /// <returns>执行结果。</returns>
     private static bool ShouldEmitPermissionClaim(
         string permission,
         ISet<string> grantedScopes,

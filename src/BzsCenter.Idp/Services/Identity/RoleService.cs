@@ -16,6 +16,11 @@ public interface IRoleService
 
 internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleService
 {
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IReadOnlyList<BzsRole>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await roleManager.Roles
@@ -24,6 +29,12 @@ internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleServi
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public Task<BzsRole?> GetByIdAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         return roleManager.Roles
@@ -31,12 +42,24 @@ internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleServi
             .FirstOrDefaultAsync(r => r.Id == roleId, cancellationToken);
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="roleName">参数roleName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public Task<BzsRole?> GetByNameAsync(string roleName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleName);
         return roleManager.FindByNameAsync(roleName);
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="roleName">参数roleName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> CreateAsync(string roleName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleName);
@@ -50,6 +73,13 @@ internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleServi
         return await roleManager.CreateAsync(role);
     }
 
+    /// <summary>
+    /// 更新数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="roleName">参数roleName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> UpdateAsync(Guid roleId, string roleName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleName);
@@ -79,6 +109,12 @@ internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleServi
         return await roleManager.UpdateAsync(role);
     }
 
+    /// <summary>
+    /// 删除数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> DeleteAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         var role = await roleManager.FindByIdAsync(roleId.ToString());
@@ -95,6 +131,12 @@ internal sealed class RoleService(RoleManager<BzsRole> roleManager) : IRoleServi
         return await roleManager.DeleteAsync(role);
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="code">参数code。</param>
+    /// <param name="description">参数description。</param>
+    /// <returns>执行结果。</returns>
     private static IdentityError CreateError(string code, string description)
     {
         return new IdentityError

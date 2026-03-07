@@ -12,6 +12,11 @@ internal sealed class PermissionClaimsPrincipalFactory(
     IOptions<IdentityOptions> optionsAccessor)
     : UserClaimsPrincipalFactory<BzsUser, BzsRole>(userManager, roleManager, optionsAccessor)
 {
+    /// <summary>
+    /// 生成结果。
+    /// </summary>
+    /// <param name="user">参数user。</param>
+    /// <returns>执行结果。</returns>
     protected override async Task<ClaimsIdentity> GenerateClaimsAsync(BzsUser user)
     {
         var identity = await base.GenerateClaimsAsync(user);

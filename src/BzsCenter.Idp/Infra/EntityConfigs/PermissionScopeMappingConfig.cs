@@ -6,6 +6,10 @@ namespace BzsCenter.Idp.Infra.EntityConfigs;
 
 internal sealed class PermissionScopeMappingConfig : IEntityTypeConfiguration<PermissionScopeMapping>
 {
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="builder">参数builder。</param>
     public void Configure(EntityTypeBuilder<PermissionScopeMapping> builder)
     {
         builder.ToTable("bzs_permission_scopes");

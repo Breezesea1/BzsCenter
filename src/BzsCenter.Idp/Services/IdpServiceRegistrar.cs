@@ -21,6 +21,10 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     private const string IdentitySectionName = "Identity";
     private const string PermissionPolicySectionName = "PermissionPolicy";
 
+    /// <summary>
+    /// 添加数据。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     internal IServiceCollection AddIdpOptions()
     {
         sc.AddOptions<BzsForwardedHeadersOptions>().Bind(cfg.GetSection(ForwardedHeadersSectionName));
@@ -40,6 +44,10 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         return sc;
     }
 
+    /// <summary>
+    /// 添加数据。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     internal IServiceCollection AddDataProtection()
     {
 #if !DEBUG
@@ -61,6 +69,10 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         return sc;
     }
 
+    /// <summary>
+    /// 添加数据。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     internal IServiceCollection AddOidc()
     {
         var oidcOptions = cfg.GetSection(OidcSectionName).Get<OidcOptions>();
@@ -75,6 +87,9 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         return sc;
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
     private void ConfigureAuthenticationSchemes()
     {
         sc.AddAuthentication(options =>
@@ -85,6 +100,9 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         });
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
     private void ConfigureIdentity()
     {
         sc.AddIdentity<BzsUser, BzsRole>(opt =>
@@ -103,6 +121,9 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             .AddClaimsPrincipalFactory<PermissionClaimsPrincipalFactory>();
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
     private void ConfigureApplicationCookie()
     {
         sc.ConfigureApplicationCookie(opt =>
@@ -120,6 +141,11 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         });
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="oidcOptions">参数oidcOptions。</param>
+    /// <param name="identityOptions">参数identityOptions。</param>
     private void ConfigureOpenIddict(OidcOptions? oidcOptions, IdentitySeedOptions identityOptions)
     {
         sc.AddOpenIddict()
@@ -134,6 +160,11 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             });
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="options">参数options。</param>
+    /// <param name="identityOptions">参数identityOptions。</param>
     private void ConfigureOpenIddictEndpointsAndFlows(OpenIddictServerBuilder options, IdentitySeedOptions identityOptions)
     {
         var idpIssuer = cfg.GetRequiredSection("IdpIssuer").Value!;
@@ -163,6 +194,10 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         options.RegisterScopes(allScopes);
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="options">参数options。</param>
     private static void ConfigureOpenIddictClaimDestinations(OpenIddictServerBuilder options)
     {
         options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
@@ -171,6 +206,11 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         });
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="options">参数options。</param>
+    /// <param name="oidcOptions">参数oidcOptions。</param>
     private void ConfigureOpenIddictCertificates(OpenIddictServerBuilder options, OidcOptions? oidcOptions)
     {
 #if DEBUG
@@ -203,6 +243,10 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
 #endif
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="options">参数options。</param>
     private static void ConfigureOpenIddictAspNetCore(OpenIddictServerBuilder options)
     {
         options.UseAspNetCore()
@@ -212,6 +256,11 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             .EnableUserInfoEndpointPassthrough();
     }
 
+    /// <summary>
+    /// 配置选项。
+    /// </summary>
+    /// <param name="options">参数options。</param>
+    /// <param name="oidcOptions">参数oidcOptions。</param>
     private static void ConfigureOpenIddictTokenLifetimes(
         OpenIddictServerBuilder options,
         OidcOptions? oidcOptions)

@@ -22,6 +22,11 @@ public interface IUserService
 
 internal sealed class UserService(UserManager<BzsUser> userManager) : IUserService
 {
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IReadOnlyList<BzsUser>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         return await userManager.Users
@@ -30,6 +35,12 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
             .ToListAsync(cancellationToken);
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public Task<BzsUser?> GetByIdAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return userManager.Users
@@ -37,12 +48,26 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="userName">参数userName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public Task<BzsUser?> GetByNameAsync(string userName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(userName);
         return userManager.FindByNameAsync(userName);
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="userName">参数userName。</param>
+    /// <param name="password">参数password。</param>
+    /// <param name="email">参数email。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> CreateAsync(string userName, string password, string? email = null,
         CancellationToken cancellationToken = default)
     {
@@ -58,6 +83,14 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         return await userManager.CreateAsync(user, password);
     }
 
+    /// <summary>
+    /// 更新数据。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="userName">参数userName。</param>
+    /// <param name="email">参数email。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> UpdateAsync(Guid userId, string userName, string? email = null,
         CancellationToken cancellationToken = default)
     {
@@ -75,6 +108,12 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         return await userManager.UpdateAsync(user);
     }
 
+    /// <summary>
+    /// 删除数据。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> DeleteAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var user = await userManager.FindByIdAsync(userId.ToString());
@@ -86,6 +125,13 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         return await userManager.DeleteAsync(user);
     }
 
+    /// <summary>
+    /// 添加数据。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="roleName">参数roleName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> AddToRoleAsync(Guid userId, string roleName,
         CancellationToken cancellationToken = default)
     {
@@ -100,6 +146,13 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         return await userManager.AddToRoleAsync(user, roleName.Trim());
     }
 
+    /// <summary>
+    /// 判断条件是否成立。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="roleName">参数roleName。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<bool> IsInRoleAsync(Guid userId, string roleName, CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(roleName);
@@ -113,6 +166,12 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         return await userManager.IsInRoleAsync(user, roleName.Trim());
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="code">参数code。</param>
+    /// <param name="description">参数description。</param>
+    /// <returns>执行结果。</returns>
     private static IdentityError CreateError(string code, string description)
     {
         return new IdentityError

@@ -19,6 +19,11 @@ public sealed class ConnectController(
     IOpenIddictApplicationManager applicationManager,
     IOptions<IdentitySeedOptions> identityOptions) : ControllerBase
 {
+    /// <summary>
+    /// 处理授权流程。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/connect/authorize")]
     [HttpPost("~/connect/authorize")]
     [IgnoreAntiforgeryToken]
@@ -55,6 +60,11 @@ public sealed class ConnectController(
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
+    /// <summary>
+    /// 处理令牌交换流程。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpPost("~/connect/token")]
     [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Exchange(CancellationToken cancellationToken)
@@ -128,6 +138,11 @@ public sealed class ConnectController(
         });
     }
 
+    /// <summary>
+    /// 返回用户信息。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/connect/userinfo")]
     [HttpPost("~/connect/userinfo")]
     [Authorize(AuthenticationSchemes = OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)]
@@ -167,6 +182,10 @@ public sealed class ConnectController(
         return Ok(response.Where(static pair => pair.Value is not null));
     }
 
+    /// <summary>
+    /// 处理注销流程。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/connect/logout")]
     [HttpPost("~/connect/logout")]
     [IgnoreAntiforgeryToken]
@@ -183,6 +202,11 @@ public sealed class ConnectController(
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 
+    /// <summary>
+    /// 过滤并返回结果。
+    /// </summary>
+    /// <param name="requestedScopes">参数requestedScopes。</param>
+    /// <returns>执行结果。</returns>
     private IReadOnlyList<string> FilterRequestedScopes(IEnumerable<string> requestedScopes)
     {
         var allowedScopes = identityOptions.Value.AdditionalScopes
@@ -200,6 +224,10 @@ public sealed class ConnectController(
             .ToArray();
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     private OpenIddictRequest GetRequiredOpenIddictRequest()
     {
         var request = HttpContext.Features.Get<OpenIddictServerAspNetCoreFeature>()?.Transaction?.Request;

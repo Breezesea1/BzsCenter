@@ -16,6 +16,12 @@ public interface IRolePermissionService
 
 internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : IRolePermissionService
 {
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IReadOnlyList<string>> GetPermissionsAsync(Guid roleId, CancellationToken cancellationToken = default)
     {
         var role = await roleManager.FindByIdAsync(roleId.ToString());
@@ -33,6 +39,13 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
             .ToArray();
     }
 
+    /// <summary>
+    /// 添加数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> AddPermissionAsync(Guid roleId, string permission,
         CancellationToken cancellationToken = default)
     {
@@ -58,6 +71,13 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
         return await roleManager.AddClaimAsync(role, new Claim(PermissionConstants.ClaimType, normalizedPermission));
     }
 
+    /// <summary>
+    /// 移除数据。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> RemovePermissionAsync(Guid roleId, string permission,
         CancellationToken cancellationToken = default)
     {
@@ -88,6 +108,13 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
         return IdentityResult.Success;
     }
 
+    /// <summary>
+    /// 同步数据状态。
+    /// </summary>
+    /// <param name="roleId">参数roleId。</param>
+    /// <param name="permissions">参数permissions。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IdentityResult> SyncPermissionsAsync(Guid roleId, IEnumerable<string> permissions,
         CancellationToken cancellationToken = default)
     {
@@ -136,6 +163,12 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
         return IdentityResult.Success;
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="code">参数code。</param>
+    /// <param name="description">参数description。</param>
+    /// <returns>执行结果。</returns>
     private static IdentityError CreateError(string code, string description)
     {
         return new IdentityError

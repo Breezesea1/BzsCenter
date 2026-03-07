@@ -7,6 +7,11 @@ namespace BzsCenter.Idp.Controllers;
 [ApiController]
 public sealed class PermissionScopesController(IPermissionScopeService permissionScopeService) : ControllerBase
 {
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/api/permissions/scopes")]
     [PermissionAuthorize(PermissionConstants.RolesRead)]
     public async Task<ActionResult<IReadOnlyList<PermissionScopeResponse>>> GetAll(CancellationToken cancellationToken)
@@ -15,6 +20,12 @@ public sealed class PermissionScopesController(IPermissionScopeService permissio
         return Ok(items);
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/api/permissions/scopes/{permission}")]
     [PermissionAuthorize(PermissionConstants.RolesRead)]
     public async Task<ActionResult<PermissionScopeResponse>> GetByPermission(string permission,
@@ -30,6 +41,13 @@ public sealed class PermissionScopesController(IPermissionScopeService permissio
         return result is null ? NotFound() : Ok(result);
     }
 
+    /// <summary>
+    /// 执行Upsert。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="request">参数request。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpPut("~/api/permissions/scopes/{permission}")]
     [PermissionAuthorize(PermissionConstants.RolesWrite)]
     public async Task<ActionResult<PermissionScopeResponse>> Upsert(
@@ -56,6 +74,12 @@ public sealed class PermissionScopesController(IPermissionScopeService permissio
         return Ok(result);
     }
 
+    /// <summary>
+    /// 删除数据。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpDelete("~/api/permissions/scopes/{permission}")]
     [PermissionAuthorize(PermissionConstants.RolesWrite)]
     public async Task<IActionResult> Delete(string permission, CancellationToken cancellationToken)
@@ -70,6 +94,12 @@ public sealed class PermissionScopesController(IPermissionScopeService permissio
         return deleted ? NoContent() : NotFound();
     }
 
+    /// <summary>
+    /// 校验输入。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="request">参数request。</param>
+    /// <returns>执行结果。</returns>
     private static Dictionary<string, string[]> Validate(string permission, PermissionScopeUpsertRequest request)
     {
         var errors = new Dictionary<string, string[]>();

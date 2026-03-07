@@ -8,6 +8,12 @@ namespace BzsCenter.Idp.Controllers;
 [ApiController]
 public sealed class OidcClientsController(IOpenIddictApplicationManager applicationManager) : ControllerBase
 {
+    /// <summary>
+    /// 注册资源。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpPost("~/connect/register")]
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public async Task<ActionResult<OidcClientRegistrationResponse>> Register(
@@ -41,6 +47,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         });
     }
 
+    /// <summary>
+    /// 注销资源。
+    /// </summary>
+    /// <param name="clientId">参数clientId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpDelete("~/connect/register/{clientId}")]
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public async Task<IActionResult> Unregister(string clientId, CancellationToken cancellationToken)
@@ -55,6 +67,11 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return NoContent();
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/api/oidc/clients")]
     [PermissionAuthorize(PermissionConstants.ClientsRead)]
     public async Task<ActionResult<IReadOnlyList<OidcClientResponse>>> GetAll(CancellationToken cancellationToken)
@@ -69,6 +86,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return Ok(list.OrderBy(static x => x.ClientId, StringComparer.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="clientId">参数clientId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpGet("~/api/oidc/clients/{clientId}")]
     [PermissionAuthorize(PermissionConstants.ClientsRead)]
     public async Task<ActionResult<OidcClientResponse>> GetByClientId(string clientId, CancellationToken cancellationToken)
@@ -82,6 +105,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return Ok(await ToResponseAsync(application, cancellationToken));
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpPost("~/api/oidc/clients")]
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public Task<ActionResult<OidcClientRegistrationResponse>> Create(
@@ -91,6 +120,13 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return Register(request, cancellationToken);
     }
 
+    /// <summary>
+    /// 更新数据。
+    /// </summary>
+    /// <param name="clientId">参数clientId。</param>
+    /// <param name="request">参数request。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpPut("~/api/oidc/clients/{clientId}")]
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public async Task<ActionResult<OidcClientResponse>> Update(
@@ -116,6 +152,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return Ok(await ToResponseAsync(application, cancellationToken));
     }
 
+    /// <summary>
+    /// 删除数据。
+    /// </summary>
+    /// <param name="clientId">参数clientId。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     [HttpDelete("~/api/oidc/clients/{clientId}")]
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public Task<IActionResult> Delete(string clientId, CancellationToken cancellationToken)
@@ -123,6 +165,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         return Unregister(clientId, cancellationToken);
     }
 
+    /// <summary>
+    /// 执行ToResponseAsync。
+    /// </summary>
+    /// <param name="application">参数application。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     private async Task<OidcClientResponse> ToResponseAsync(object application, CancellationToken cancellationToken)
     {
         var permissions = (await applicationManager.GetPermissionsAsync(application, cancellationToken)).ToArray();
@@ -159,6 +207,11 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         };
     }
 
+    /// <summary>
+    /// 校验输入。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <returns>执行结果。</returns>
     private ActionResult? Validate(OidcClientUpsertRequest request)
     {
         var errors = OidcClientDescriptorFactory.ValidateRequest(request);

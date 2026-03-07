@@ -4,6 +4,11 @@ namespace BzsCenter.Idp.Services.Oidc;
 
 public static class OidcClientDescriptorFactory
 {
+    /// <summary>
+    /// 校验输入。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <returns>执行结果。</returns>
     public static IReadOnlyList<string> ValidateRequest(OidcClientUpsertRequest request)
     {
         var errors = new List<string>();
@@ -51,6 +56,12 @@ public static class OidcClientDescriptorFactory
         return errors;
     }
 
+    /// <summary>
+    /// 创建数据。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <param name="clientId">参数clientId。</param>
+    /// <returns>执行结果。</returns>
     public static OpenIddictApplicationDescriptor CreateDescriptor(OidcClientUpsertRequest request, string clientId)
     {
         var descriptor = new OpenIddictApplicationDescriptor
@@ -94,6 +105,11 @@ public static class OidcClientDescriptorFactory
         return descriptor;
     }
 
+    /// <summary>
+    /// 构建并返回结果。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <returns>执行结果。</returns>
     public static HashSet<string> BuildPermissions(OidcClientUpsertRequest request)
     {
         var permissions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -148,12 +164,22 @@ public static class OidcClientDescriptorFactory
         return permissions;
     }
 
+    /// <summary>
+    /// 生成结果。
+    /// </summary>
+    /// <returns>执行结果。</returns>
     private static string GenerateClientSecret()
     {
         return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) +
                Convert.ToBase64String(Guid.NewGuid().ToByteArray());
     }
 
+    /// <summary>
+    /// 执行TryValidateAbsoluteUris。
+    /// </summary>
+    /// <param name="uris">参数uris。</param>
+    /// <param name="error">参数error。</param>
+    /// <returns>执行结果。</returns>
     private static bool TryValidateAbsoluteUris(IEnumerable<string> uris, out string? error)
     {
         foreach (var uri in uris.Where(static uri => !string.IsNullOrWhiteSpace(uri)).Select(static uri => uri.Trim()))

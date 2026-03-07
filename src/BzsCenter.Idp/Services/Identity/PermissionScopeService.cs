@@ -22,6 +22,11 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
 {
     private const string PermissionScopeCacheKey = "idp.permission-scope.mappings";
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IReadOnlyList<PermissionScopeResponse>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var mappings = await GetMappingsAsync(cancellationToken);
@@ -35,6 +40,12 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
             .ToArray();
     }
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<PermissionScopeResponse?> GetByPermissionAsync(string permission,
         CancellationToken cancellationToken = default)
     {
@@ -52,6 +63,13 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         };
     }
 
+    /// <summary>
+    /// 执行UpsertAsync。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="scopes">参数scopes。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task UpsertAsync(string permission, IEnumerable<string> scopes,
         CancellationToken cancellationToken = default)
     {
@@ -98,6 +116,12 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         cache.Remove(PermissionScopeCacheKey);
     }
 
+    /// <summary>
+    /// 删除数据。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<bool> DeleteAsync(string permission, CancellationToken cancellationToken = default)
     {
         var normalizedPermission = NormalizePermission(permission);
@@ -116,6 +140,12 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         return true;
     }
 
+    /// <summary>
+    /// 解析并返回结果。
+    /// </summary>
+    /// <param name="permissions">参数permissions。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task<IReadOnlyDictionary<string, string[]>> ResolveScopesAsync(IEnumerable<string> permissions,
         CancellationToken cancellationToken = default)
     {
@@ -144,6 +174,12 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         return resolved;
     }
 
+    /// <summary>
+    /// 执行InitializeDefaultsIfEmptyAsync。
+    /// </summary>
+    /// <param name="defaults">参数defaults。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     public async Task InitializeDefaultsIfEmptyAsync(IReadOnlyDictionary<string, string[]> defaults,
         CancellationToken cancellationToken = default)
     {
@@ -174,6 +210,11 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
     }
 
 
+    /// <summary>
+    /// 获取数据。
+    /// </summary>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
     private async Task<IReadOnlyDictionary<string, string[]>> GetMappingsAsync(CancellationToken cancellationToken)
     {
         if (cache.TryGetValue(PermissionScopeCacheKey, out IReadOnlyDictionary<string, string[]>? cachedMappings) &&
@@ -202,12 +243,22 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         return mappings;
     }
 
+    /// <summary>
+    /// 执行NormalizePermission。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    /// <returns>执行结果。</returns>
     private static string NormalizePermission(string permission)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permission);
         return permission.Trim().ToLowerInvariant();
     }
 
+    /// <summary>
+    /// 执行NormalizeScopes。
+    /// </summary>
+    /// <param name="scopes">参数scopes。</param>
+    /// <returns>执行结果。</returns>
     private static string[] NormalizeScopes(IEnumerable<string> scopes)
     {
         return scopes

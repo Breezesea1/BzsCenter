@@ -10,6 +10,7 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.3"/>
         <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.3"/>
         <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0"/>
+        <PackageReference Include="StackExchange.Redis" Version="2.8.37"/>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
 
     </ItemGroup>

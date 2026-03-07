@@ -23,6 +23,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\BzsCenter.AppHost.ServiceDefaults\BzsCenter.AppHost.ServiceDefaults.csproj" />
       <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />
     </ItemGroup>
 

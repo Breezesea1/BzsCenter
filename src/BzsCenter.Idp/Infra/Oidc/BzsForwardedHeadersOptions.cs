@@ -1,4 +1,4 @@
-namespace BzsCenter.Shared.Infrastructure.AspNetCore;
+namespace BzsCenter.Idp.Infra.Oidc;
 
 public class BzsForwardedHeadersOptions
 {

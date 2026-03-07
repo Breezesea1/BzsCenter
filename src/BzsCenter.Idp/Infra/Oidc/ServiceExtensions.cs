@@ -1,12 +1,9 @@
 ﻿using System.Net;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.HttpOverrides;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace BzsCenter.Shared.Infrastructure.AspNetCore;
+namespace BzsCenter.Idp.Infra.Oidc;
 
 public static class ServiceExtensions
 {

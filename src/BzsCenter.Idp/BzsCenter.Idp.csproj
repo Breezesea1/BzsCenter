@@ -26,9 +26,37 @@
       <PackageReference Include="OpenIddict.Server" Version="7.2.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\BzsCenter.AppHost.ServiceDefaults\BzsCenter.AppHost.ServiceDefaults.csproj" />
-      <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BzsCenter.AppHost.ServiceDefaults\BzsCenter.AppHost.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="package.json" />
+    <None Include="package.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Remove="package-lock.json" />
+    <None Include="package-lock.json" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never">
+      <DependentUpon>package.json</DependentUpon>
+    </None>
+    <Content Remove="wwwroot\js\dev\**\*" />
+    <None Include="wwwroot\js\dev\**\*" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Remove="wwwroot\css\app-dev.css" />
+    <None Include="wwwroot\css\app-dev.css" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Remove="wwwroot\css\tailwind.config.js" />
+    <None Include="wwwroot\css\tailwind.config.js" CopyToOutputDirectory="Never" CopyToPublishDirectory="Never" />
+    <Content Remove="scripts\**\*" />
+    <None Remove="scripts\**\*" />
+      
+  </ItemGroup>
+
+  <Target Name="NpmRestore" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" BeforeTargets="Build;Publish">
+    <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
+    <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
+  </Target>
+
+  <Target Name="BuildFrontendAssets" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" DependsOnTargets="NpmRestore" BeforeTargets="Build;Publish">
+    <Exec Command="npm run css:build" WorkingDirectory="$(MSBuildProjectDirectory)" />
+    <Exec Command="npm run gsap:copy" WorkingDirectory="$(MSBuildProjectDirectory)" />
+  </Target>
 
 </Project>

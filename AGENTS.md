@@ -3,157 +3,208 @@
 本文件为在 **BzsCenter** 仓库内工作的 agent（含 AI coding agents）提供统一执行规范。
 目标：减少试错、保持一致性、优先可验证结果。
 
-## 1. 仓库与技术栈
-- Solution: `BzsCenter.sln`
-- 项目：
-  - `src/BzsCenter.Idp/BzsCenter.Idp.csproj`（ASP.NET Core Web）
-  - `src/Shared/BzsCenter.Shared.Infrastructure/BzsCenter.Shared.Infrastructure.csproj`（共享基础设施库）
-- 目标框架：`net10.0`
-- C# 特性：`Nullable=enable`、`ImplicitUsings=enable`
-- 核心依赖：OpenIddict、ASP.NET Core Identity、EF Core、OpenTelemetry
+---
 
-### 1.1 规则文件状态（已核对）
-当前仓库未发现以下规则文件：
-- `.cursorrules`
-- `.cursor/rules/`
-- `.github/copilot-instructions.md`
-- `.editorconfig`
-- `Directory.Build.props` / `Directory.Build.targets`
-> 若后续新增以上规则，必须同步更新本文件。
+## 1. 仓库结构与技术栈
 
-## 2. 标准命令（Build / Lint / Test / Run）
-以下命令均在仓库根目录执行。
-
-### 2.1 Restore
-```bash
-dotnet restore /home/bzs/coding/BzsCenter/BzsCenter.sln
+```
+BzsCenter/
+├── src/
+│   ├── BzsCenter.AppHost/                   # .NET Aspire 编排宿主
+│   ├── BzsCenter.AppHost.ServiceDefaults/    # Aspire 服务默认值（OTEL、健康检查）
+│   ├── BzsCenter.Idp/                        # ASP.NET Core Web（Identity Provider）
+│   └── Shared/
+│       └── BzsCenter.Shared.Infrastructure/  # 共享库：Cache、Auth、DB、Telemetry
+├── tests/
+│   ├── BzsCenter.Idp.UnitTests/             # 纯单元测试（xUnit + NSubstitute）
+│   └── BzsCenter.Idp.IntegrationTests/      # 集成测试（TestHost + EF SQLite）
+└── BzsCenter.sln
 ```
 
-### 2.2 Build
+- 目标框架：`net10.0`，C# 14
+- C# 特性：`Nullable=enable`、`ImplicitUsings=enable`（全项目统一）
+- 核心依赖：OpenIddict 7.x、ASP.NET Core Identity、EF Core 10、OpenTelemetry、.NET Aspire 13.x
+- 前端：Tailwind CSS（`npm run css:build`）+ Blazor Server 交互组件
+
+### 1.1 规则文件状态
+当前仓库**未发现**以下规则文件：`.cursorrules`、`.cursor/rules/`、`.github/copilot-instructions.md`、`.editorconfig`、`Directory.Build.props`。
+> 若后续新增，必须同步更新本文件。
+
+---
+
+## 2. 标准命令（必须在仓库根目录执行）
+
+### 2.1 Aspire 运行（首选开发入口）
 ```bash
-dotnet build /home/bzs/coding/BzsCenter/BzsCenter.sln
-dotnet build /home/bzs/coding/BzsCenter/BzsCenter.sln -c Release
+# 在 BzsCenter.sln 同级目录执行，自动启动 Postgres、Redis、IDP
+aspire run
 ```
 
-### 2.3 Lint（格式校验）
+### 2.2 单独运行 IDP
 ```bash
-dotnet format /home/bzs/coding/BzsCenter/BzsCenter.sln --verify-no-changes --verbosity minimal
-```
-自动修复：
-```bash
-dotnet format /home/bzs/coding/BzsCenter/BzsCenter.sln --verbosity minimal
+dotnet run --project src/BzsCenter.Idp/BzsCenter.Idp.csproj
 ```
 
-### 2.4 Test
-当前仓库暂无测试工程。新增测试后统一使用：
+### 2.3 Restore / Build
 ```bash
-dotnet test /home/bzs/coding/BzsCenter/BzsCenter.sln --no-build
+dotnet restore BzsCenter.sln
+dotnet build BzsCenter.sln
+dotnet build BzsCenter.sln -c Release
 ```
 
-### 2.5 Run（IDP）
+### 2.4 Lint（格式校验）
 ```bash
-dotnet run --project /home/bzs/coding/BzsCenter/src/BzsCenter.Idp/BzsCenter.Idp.csproj
+# 校验（CI 使用）
+dotnet format BzsCenter.sln --verify-no-changes --verbosity minimal
+
+# 自动修复
+dotnet format BzsCenter.sln --verbosity minimal
 ```
 
-## 3. 单测“单例执行”模板（重点）
-新增测试项目后，优先使用过滤执行，避免全量测试。
-
-### 3.1 FullyQualifiedName 精确执行
+### 2.5 数据库迁移
 ```bash
-dotnet test /home/bzs/coding/BzsCenter/BzsCenter.sln --filter "FullyQualifiedName=Namespace.ClassName.TestMethod"
+# 在 src/BzsCenter.Idp/ 目录下
+dotnet ef migrations add <MigrationName> --context IdpDbContext
+dotnet ef database update --context IdpDbContext
 ```
 
-### 3.2 名称片段模糊匹配
+---
+
+## 3. 测试命令（重点）
+
+测试工程已存在：`BzsCenter.Idp.UnitTests`（xUnit 2.9 + NSubstitute 5.x）和 `BzsCenter.Idp.IntegrationTests`（TestHost + EF SQLite）。
+
+### 3.1 全量测试
 ```bash
-dotnet test /home/bzs/coding/BzsCenter/BzsCenter.sln --filter "FullyQualifiedName~ClassName"
+dotnet test BzsCenter.sln
+dotnet test BzsCenter.sln --no-build   # 已构建时使用
 ```
 
-### 3.3 Trait/Category 过滤（xUnit 推荐）
+### 3.2 单个测试（精确匹配）
 ```bash
-dotnet test /home/bzs/coding/BzsCenter/BzsCenter.sln --filter "Category=Integration"
+dotnet test BzsCenter.sln --filter "FullyQualifiedName=BzsCenter.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
 ```
 
-### 3.4 调试输出
+### 3.3 按类名模糊匹配
 ```bash
-dotnet test /home/bzs/coding/BzsCenter/BzsCenter.sln -v normal
+dotnet test BzsCenter.sln --filter "FullyQualifiedName~PermissionScopesControllerTests"
+dotnet test BzsCenter.sln --filter "FullyQualifiedName~PermissionAuthorizationHandler"
 ```
 
-## 4. 建立良好测试体系（.NET 10 / C# 14）
-仓库当前无测试工程，建议补齐：
-- `tests/BzsCenter.Idp.UnitTests/`：纯单元测试（快）
-- `tests/BzsCenter.Idp.IntegrationTests/`：集成测试（HTTP/数据库/中间件）
+### 3.4 按 Trait/Category 过滤
+```bash
+dotnet test BzsCenter.sln --filter "Category=Integration"
+dotnet test BzsCenter.sln --filter "Category=Unit"
+```
 
-推荐包：
-- `xunit`
-- `xunit.runner.visualstudio`
-- `Microsoft.NET.Test.Sdk`
-- `coverlet.collector`
-- `FluentAssertions`（推荐）
+### 3.5 仅运行单元测试工程
+```bash
+dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj
+```
 
-质量门槛建议：
-1. PR 至少通过：`build + format verify + 受影响测试`
-2. 认证链路（登录、token、迁移）必须有集成测试覆盖
-3. 禁止删除失败测试来“过 CI”，必须修复根因
+### 3.6 调试输出
+```bash
+dotnet test BzsCenter.sln -v normal
+```
 
-## 5. 代码风格（以仓库现状为准）
-### 5.1 Imports / Usings
-- 文件顶部 using，每行一个。
-- 优先项目命名空间（`BzsCenter.*`），再 `Microsoft.*`。
-- 禁止保留未使用 using。
+---
 
-### 5.2 命名规范
-- 类型/方法/属性：`PascalCase`
-- 参数/局部变量：`camelCase`
-- 私有字段：`_camelCase`
-- 私有静态只读字段（`private static readonly`）：`PascalCase`
-- 常量：`PascalCase`
-- 扩展类：`*Extensions`
+## 4. 代码风格
 
-### 5.3 格式与排版
-- 4 空格缩进，不使用 Tab。
-- 大括号采用 Allman 风格。
-- 链式调用可换行并保持对齐。
+### 4.1 Imports / Usings
+- 文件顶部显式 `using`，每行一个，按命名空间字母排序。
+- 优先顺序：`System.*` → `Microsoft.*` → `BzsCenter.*` → 第三方。
+- 禁止保留未使用 using；ImplicitUsings 已启用，无需 `using System;` 等基础命名空间。
+- 全局 `using Xunit;` 在测试项目 csproj `<Using>` 中声明，测试文件无需重复。
+
+### 4.2 命名规范
+| 类别 | 规范 | 示例 |
+|------|------|------|
+| 类型 / 方法 / 属性 | `PascalCase` | `PermissionScopeService` |
+| 参数 / 局部变量 | `camelCase` | `connectionString` |
+| 私有字段 | `_camelCase` | `_dbContext` |
+| 常量 | `PascalCase` | `ClaimType` |
+| 扩展类 | `*Extensions` | `ServiceExtensions` |
+| 测试类 | `{Subject}Tests` | `PermissionScopesControllerTests` |
+| 测试方法 | `{Method}_{Condition}_{Expected}` | `GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem` |
+
+### 4.3 格式与排版
+- **4 空格**缩进，不使用 Tab。
+- 大括号 **Allman 风格**（左括号独占一行）。
+- 链式调用换行对齐（见 `AppHost.cs`）。
 - 提交前必须通过 `dotnet format --verify-no-changes`。
 
-### 5.4 类型与空值
-- 保持 Nullable 开启，不可关闭。
-- 避免滥用 null-forgiving (`!`)。
-- 明确 null 处理：参数校验、早返回、清晰异常。
+### 4.4 类型与空值
+- `Nullable=enable` 不可关闭，全项目生效。
+- 避免滥用 null-forgiving (`!`)，只在确认不为 null 时使用。
+- 空值处理：优先早返回 + 明确 `ArgumentException.ThrowIfNullOrEmpty` / `ArgumentNullException.ThrowIfNull`。
 
-### 5.5 异步与并发
-- I/O 场景使用 `async/await`。
-- 返回 `Task/Task<T>`，禁用 `async void`。
-- 可取消操作必须传递 `CancellationToken`。
+### 4.5 异步与并发
+- I/O 场景全部使用 `async/await`，返回 `Task`/`Task<T>`。
+- **禁用 `async void`**（事件处理除外）。
+- 可取消操作必须接受并传递 `CancellationToken`。
 
-### 5.6 错误处理与日志
-- 禁止空 `catch`。
-- 捕获异常后记录上下文并保留异常链。
-- 可恢复异常可有限重试（参考迁移逻辑）。
-- 使用结构化日志参数，避免字符串拼接。
+### 4.6 错误处理与日志
+- **禁止空 `catch {}`**；捕获后必须记录上下文。
+- 使用结构化日志参数（`logger.LogError("{Key} failed", value)`），不拼接字符串。
+- 关键配置缺失时 fail fast（`ArgumentException.ThrowIfNullOrEmpty` 或 `InvalidOperationException`）。
+- 可恢复失败（如数据库）可有限重试，EF Core 已配置 `EnableRetryOnFailure`。
 
-### 5.7 DI / 配置 / 数据访问
-- 使用 `IServiceCollection` 扩展统一注册依赖。
+### 4.7 DI / 配置 / 数据访问
+- 用 `IServiceCollection` 扩展方法统一注册，扩展类标记 `internal static`。
 - 配置绑定使用 `AddOptions<T>().Bind(configuration.GetSection(...))`。
-- 关键配置缺失时 fail fast（抛 `InvalidOperationException`）。
-- EF Core 配置集中在 `DbContext` 与扩展方法。
+- EF Core 配置集中在 `DbContext` 的 `OnModelCreating` 与 `EntityConfig` 类。
+- 同时注册 `AddDbContext` 和 `AddDbContextFactory`（见 `InfraServiceExtensions.cs`）。
 
-## 6. .NET 10 / C# 14 约定
-- 允许并鼓励使用 C# 14 扩展块（仓库已有 `extension(IServiceCollection sc)`）。
-- 新增 API 优先清晰 DI 组合与现代最小化写法。
-- 时间处理统一 UTC 语义。
-- 新依赖引入前评估必要性与兼容性。
+---
+
+## 5. C# 14 / .NET 10 约定
+
+- **扩展块**（`extension(T x) { ... }`）：仓库已使用，新 DI 扩展优先此方式。
+- 使用集合表达式（`[item1, item2]`）代替 `new List<T> { ... }`。
+- 时间统一 UTC 语义；前端展示由 UI 层转换。
+- 新依赖引入前评估必要性与 Aspire 兼容性（优先使用 `Aspire.*` 集成包）。
+- 最小化 API 注册：`minimal API` 或 Controller，不混用。
+
+---
+
+## 6. 测试规范
+
+### 6.1 单元测试模式
+- **框架**：xUnit 2.9 + NSubstitute 5.x（Mock）+ 内置 `Assert`（不使用 FluentAssertions）。
+- **结构**：Arrange → Act → Assert，无多余注释。
+- **Mock**：`Substitute.For<IInterface>()`，验证调用用 `Received(n)` / `DidNotReceive()`。
+- 测试类 `sealed`（Controller Tests），普通测试类无修饰符。
+- 每个 `[Fact]` 只验证一个行为；参数化用 `[Theory] + [InlineData]`。
+
+### 6.2 集成测试模式
+- 使用 `Microsoft.AspNetCore.TestHost` + EF Core SQLite 内存数据库。
+- 测试工程已引用 `Microsoft.AspNetCore.TestHost 10.0.3`。
+
+### 6.3 质量门槛
+1. 每次 PR 至少通过：`build + format verify + 受影响测试`。
+2. 认证/token/迁移 链路必须有集成测试。
+3. **禁止删除失败测试**来"过 CI"，必须修复根因。
+
+---
 
 ## 7. Agent 执行流程（必须）
-1. 先读代码再改，不凭猜测。
-2. 变更尽量小步、可验证。
-3. 每次改动后至少执行：
-   - `dotnet build`
-   - `dotnet format --verify-no-changes`
-   - `dotnet test`（如存在测试）
-4. 若无测试工程：至少提交“最小测试补齐计划”。
-5. 认证/密钥/代理头相关改动必须附带测试或验证脚本。
+
+1. **先读代码再改**，不凭猜测，不假设文件存在。
+2. 变更小步、可验证；每步改动后执行：
+   ```bash
+   dotnet build BzsCenter.sln
+   dotnet format BzsCenter.sln --verify-no-changes
+   dotnet test BzsCenter.sln  # 若存在相关测试
+   ```
+3. 认证 / 密钥 / 代理头相关改动必须附带测试或验证脚本。
+4. 新增功能前检查 `BzsCenter.Shared.Infrastructure` 是否已有可复用实现。
+5. 新增 NuGet 包前运行 `dotnet restore` 验证兼容性。
+
+---
 
 ## 8. 文档维护规则
-- 新增测试工程、CI、`.editorconfig`、Cursor/Copilot 规则后，必须同步更新 AGENTS.md。
-- 本文件面向 agent，要求“可执行、可验证、可复制”。
-- 若命令与仓库实际不一致，以仓库文件与 CI 配置为准，并及时修订。
+
+- 新增项目、测试工程、CI、`.editorconfig`、Cursor/Copilot 规则后，必须同步更新 AGENTS.md。
+- 本文件面向 agent，要求"可执行、可验证、可复制"。
+- 若命令与仓库实际不一致，以仓库文件与 CI 配置为准，及时修订。

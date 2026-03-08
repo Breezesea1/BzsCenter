@@ -108,6 +108,7 @@ project.lock.json
 # Node / Frontend (if you have SPA/Blazor WASM tooling etc.)
 ############################################
 node_modules/
+nodemodules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

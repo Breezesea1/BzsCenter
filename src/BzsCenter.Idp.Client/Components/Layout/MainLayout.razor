@@ -1,7 +1,5 @@
-﻿@using BzsCenter.Idp.Infra.Preferences
-@using System.Globalization
+﻿@using System.Globalization
 @inherits LayoutComponentBase
-@inject IHttpContextAccessor HttpContextAccessor
 
 <div class="page">
     <div class="sidebar">
@@ -33,6 +31,5 @@
         CultureInfo.CurrentUICulture.Name;
 
     private string CurrentThemeName =>
-        HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName]
-        ?? UiPreferences.DefaultTheme;
+        "system";
 }

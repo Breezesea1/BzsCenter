@@ -17,6 +17,7 @@
       <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="13.1.2" />
       <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.3" />
       <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.3" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.3">
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         <PrivateAssets>all</PrivateAssets>
@@ -27,8 +28,14 @@
     </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\BzsCenter.Idp.Client\BzsCenter.Idp.Client.csproj" />
     <ProjectReference Include="..\BzsCenter.AppHost.ServiceDefaults\BzsCenter.AppHost.ServiceDefaults.csproj" />
     <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <RazorComponent Remove="Components\Pages\**\*.razor" />
+    <RazorComponent Remove="Components\Layout\**\*.razor" />
   </ItemGroup>
 
   <ItemGroup>

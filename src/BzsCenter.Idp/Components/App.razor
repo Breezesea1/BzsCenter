@@ -24,12 +24,11 @@
             }
         })();
     </script>
-    <HeadOutlet @rendermode="InteractiveServer"/>
+    <HeadOutlet @rendermode="InteractiveWebAssembly"/>
 </head>
 
 <body>
-<Routes @rendermode="InteractiveServer"/>
-<ReconnectModal/>
+<BzsCenter.Idp.Client.Components.Routes @rendermode="InteractiveWebAssembly"/>
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 <script src="@Assets["lib/gsap/gsap.min.js"]"></script>
 </body>

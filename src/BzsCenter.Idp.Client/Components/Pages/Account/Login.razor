@@ -1,14 +1,12 @@
 @page "/login"
 @layout EmptyLayout
 @implements IAsyncDisposable
-@using BzsCenter.Idp.Infra.Blazor
-@using BzsCenter.Idp.Infra.Preferences
+@using BzsCenter.Idp.Client.Infra.Blazor
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @using System.Globalization
 @inject IStringLocalizer<Login> L
 @inject IJSRuntime JS
-@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
@@ -207,8 +205,7 @@
         CultureInfo.CurrentUICulture.Name;
 
     private string CurrentThemeName =>
-        HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName]
-        ?? UiPreferences.DefaultTheme;
+        "system";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

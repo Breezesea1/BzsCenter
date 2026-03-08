@@ -27,7 +27,7 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
+    .AddInteractiveWebAssemblyComponents();
 builder.Services.AddControllers();
 
 var app = builder.Build();
@@ -42,7 +42,11 @@ await using (var scope = app.Services.CreateAsyncScope())
 }
 
 // Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+{
+    app.UseWebAssemblyDebugging();
+}
+else
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
@@ -61,6 +65,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapControllers();
 app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
+    .AddInteractiveWebAssemblyRenderMode()
+    .AddAdditionalAssemblies(typeof(BzsCenter.Idp.Client._Imports).Assembly);
 
 app.Run();

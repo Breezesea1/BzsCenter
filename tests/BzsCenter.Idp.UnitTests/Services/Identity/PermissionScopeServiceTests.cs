@@ -98,6 +98,26 @@ public sealed class PermissionScopeServiceTests
         Assert.Null(mapping);
     }
 
+    [Fact]
+    public async Task UpsertAsync_WhenScopesEmpty_ThrowsArgumentException()
+    {
+        await using var harness = await SqliteHarness.CreateAsync();
+        var service = new PermissionScopeService(harness.DbContext, new MemoryCache(new MemoryCacheOptions()));
+
+        await Assert.ThrowsAsync<ArgumentException>(() => service.UpsertAsync("users.write", []));
+    }
+
+    [Fact]
+    public async Task ResolveScopesAsync_WhenPermissionsEmpty_ReturnsEmptyDictionary()
+    {
+        await using var harness = await SqliteHarness.CreateAsync();
+        var service = new PermissionScopeService(harness.DbContext, new MemoryCache(new MemoryCacheOptions()));
+
+        var resolved = await service.ResolveScopesAsync([" ", "\t"]);
+
+        Assert.Empty(resolved);
+    }
+
     private sealed class SqliteHarness : IAsyncDisposable
     {
         private SqliteHarness(SqliteConnection connection, IdpDbContext dbContext)

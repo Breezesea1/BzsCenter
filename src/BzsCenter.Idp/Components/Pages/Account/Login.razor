@@ -1,4 +1,4 @@
-﻿@page "/login"
+@page "/login"
 @layout EmptyLayout
 @implements IAsyncDisposable
 @using BzsCenter.Idp.Infra.Blazor
@@ -17,7 +17,7 @@
         </div>
 
         <div class="hero-stage">
-            <div class="hero-art" style="@HeroArtStyle" @ref="_heroArtRef">
+            <div class="hero-art" @ref="_heroArtRef">
                 <div class="character purple">
                     <div class="eyes">
                         <span class="eye"><i class="pupil"></i></span>
@@ -69,14 +69,18 @@
                 <div class="login-error" role="alert">@ErrorMessage</div>
             }
 
-            <form method="post" action="@BuildLoginAction()" class="login-form">
+            <form method="post" action="@BuildLoginAction()" class="login-form" autocomplete="off">
+                <AntiforgeryToken />
                 <div class="field">
                     <label for="username">@L["UserNameLabel"]</label>
                     <input id="username"
                            name="UserName"
                            type="text"
                            placeholder="@L["UserNamePlaceholder"]"
-                           autocomplete="username"
+                           autocomplete="off"
+                           autocapitalize="off"
+                           autocorrect="off"
+                           spellcheck="false"
                            required/>
                 </div>
 
@@ -84,12 +88,15 @@
                     <label for="password">@L["PasswordLabel"]</label>
                     <div class="password-wrap">
                         <input
-                            id="password"
-                            name="Password"
-                            type="@(_showPassword ? "text" : "password")"
-                            placeholder="@L["PasswordPlaceholder"]"
-                            autocomplete="current-password"
-                            required/>
+                             id="password"
+                             name="Password"
+                             type="@(_showPassword ? "text" : "password")"
+                             placeholder="@L["PasswordPlaceholder"]"
+                             autocomplete="new-password"
+                             autocapitalize="off"
+                             autocorrect="off"
+                             spellcheck="false"
+                             required/>
                         <button
                             class="password-toggle"
                             type="button"
@@ -189,8 +196,6 @@
     private bool _showPassword;
     private ElementReference _heroArtRef;
     private IJSObjectReference? _loginModule;
-
-    private const string HeroArtStyle = "--look-x:0;--look-y:0;";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

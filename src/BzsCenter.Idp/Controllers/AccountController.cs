@@ -18,7 +18,6 @@ public sealed class AccountController(
     ];
 
     [HttpPost("login")]
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Login([FromForm] LoginForm form, [FromQuery] string? returnUrl)
     {
         if (string.IsNullOrWhiteSpace(form.UserName) || string.IsNullOrWhiteSpace(form.Password))
@@ -87,7 +86,6 @@ public sealed class AccountController(
 
         return Redirect(path);
     }
-
     private IActionResult RedirectToSafeLocal(string? returnUrl)
     {
         if (IsSafeLocalUrl(returnUrl))

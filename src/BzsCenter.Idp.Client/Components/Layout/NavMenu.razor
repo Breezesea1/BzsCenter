@@ -1,18 +1,81 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">BzsCenter.Idp</a>
+<nav class="menu-shell @GetStateClass()" aria-label="Primary navigation">
+    <header class="menu-header">
+        <a class="menu-brand" href="" @onclick="CloseMobileAsync">
+            <span class="brand-mark" aria-hidden="true">B</span>
+            <span class="brand-text">BzsCenter</span>
+        </a>
+
+        <button class="menu-close"
+                type="button"
+                aria-label="Close navigation"
+                @onclick="CloseMobileAsync">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+        </button>
+    </header>
+
+    <div class="menu-body">
+        <NavLink class="menu-link group hover:bg-transparent" href="" Match="NavLinkMatch.All" @onclick="CloseMobileAsync">
+            <span class="menu-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 10.5V20h14v-9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Home</span>
+        </NavLink>
+
+        <NavLink class="menu-link group hover:bg-transparent" href="login" @onclick="CloseMobileAsync">
+            <span class="menu-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+                    <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </span>
+            <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Login</span>
+        </NavLink>
     </div>
-</div>
 
-<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
+    <div class="menu-divider"></div>
 
-<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
-            </NavLink>
+    <footer class="menu-footer">
+        <div class="menu-user">
+            <span class="menu-user-avatar">A</span>
+            <div class="menu-user-info">
+                <span class="menu-user-name">Admin</span>
+                <span class="menu-user-email">admin@bzscenter.com</span>
+            </div>
         </div>
+    </footer>
+</nav>
 
-    </nav>
-</div>
+@code {
+    [Parameter] public bool IsCollapsed { get; set; }
+    [Parameter] public bool IsMobileOpen { get; set; }
+    [Parameter] public EventCallback OnToggleCollapse { get; set; }
+    [Parameter] public EventCallback OnCloseMobile { get; set; }
+
+    private string GetStateClass()
+    {
+        var state = IsCollapsed ? "is-collapsed" : string.Empty;
+        if (IsMobileOpen)
+        {
+            state = string.IsNullOrEmpty(state)
+                ? "is-mobile-open"
+                : $"{state} is-mobile-open";
+        }
+
+        return state;
+    }
+
+    private async Task CloseMobileAsync()
+    {
+        await OnCloseMobile.InvokeAsync();
+    }
+
+    private async Task ToggleCollapseAsync()
+    {
+        await OnToggleCollapse.InvokeAsync();
+    }
+}

@@ -1,88 +1,171 @@
-.page {
+.layout-shell {
     position: relative;
-    display: flex;
-    flex-direction: column;
     min-height: 100vh;
-    background: var(--app-bg);
+    display: flex;
+    /* Shell background = sidebar color, so main content "floats" on top */
+    background: var(--sidebar-bg);
     color: var(--app-text);
 }
 
-main {
+/* ── Mobile sidebar (default: hidden off-screen) ── */
+.sidebar-panel {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 30;
+    width: 100%;
+    max-width: 100vw;
+    height: 100%;
+    transform: translateX(-100%);
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--sidebar-bg);
+    overflow: hidden;
+}
+
+.sidebar-panel.mobile-open {
+    transform: translateX(0);
+}
+
+/* Mobile backdrop */
+.layout-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+
+.layout-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.layout-main {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--app-bg);
+    position: relative;
+    z-index: 1;
+}
+
+.layout-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    height: 4rem;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border-default);
+    background: color-mix(in srgb, var(--surface-elevated) 85%, transparent);
+    backdrop-filter: blur(12px);
+}
+
+.topbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-width: 0;
+}
+
+.topbar-icon-btn {
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--border-default);
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--app-text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.topbar-icon-btn:hover {
+    background: var(--sidebar-link-hover-bg);
+}
+
+.topbar-icon-btn svg {
+    width: 1.15rem;
+    height: 1.15rem;
+}
+
+.topbar-title {
+    color: var(--app-text);
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    padding-left: 0.25rem;
+}
+
+.desktop-only {
+    display: none;
+}
+
+.layout-content {
+    padding: 1.1rem 1rem 1.5rem;
     flex: 1;
 }
 
-.sidebar {
-    background-image: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 70%);
-}
-
-.top-row {
-    background-color: var(--surface-muted);
-    border-bottom: 1px solid var(--border-default);
-    justify-content: space-between;
-    height: 3.5rem;
-    display: flex;
-    align-items: center;
-}
-
-.top-row-links {
-    display: flex;
-    align-items: center;
-}
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        white-space: nowrap;
-        margin-left: 1.5rem;
-        text-decoration: none;
-        color: var(--link-color);
-    }
-
-    .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
-        text-decoration: underline;
-        color: var(--link-hover);
-    }
-
-    .top-row ::deep a:first-child {
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-@media (max-width: 640.98px) {
-    .top-row {
-        justify-content: space-between;
-    }
-
-    .top-row ::deep a, .top-row ::deep .btn-link {
-        margin-left: 0;
-    }
-}
-
 @media (min-width: 641px) {
-    .page {
-        flex-direction: row;
+    .layout-backdrop {
+        display: none;
     }
 
-    .sidebar {
-        width: 250px;
+    /* Desktop sidebar: sticky, collapsed to 60px, expands on hover to 300px */
+    .sidebar-panel {
+        position: sticky;
+        top: 0;
+        transform: none;
+        width: 60px;
         height: 100vh;
-        position: sticky;
-        top: 0;
+        flex-shrink: 0;
+        overflow: hidden;
+        transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .top-row {
-        position: sticky;
-        top: 0;
-        z-index: 1;
+    .sidebar-panel:hover,
+    .sidebar-panel:focus-within {
+        width: 300px;
     }
 
-    .top-row.auth ::deep a:first-child {
-        flex: 1;
-        text-align: right;
-        width: 0;
+    /* Main content floats above sidebar with rounded top-left corner + shadow */
+    .layout-main {
+        border-top-left-radius: 1rem;
+        overflow: hidden;
+        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
     }
 
-    .top-row, article {
-        padding-left: 2rem !important;
-        padding-right: 1.5rem !important;
+    .layout-topbar {
+        padding: 0 1.25rem;
+        border-top-left-radius: 1rem;
+    }
+
+    .layout-content {
+        padding: 1.25rem 1.5rem 1.6rem;
+    }
+
+    .mobile-only {
+        display: none;
+    }
+
+    .desktop-only {
+        display: inline-flex;
+    }
+}
+
+@media (min-width: 1024px) {
+    .layout-topbar {
+        padding: 0 1.5rem;
+    }
+
+    .layout-content {
+        padding: 1.5rem 2rem 2rem;
     }
 }
 

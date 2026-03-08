@@ -1,4 +1,4 @@
-@layer theme, base, components, utilities;
+﻿@layer theme, base, components, utilities;
 
 @config "./tailwind.config.js";
 @import "tailwindcss";
@@ -7,7 +7,7 @@
 @import "tailwindcss/utilities.css" layer(utilities);
 
 :root {
-    --app-bg: #f8fafc;
+    --app-bg: #ffffff;
     --app-text: #0f172a;
     --surface-muted: #f7f7f7;
     --surface-elevated: #ffffff;
@@ -22,38 +22,36 @@
     --error-outline: #e50000;
     --warning-bg: lightyellow;
     --warning-text: #111827;
-    --sidebar-bg-start: rgb(5, 39, 103);
-    --sidebar-bg-end: #3a0647;
-    --sidebar-top-bg: rgba(0, 0, 0, 0.4);
-    --sidebar-link-color: #d7d7d7;
-    --sidebar-link-hover-bg: rgba(255, 255, 255, 0.1);
-    --sidebar-link-active-bg: rgba(255, 255, 255, 0.37);
-    --sidebar-link-active-color: #ffffff;
+    /* Sidebar — Aceternity neutral-100 light palette */
+    --sidebar-bg: #ebebeb;
+    --sidebar-text: #171717;
+    --sidebar-text-muted: #525252;
+    --sidebar-border: #d4d4d4;
+    --sidebar-link-hover-bg: #d4d4d4;
 }
 
 :root[data-theme="dark"] {
-    --app-bg: #020617;
-    --app-text: #e2e8f0;
-    --surface-muted: #0f172a;
-    --surface-elevated: #1e293b;
-    --border-default: #334155;
+    --app-bg: #27272a;
+    --app-text: #f4f4f5;
+    --surface-muted: #3f3f46;
+    --surface-elevated: #3f3f46;
+    --border-default: #52525b;
     --link-color: #93c5fd;
     --link-hover: #bfdbfe;
     --accent-primary: #60a5fa;
-    --btn-primary-bg: #334155;
-    --btn-primary-bg-hover: #475569;
-    --btn-primary-text: #f8fafc;
+    --btn-primary-bg: #3f3f46;
+    --btn-primary-bg-hover: #52525b;
+    --btn-primary-text: #f4f4f5;
     --success-outline: #22c55e;
     --error-outline: #f87171;
     --warning-bg: #3f2f00;
     --warning-text: #fde68a;
-    --sidebar-bg-start: #0f172a;
-    --sidebar-bg-end: #1e293b;
-    --sidebar-top-bg: rgba(15, 23, 42, 0.72);
-    --sidebar-link-color: #cbd5e1;
-    --sidebar-link-hover-bg: rgba(148, 163, 184, 0.16);
-    --sidebar-link-active-bg: rgba(148, 163, 184, 0.28);
-    --sidebar-link-active-color: #f8fafc;
+    /* Sidebar — darker than content so content "floats" above */
+    --sidebar-bg: #18181b;
+    --sidebar-text: #e4e4e7;
+    --sidebar-text-muted: #a1a1aa;
+    --sidebar-border: #3f3f46;
+    --sidebar-link-hover-bg: #3f3f46;
 }
 
 html,
@@ -112,6 +110,361 @@ h1:focus {
 
 .blazor-error-boundary::after {
     content: "An error has occurred.";
+}
+
+/* ── Sidebar hover-expand (global, cross-component: sidebar-panel in MainLayout → menu-* in NavMenu) ── */
+@media (min-width: 641px) {
+    .sidebar-panel {
+        background: var(--sidebar-bg);
+    }
+
+    /*
+     * ICON-STABLE LAYOUT
+     * Rule: nothing about icon position changes between collapsed/expanded.
+     * All icon rows share the same padding-left (14px).
+     * Only text visibility changes (max-width + opacity clip).
+     */
+
+    /* Shell: zero padding — positioning is done per-row */
+    .sidebar-panel .menu-shell {
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    /* Header row: fixed left padding, flex-start always */
+    .sidebar-panel .menu-header {
+        padding-left: 14px;
+        padding-right: 8px;
+        justify-content: flex-start;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    /* Brand: left-aligned always, no width toggling */
+    .sidebar-panel .menu-brand {
+        justify-content: flex-start;
+        padding: 0;
+        gap: 0.75rem;
+        flex-shrink: 0;
+        overflow: hidden;
+    }
+
+    /* Nav links: fixed left padding — icon left edge never moves */
+    .sidebar-panel .menu-link {
+        display: flex !important;
+        align-items: center;
+        gap: 0.75rem;
+        padding-left: 14px;
+        padding-right: 8px;
+        width: 100%;
+        background: transparent !important;
+    }
+
+    /* Icon cell: fixed size, no centering shift */
+    .sidebar-panel .menu-icon {
+        width: 1.5rem;
+        min-width: 1.5rem;
+        flex-shrink: 0;
+        display: flex;
+        justify-content: center;
+    }
+
+    /* Footer */
+    .sidebar-panel .menu-footer {
+        padding-left: 0;
+        padding-right: 0;
+        width: 100%;
+    }
+
+    /* User row: same left padding as menu-link */
+    .sidebar-panel .menu-user {
+        justify-content: flex-start;
+        padding-left: 14px;
+        padding-right: 8px;
+        width: 100%;
+    }
+
+    /* Divider: full width */
+    .sidebar-panel .menu-divider {
+        margin-left: 0;
+        margin-right: 0;
+    }
+
+    /*
+     * TEXT CLIP: collapsed state hides text by clipping width + fading opacity.
+     * max-width transition drives the smooth reveal without affecting icon position.
+     * Also include transform/font transitions so hover animation still works.
+     */
+    .sidebar-panel .brand-text,
+    .sidebar-panel .menu-text,
+    .sidebar-panel .menu-user-info {
+        opacity: 0;
+        pointer-events: none;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: 0;
+        transition:
+            max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+            opacity 0.2s ease,
+            transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1),
+            font-size 0.2s ease;
+    }
+
+    /* Expanded: reveal text — nothing else changes */
+    .sidebar-panel:hover .brand-text,
+    .sidebar-panel:focus-within .brand-text,
+    .sidebar-panel:hover .menu-text,
+    .sidebar-panel:focus-within .menu-text,
+    .sidebar-panel:hover .menu-user-info,
+    .sidebar-panel:focus-within .menu-user-info {
+        opacity: 1;
+        pointer-events: auto;
+        max-width: 200px;
+    }
+
+    /* Hover on a menu-link inside expanded sidebar: text slides right + grows bold */
+    .sidebar-panel:hover .menu-link:hover .menu-text,
+    .sidebar-panel:focus-within .menu-link:hover .menu-text {
+        transform: translateX(5px);
+        font-size: 0.925rem;
+        font-weight: 700;
+    }
+}
+
+/* ── NavMenu global styles (must be global — Blazor NavLink <a> does not carry scoped attr) ── */
+
+.menu-shell {
+    height: 100%;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--sidebar-bg);
+    color: var(--sidebar-text);
+}
+
+.menu-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    min-height: 2.5rem;
+    flex-shrink: 0;
+}
+
+.menu-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    color: var(--sidebar-text);
+    min-width: 0;
+    flex-shrink: 0;
+}
+
+.brand-mark {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.4rem;
+    background: var(--sidebar-text);
+    color: var(--sidebar-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+.brand-text {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: var(--sidebar-text);
+    transition: opacity 0.2s ease;
+}
+
+.menu-close {
+    border: none;
+    background: transparent;
+    color: var(--sidebar-text);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    width: 2rem;
+    height: 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s ease;
+}
+
+.menu-close:hover {
+    background: var(--sidebar-link-hover-bg);
+}
+
+.menu-close svg {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.menu-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.5rem 0;
+}
+
+/* Nav link: horizontal flex row — must be global for NavLink <a> to receive it */
+.menu-link {
+    display: flex !important;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0;
+    color: var(--sidebar-text-muted);
+    text-decoration: none !important;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    border: none;
+    background: transparent !important;
+    width: 100%;
+    transition: color 0.2s ease;
+}
+
+.menu-link:hover {
+    color: var(--sidebar-text);
+    background: transparent !important;
+}
+
+.menu-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: inherit;
+}
+
+.menu-icon svg {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.menu-text {
+    white-space: nowrap;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transform-origin: left center;
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), font-weight 0.15s ease, font-size 0.2s ease;
+}
+
+.menu-link:hover .menu-text {
+    transform: translateX(5px);
+    font-size: 0.925rem;
+    font-weight: 700;
+}
+
+.menu-link.active {
+    color: var(--sidebar-text);
+    font-weight: 600;
+}
+
+.menu-divider {
+    height: 1px;
+    background: var(--sidebar-border);
+    margin: 0.5rem 0;
+    flex-shrink: 0;
+}
+
+.menu-footer {
+    padding: 0.5rem 0 0.25rem;
+    flex-shrink: 0;
+}
+
+.menu-user {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    width: 100%;
+    overflow: hidden;
+    transition: color 0.15s ease;
+    color: var(--sidebar-text-muted);
+}
+
+.menu-user:hover {
+    color: var(--sidebar-text);
+}
+
+.menu-user-avatar {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 50%;
+    background: var(--sidebar-text);
+    color: var(--sidebar-bg);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.menu-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: opacity 0.2s ease;
+}
+
+.menu-user-name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--sidebar-text);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.menu-user-email {
+    font-size: 0.75rem;
+    color: var(--sidebar-text-muted);
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Mobile: close button visible, all text always visible */
+@media (max-width: 640.98px) {
+    .menu-shell:not(.is-mobile-open) .menu-close {
+        display: none;
+    }
+
+    .brand-text,
+    .menu-text,
+    .menu-user-info {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+}
+
+/* Desktop: hide close button */
+@media (min-width: 641px) {
+    .menu-close {
+        display: none;
+    }
 }
 
 .darker-border-checkbox.form-check-input {

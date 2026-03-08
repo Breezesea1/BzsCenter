@@ -1,20 +1,36 @@
 ﻿@using System.Globalization
 @inherits LayoutComponentBase
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu/>
-    </div>
+<div class="layout-shell">
+    <aside class="sidebar-panel @(_isSidebarCollapsed ? "collapsed" : string.Empty) @(_isMobileMenuOpen ? "mobile-open" : string.Empty)">
+        <NavMenu IsCollapsed="_isSidebarCollapsed"
+                 IsMobileOpen="_isMobileMenuOpen"
+                 OnToggleCollapse="ToggleSidebarCollapse"
+                 OnCloseMobile="CloseMobileSidebar"/>
+    </aside>
 
-    <main>
-        <div class="top-row px-4">
-            <div class="top-row-links">
-                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+    <div class="layout-backdrop @(_isMobileMenuOpen ? "show" : string.Empty)" @onclick="CloseMobileSidebar"></div>
+
+    <main class="layout-main">
+        <header class="layout-topbar">
+            <div class="topbar-left">
+                <button class="topbar-icon-btn mobile-only"
+                        type="button"
+                        aria-label="Open navigation menu"
+                        aria-expanded="@_isMobileMenuOpen.ToString().ToLowerInvariant()"
+                        @onclick="ToggleMobileMenu">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+
+                <span class="topbar-title">Dashboard</span>
             </div>
-            <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
-        </div>
 
-        <article class="content px-4">
+            <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
+        </header>
+
+        <article class="layout-content">
             @Body
         </article>
     </main>
@@ -27,9 +43,27 @@
 </div>
 
 @code {
+    private bool _isMobileMenuOpen;
+    private bool _isSidebarCollapsed;
+
     private string CurrentCultureName =>
         CultureInfo.CurrentUICulture.Name;
 
     private string CurrentThemeName =>
         "system";
+
+    private void ToggleMobileMenu()
+    {
+        _isMobileMenuOpen = !_isMobileMenuOpen;
+    }
+
+    private void CloseMobileSidebar()
+    {
+        _isMobileMenuOpen = false;
+    }
+
+    private void ToggleSidebarCollapse()
+    {
+        _isSidebarCollapsed = !_isSidebarCollapsed;
+    }
 }

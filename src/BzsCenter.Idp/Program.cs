@@ -21,14 +21,6 @@ await using (var scope = app.Services.CreateAsyncScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<IdpDbContext>();
     await dbContext.Database.MigrateAsync();
-    await dbContext.Database.ExecuteSqlRawAsync(
-        """
-        CREATE TABLE IF NOT EXISTS bzs_permission_scopes (
-            permission character varying(128) NOT NULL,
-            scope character varying(128) NOT NULL,
-            CONSTRAINT PK_bzs_permission_scopes PRIMARY KEY (permission, scope)
-        );
-        """);
 
     var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
     await identitySeeder.SeedAsync();

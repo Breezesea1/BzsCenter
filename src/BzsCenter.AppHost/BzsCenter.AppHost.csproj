@@ -15,4 +15,10 @@
       <PackageReference Include="Aspire.Hosting.Redis" Version="13.1.2" />
     </ItemGroup>
 
+
+    <ItemGroup>
+      <ProjectReference Include="..\BzsCenter.Idp\BzsCenter.Idp.csproj" />
+    </ItemGroup>
+
 </Project>
+

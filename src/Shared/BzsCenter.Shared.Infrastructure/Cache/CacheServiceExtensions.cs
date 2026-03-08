@@ -24,14 +24,18 @@ public static class CacheServiceExtensions
                     sc.AddSingleton<IBzsCacheStore, MemoryBzsCacheStore>();
                     break;
                 case CacheType.Redis:
-                    if (string.IsNullOrWhiteSpace(options.RedisConnectionString))
+                    var redisConnectionString = string.IsNullOrWhiteSpace(options.RedisConnectionString)
+                        ? configuration.GetConnectionString("redis")
+                        : options.RedisConnectionString;
+
+                    if (string.IsNullOrWhiteSpace(redisConnectionString))
                     {
                         throw new InvalidOperationException(
-                            $"{CacheOptions.SectionName}:RedisConnectionString is required when CacheType is Redis.");
+                            $"{CacheOptions.SectionName}:RedisConnectionString or ConnectionStrings:redis is required when CacheType is Redis.");
                     }
 
                     sc.AddSingleton<IConnectionMultiplexer>(
-                        _ => ConnectionMultiplexer.Connect(CreateRedisConfiguration(options.RedisConnectionString)));
+                        _ => ConnectionMultiplexer.Connect(CreateRedisConfiguration(redisConnectionString)));
                     sc.AddSingleton<IBzsCacheStore, RedisBzsCacheStore>();
                     break;
                 default:

@@ -2,6 +2,7 @@ using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
 using BzsCenter.Idp.Services.Authorization;
 using BzsCenter.Idp.Services.Identity;
+using BzsCenter.Shared.Infrastructure.Cache;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
@@ -29,6 +30,7 @@ internal static class ServiceExtensions
     {
         sc.AddForwardedHeaders();
         sc.AddMemoryCache();
+        sc.AddBzsCache(configuration);
 
         var connectionString = configuration.GetConnectionString("DefaultConnection");
         ArgumentException.ThrowIfNullOrEmpty(connectionString);

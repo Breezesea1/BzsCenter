@@ -1,7 +1,6 @@
 using BzsCenter.Idp.Domain;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
 
@@ -11,12 +10,6 @@ namespace BzsCenter.Idp.Controllers;
 public sealed class AccountController(
     SignInManager<BzsUser> signInManager) : Controller
 {
-    private static readonly HashSet<string> SupportedCultures =
-    [
-        "zh-CN",
-        "en-US",
-    ];
-
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromForm] LoginForm form, [FromQuery] string? returnUrl)
     {
@@ -33,27 +26,6 @@ public sealed class AccountController(
         }
 
         return RedirectToLogin(returnUrl, "invalid_credentials");
-    }
-
-    [HttpGet("set-culture")]
-    public IActionResult SetCulture([FromQuery] string? culture, [FromQuery] string? returnUrl)
-    {
-        var normalizedCulture = SupportedCultures.Contains(culture ?? string.Empty) ? culture! : "zh-CN";
-
-        Response.Cookies.Append(
-            CookieRequestCultureProvider.DefaultCookieName,
-            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(normalizedCulture)),
-            new CookieOptions
-            {
-                Expires = DateTimeOffset.UtcNow.AddYears(1),
-                IsEssential = true,
-                SameSite = SameSiteMode.Lax,
-                HttpOnly = false,
-                Secure = true,
-                Path = "/",
-            });
-
-        return RedirectToSafeLocal(returnUrl);
     }
 
     [HttpPost("logout")]

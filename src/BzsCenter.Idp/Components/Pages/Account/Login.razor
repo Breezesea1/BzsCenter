@@ -2,10 +2,13 @@
 @layout EmptyLayout
 @implements IAsyncDisposable
 @using BzsCenter.Idp.Infra.Blazor
+@using BzsCenter.Idp.Infra.Preferences
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
+@using System.Globalization
 @inject IStringLocalizer<Login> L
 @inject IJSRuntime JS
+@inject IHttpContextAccessor HttpContextAccessor
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
@@ -53,11 +56,14 @@
     </section>
 
     <section class="login-panel">
-        <div class="login-card">
+        <div class="login-panel-top">
             <div class="mobile-brand">
                 <div class="brand-icon">B</div>
                 <span class="brand-name">BzsCenter</span>
             </div>
+            <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
+        </div>
+        <div class="login-card">
 
             <header class="login-header">
                 <h1>@L["WelcomeBack"]</h1>
@@ -196,6 +202,13 @@
     private bool _showPassword;
     private ElementReference _heroArtRef;
     private IJSObjectReference? _loginModule;
+
+    private string CurrentCultureName =>
+        CultureInfo.CurrentUICulture.Name;
+
+    private string CurrentThemeName =>
+        HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName]
+        ?? UiPreferences.DefaultTheme;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {

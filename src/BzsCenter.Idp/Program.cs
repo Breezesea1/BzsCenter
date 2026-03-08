@@ -1,5 +1,6 @@
-﻿using BzsCenter.Idp.Components;
+using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Infra;
+using BzsCenter.Idp.Infra.Preferences;
 using BzsCenter.Idp.Services;
 using BzsCenter.Idp.Services.Identity;
 using System.Globalization;
@@ -11,16 +12,15 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddIdpService(builder.Configuration);
 builder.EnrichFromAspire();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
-    var supportedCultures = new[]
-    {
-        new CultureInfo("zh-CN"),
-        new CultureInfo("en-US"),
-    };
+    var supportedCultures = UiPreferences.SupportedCultureNames
+        .Select(static name => new CultureInfo(name))
+        .ToArray();
 
-    options.DefaultRequestCulture = new RequestCulture("zh-CN");
+    options.DefaultRequestCulture = new RequestCulture(UiPreferences.DefaultCulture);
     options.SupportedCultures = supportedCultures;
     options.SupportedUICultures = supportedCultures;
 });

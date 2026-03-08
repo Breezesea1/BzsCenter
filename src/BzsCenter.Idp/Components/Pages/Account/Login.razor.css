@@ -245,10 +245,22 @@
 
 .login-panel {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     background: #ffffff;
+    position: relative;
+}
+
+.login-panel-top {
+    position: absolute;
+    top: 1.25rem;
+    right: 1.25rem;
+    left: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .login-card {
@@ -499,4 +511,128 @@
     .mobile-brand {
         display: none;
     }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Dark Theme — html[data-theme="dark"] .login-*
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root[data-theme="dark"] .login-page {
+    background: #0f172a;
+}
+
+:root[data-theme="dark"] .login-panel {
+    background: #0f172a;
+}
+
+/* Hero panel keeps its gradient but shifted cooler */
+:root[data-theme="dark"] .login-hero {
+    background: linear-gradient(to bottom right, #1e293b, #0f172a, #020617);
+}
+
+:root[data-theme="dark"] .login-hero::before {
+    background-image: linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+}
+
+:root[data-theme="dark"] .login-hero::after {
+    background: rgba(99, 102, 241, 0.15);
+}
+
+/* Brand */
+:root[data-theme="dark"] .mobile-brand {
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .mobile-brand .brand-icon {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* Hero links */
+:root[data-theme="dark"] .hero-links {
+    color: #475569;
+}
+
+:root[data-theme="dark"] .hero-links a:hover {
+    color: #94a3b8;
+}
+
+/* Typography */
+:root[data-theme="dark"] .login-header h1 {
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .login-header p {
+    color: #64748b;
+}
+
+/* Error */
+:root[data-theme="dark"] .login-error {
+    background: rgba(185, 28, 28, 0.15);
+    border-color: rgba(185, 28, 28, 0.4);
+    color: #fca5a5;
+}
+
+/* Input fields */
+:root[data-theme="dark"] .field label {
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .field input {
+    background: #1e293b;
+    border-color: rgba(51, 65, 85, 0.8);
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .field input::placeholder {
+    color: #475569;
+}
+
+:root[data-theme="dark"] .field input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px #6366f1;
+}
+
+/* Password toggle */
+:root[data-theme="dark"] .password-toggle {
+    color: #475569;
+}
+
+:root[data-theme="dark"] .password-toggle:hover {
+    color: #94a3b8;
+}
+
+/* Remember & links */
+:root[data-theme="dark"] .remember {
+    color: #e2e8f0;
+}
+
+:root[data-theme="dark"] .remember input {
+    accent-color: #6366f1;
+}
+
+:root[data-theme="dark"] .meta-row a {
+    color: #818cf8;
+}
+
+/* Buttons */
+:root[data-theme="dark"] .btn-primary {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+:root[data-theme="dark"] .btn-slide .label-hover {
+    background: #6366f1;
+    color: #ffffff;
+}
+
+/* Signup tip */
+:root[data-theme="dark"] .signup-tip {
+    color: #64748b;
+}
+
+:root[data-theme="dark"] .signup-tip a {
+    color: #f1f5f9;
 }

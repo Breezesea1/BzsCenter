@@ -1,4 +1,7 @@
-﻿@inherits LayoutComponentBase
+﻿@using BzsCenter.Idp.Infra.Preferences
+@using System.Globalization
+@inherits LayoutComponentBase
+@inject IHttpContextAccessor HttpContextAccessor
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +10,10 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            <div class="top-row-links">
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            </div>
+            <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
         </div>
 
         <article class="content px-4">
@@ -21,3 +27,12 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
+
+@code {
+    private string CurrentCultureName =>
+        CultureInfo.CurrentUICulture.Name;
+
+    private string CurrentThemeName =>
+        HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName]
+        ?? UiPreferences.DefaultTheme;
+}

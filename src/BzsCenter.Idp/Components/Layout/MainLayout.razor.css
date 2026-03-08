@@ -2,6 +2,9 @@
     position: relative;
     display: flex;
     flex-direction: column;
+    min-height: 100vh;
+    background: var(--app-bg);
+    color: var(--app-text);
 }
 
 main {
@@ -9,14 +12,19 @@ main {
 }
 
 .sidebar {
-    background-image: linear-gradient(180deg, rgb(5, 39, 103) 0%, #3a0647 70%);
+    background-image: linear-gradient(180deg, var(--sidebar-bg-start) 0%, var(--sidebar-bg-end) 70%);
 }
 
 .top-row {
-    background-color: #f7f7f7;
-    border-bottom: 1px solid #d6d5d5;
-    justify-content: flex-end;
+    background-color: var(--surface-muted);
+    border-bottom: 1px solid var(--border-default);
+    justify-content: space-between;
     height: 3.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.top-row-links {
     display: flex;
     align-items: center;
 }
@@ -25,10 +33,12 @@ main {
         white-space: nowrap;
         margin-left: 1.5rem;
         text-decoration: none;
+        color: var(--link-color);
     }
 
     .top-row ::deep a:hover, .top-row ::deep .btn-link:hover {
         text-decoration: underline;
+        color: var(--link-hover);
     }
 
     .top-row ::deep a:first-child {
@@ -78,7 +88,8 @@ main {
 
 #blazor-error-ui {
     color-scheme: light only;
-    background: lightyellow;
+    background: var(--warning-bg);
+    color: var(--warning-text);
     bottom: 0;
     box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.2);
     box-sizing: border-box;

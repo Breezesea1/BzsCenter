@@ -1,5 +1,7 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using BzsCenter.Idp.Infra.Preferences
+@inject IHttpContextAccessor HttpContextAccessor
+<!DOCTYPE html>
+<html lang="en" data-theme="@ResolvedTheme">
 
 <head>
     <meta charset="utf-8"/>
@@ -10,6 +12,18 @@
     <link rel="stylesheet" href="@Assets["BzsCenter.Idp.styles.css"]"/>
     <ImportMap/>
     <link rel="icon" type="image/png" href="favicon.png"/>
+    @* Inline script: resolve "system" theme before first paint to prevent flash *@
+    <script>
+        (function () {
+            var t = document.documentElement.getAttribute("data-theme");
+            if (t === "system") {
+                document.documentElement.setAttribute(
+                    "data-theme",
+                    window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+                );
+            }
+        })();
+    </script>
     <HeadOutlet @rendermode="InteractiveServer"/>
 </head>
 
@@ -21,3 +35,14 @@
 </body>
 
 </html>
+
+@code {
+    private string ResolvedTheme
+    {
+        get
+        {
+            var cookie = HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName];
+            return UiPreferences.NormalizeTheme(cookie);
+        }
+    }
+}

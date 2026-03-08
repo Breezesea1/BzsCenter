@@ -16,16 +16,16 @@ internal sealed class LoggingBzsCacheDecorator(
     internal const string ActivitySourceName = "BzsCenter.Cache";
     internal const string MeterName = "BzsCenter.Cache";
 
-    private static readonly ActivitySource ActivitySource = new(ActivitySourceName);
-    private static readonly Meter Meter = new(MeterName);
-    private static readonly Counter<long> OperationCounter = Meter.CreateCounter<long>("cache.operation.count");
-    private static readonly Counter<long> OperationErrorCounter = Meter.CreateCounter<long>("cache.operation.error.count");
-    private static readonly Counter<long> HitCounter = Meter.CreateCounter<long>("cache.hit.count");
-    private static readonly Counter<long> MissCounter = Meter.CreateCounter<long>("cache.miss.count");
-    private static readonly UpDownCounter<long> InflightCounter = Meter.CreateUpDownCounter<long>("cache.operation.inflight");
-    private static readonly Counter<long> FactoryCounter = Meter.CreateCounter<long>("cache.factory.execution.count");
-    private static readonly Histogram<double> OperationDurationMs = Meter.CreateHistogram<double>("cache.operation.duration", "ms");
-    private static readonly Histogram<double> FactoryDurationMs = Meter.CreateHistogram<double>("cache.factory.execution.duration", "ms");
+    private static readonly ActivitySource _activitySource = new(ActivitySourceName);
+    private static readonly Meter _meter = new(MeterName);
+    private static readonly Counter<long> _operationCounter = _meter.CreateCounter<long>("cache.operation.count");
+    private static readonly Counter<long> _operationErrorCounter = _meter.CreateCounter<long>("cache.operation.error.count");
+    private static readonly Counter<long> _hitCounter = _meter.CreateCounter<long>("cache.hit.count");
+    private static readonly Counter<long> _missCounter = _meter.CreateCounter<long>("cache.miss.count");
+    private static readonly UpDownCounter<long> _inflightCounter = _meter.CreateUpDownCounter<long>("cache.operation.inflight");
+    private static readonly Counter<long> _factoryCounter = _meter.CreateCounter<long>("cache.factory.execution.count");
+    private static readonly Histogram<double> _operationDurationMs = _meter.CreateHistogram<double>("cache.operation.duration", "ms");
+    private static readonly Histogram<double> _factoryDurationMs = _meter.CreateHistogram<double>("cache.factory.execution.duration", "ms");
 
     private readonly string _cacheSystem = cacheOptions.CacheType == CacheType.Redis ? "redis" : "inmemory";
 
@@ -156,7 +156,7 @@ internal sealed class LoggingBzsCacheDecorator(
     {
         using var activity = CreateActivity(operation, key);
         var startedAt = Stopwatch.GetTimestamp();
-        InflightCounter.Add(1,
+        _inflightCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation));
 
@@ -174,7 +174,7 @@ internal sealed class LoggingBzsCacheDecorator(
         }
         finally
         {
-            InflightCounter.Add(-1,
+            _inflightCounter.Add(-1,
                 new KeyValuePair<string, object?>("cache.system", _cacheSystem),
                 new KeyValuePair<string, object?>("operation", operation));
         }
@@ -185,7 +185,7 @@ internal sealed class LoggingBzsCacheDecorator(
     {
         using var activity = CreateActivity(operation, key);
         var startedAt = Stopwatch.GetTimestamp();
-        InflightCounter.Add(1,
+        _inflightCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation));
 
@@ -203,7 +203,7 @@ internal sealed class LoggingBzsCacheDecorator(
         }
         finally
         {
-            InflightCounter.Add(-1,
+            _inflightCounter.Add(-1,
                 new KeyValuePair<string, object?>("cache.system", _cacheSystem),
                 new KeyValuePair<string, object?>("operation", operation));
         }
@@ -212,7 +212,7 @@ internal sealed class LoggingBzsCacheDecorator(
     // 创建一次缓存操作的 Trace Activity。
     private Activity? CreateActivity(string operation, string key)
     {
-        var activity = ActivitySource.StartActivity($"{operation} {_cacheSystem}", ActivityKind.Client);
+        var activity = _activitySource.StartActivity($"{operation} {_cacheSystem}", ActivityKind.Client);
         activity?.SetTag("db.system", _cacheSystem);
         activity?.SetTag("db.operation", operation);
         activity?.SetTag("cache.key_hash", HashKey(key));
@@ -231,25 +231,25 @@ internal sealed class LoggingBzsCacheDecorator(
             outcome = isHit.Value ? "hit" : "miss";
             if (isHit.Value)
             {
-                HitCounter.Add(1,
+                _hitCounter.Add(1,
                     new KeyValuePair<string, object?>("cache.system", _cacheSystem),
                     new KeyValuePair<string, object?>("operation", operation));
             }
             else
             {
-                MissCounter.Add(1,
+                _missCounter.Add(1,
                     new KeyValuePair<string, object?>("cache.system", _cacheSystem),
                     new KeyValuePair<string, object?>("operation", operation));
             }
         }
 
-        OperationCounter.Add(1,
+        _operationCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation),
             new KeyValuePair<string, object?>("status", "ok"),
             new KeyValuePair<string, object?>("outcome", outcome));
 
-        OperationDurationMs.Record(elapsed,
+        _operationDurationMs.Record(elapsed,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation),
             new KeyValuePair<string, object?>("status", "ok"),
@@ -265,16 +265,16 @@ internal sealed class LoggingBzsCacheDecorator(
         var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
 
         activity?.SetExceptionTags(ex);
-        OperationCounter.Add(1,
+        _operationCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation),
             new KeyValuePair<string, object?>("status", "error"),
             new KeyValuePair<string, object?>("outcome", "error"));
-        OperationErrorCounter.Add(1,
+        _operationErrorCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation));
 
-        OperationDurationMs.Record(elapsed,
+        _operationDurationMs.Record(elapsed,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("operation", operation),
             new KeyValuePair<string, object?>("status", "error"),
@@ -296,10 +296,10 @@ internal sealed class LoggingBzsCacheDecorator(
     private void RecordFactorySuccess(long startedAt)
     {
         var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
-        FactoryCounter.Add(1,
+        _factoryCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("outcome", "success"));
-        FactoryDurationMs.Record(elapsed,
+        _factoryDurationMs.Record(elapsed,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("outcome", "success"));
     }
@@ -308,10 +308,10 @@ internal sealed class LoggingBzsCacheDecorator(
     private void RecordFactoryFailure(long startedAt)
     {
         var elapsed = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
-        FactoryCounter.Add(1,
+        _factoryCounter.Add(1,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("outcome", "error"));
-        FactoryDurationMs.Record(elapsed,
+        _factoryDurationMs.Record(elapsed,
             new KeyValuePair<string, object?>("cache.system", _cacheSystem),
             new KeyValuePair<string, object?>("outcome", "error"));
     }

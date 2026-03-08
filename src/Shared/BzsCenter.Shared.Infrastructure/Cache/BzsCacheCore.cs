@@ -7,16 +7,16 @@ namespace BzsCenter.Shared.Infrastructure.Cache;
 
 internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> cacheOptions) : IBzsCache
 {
-    private static readonly Meter Meter = new(LoggingBzsCacheDecorator.MeterName);
-    private static readonly Histogram<long> PayloadSizeBytes = Meter.CreateHistogram<long>("cache.payload.size", "By");
+    private static readonly Meter _meter = new(LoggingBzsCacheDecorator.MeterName);
+    private static readonly Histogram<long> _payloadSizeBytes = _meter.CreateHistogram<long>("cache.payload.size", "By");
 
-    private static readonly Counter<long> DeserializeFailureCounter =
-        Meter.CreateCounter<long>("cache.deserialize.failure.count");
+    private static readonly Counter<long> _deserializeFailureCounter =
+        _meter.CreateCounter<long>("cache.deserialize.failure.count");
 
-    private static readonly Counter<long> StampedeJoinCounter = Meter.CreateCounter<long>("cache.stampede.join.count");
+    private static readonly Counter<long> _stampedeJoinCounter = _meter.CreateCounter<long>("cache.stampede.join.count");
 
-    private static readonly UpDownCounter<long> StampedeActiveCounter =
-        Meter.CreateUpDownCounter<long>("cache.stampede.active");
+    private static readonly UpDownCounter<long> _stampedeActiveCounter =
+        _meter.CreateUpDownCounter<long>("cache.stampede.active");
 
     private readonly string _cacheSystem = cacheOptions.Value.CacheType == CacheType.Redis ? "redis" : "inmemory";
 
@@ -36,7 +36,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
         }
 
         var payload = Serialize(value, options.JsonTypeInfo);
-        PayloadSizeBytes.Record(payload.LongLength,
+        _payloadSizeBytes.Record(payload.LongLength,
             new KeyValuePair<string, object?>("operation", "set"),
             new KeyValuePair<string, object?>("cache.system", _cacheSystem));
         store.Set(key, payload, options.EntryCacheTimeOptions, tags);
@@ -55,7 +55,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
         }
 
         var payload = Serialize(value, options.JsonTypeInfo);
-        PayloadSizeBytes.Record(payload.LongLength,
+        _payloadSizeBytes.Record(payload.LongLength,
             new KeyValuePair<string, object?>("operation", "set"),
             new KeyValuePair<string, object?>("cache.system", _cacheSystem));
         return store.SetAsync(key, payload, options.EntryCacheTimeOptions, tags);
@@ -85,7 +85,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
             return value;
         }
 
-        DeserializeFailureCounter.Add(1,
+        _deserializeFailureCounter.Add(1,
             new KeyValuePair<string, object?>("operation", "get"),
             new KeyValuePair<string, object?>("cache.system", _cacheSystem));
         // 读到损坏数据时主动清理，避免后续重复反序列化失败。
@@ -103,7 +103,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
             return value;
         }
 
-        DeserializeFailureCounter.Add(1,
+        _deserializeFailureCounter.Add(1,
             new KeyValuePair<string, object?>("operation", "get"),
             new KeyValuePair<string, object?>("cache.system", _cacheSystem));
         await store.RemoveAsync(key);
@@ -124,7 +124,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
         if (!TrySafeDeserialize(payload, jsonTypeInfo, out value))
         {
             // 与 Get 保持一致：发现坏数据即剔除。
-            DeserializeFailureCounter.Add(1,
+            _deserializeFailureCounter.Add(1,
                 new KeyValuePair<string, object?>("operation", "try_get"),
                 new KeyValuePair<string, object?>("cache.system", _cacheSystem));
             store.Remove(key);
@@ -170,7 +170,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
 
             T created;
             // Given a newly created value, when factory succeeds, then cache is populated before returning.
-            StampedeActiveCounter.Add(1,
+            _stampedeActiveCounter.Add(1,
                 new KeyValuePair<string, object?>("operation", "get_or_create"),
                 new KeyValuePair<string, object?>("cache.system", _cacheSystem));
             try
@@ -179,7 +179,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
             }
             finally
             {
-                StampedeActiveCounter.Add(-1,
+                _stampedeActiveCounter.Add(-1,
                     new KeyValuePair<string, object?>("operation", "get_or_create"),
                     new KeyValuePair<string, object?>("cache.system", _cacheSystem));
             }
@@ -256,7 +256,7 @@ internal sealed class BzsCacheCore(IBzsCacheStore store, IOptions<CacheOptions> 
             if (_keyLocks.TryGetValue(key, out var existing))
             {
                 existing.RefCount++;
-                StampedeJoinCounter.Add(1,
+                _stampedeJoinCounter.Add(1,
                     new KeyValuePair<string, object?>("operation", "get_or_create"),
                     new KeyValuePair<string, object?>("cache.system", _cacheSystem));
                 return existing;

@@ -48,7 +48,7 @@ public sealed class IdentitySeederTests
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BzsRole { Id = Guid.NewGuid(), Name = IdentitySeedConstants.AdminRoleName });
         rolePermissionService.SyncPermissionsAsync(Arg.Any<Guid>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
-            .Returns(IdentityResult.Success);
+            .Returns(Task.FromResult(IdentityResult.Success));
 
         var existingAdmin = new BzsUser
         {
@@ -58,8 +58,8 @@ public sealed class IdentitySeederTests
 
         userService.GetByNameAsync("admin", Arg.Any<CancellationToken>())
             .Returns(existingAdmin);
-        userService.IsInRoleAsync(existingAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>())
-            .Returns(true);
+        userService.IsInRoleAsync(default, default!, default)
+            .ReturnsForAnyArgs(Task.FromResult(true));
 
         var options = Options.Create(new IdentitySeedOptions
         {
@@ -108,7 +108,7 @@ public sealed class IdentitySeederTests
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(new BzsRole { Id = Guid.NewGuid(), Name = IdentitySeedConstants.AdminRoleName });
         rolePermissionService.SyncPermissionsAsync(Arg.Any<Guid>(), Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
-            .Returns(IdentityResult.Success);
+            .Returns(Task.FromResult(IdentityResult.Success));
 
         var createdAdmin = new BzsUser
         {
@@ -119,11 +119,11 @@ public sealed class IdentitySeederTests
         userService.GetByNameAsync("admin", Arg.Any<CancellationToken>())
             .Returns((BzsUser?)null, createdAdmin);
         userService.CreateAsync("admin", "Passw0rd!", Arg.Any<string?>(), Arg.Any<CancellationToken>())
-            .Returns(IdentityResult.Success);
-        userService.IsInRoleAsync(createdAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>())
-            .Returns(false);
-        userService.AddToRoleAsync(createdAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>())
-            .Returns(IdentityResult.Success);
+            .Returns(Task.FromResult(IdentityResult.Success));
+        userService.IsInRoleAsync(default, default!, default)
+            .ReturnsForAnyArgs(Task.FromResult(false));
+        userService.AddToRoleAsync(default, default!, default)
+            .ReturnsForAnyArgs(Task.FromResult(IdentityResult.Success));
 
         var options = Options.Create(new IdentitySeedOptions
         {

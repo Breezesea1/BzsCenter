@@ -128,7 +128,7 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     {
         sc.ConfigureApplicationCookie(opt =>
         {
-            opt.LoginPath = "/account/login";
+            opt.LoginPath = "/login";
             opt.LogoutPath = "/account/logout";
             opt.AccessDeniedPath = "/account/denied";
             opt.Cookie.Name = "bzs.auth";

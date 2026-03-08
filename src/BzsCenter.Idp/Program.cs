@@ -1,7 +1,9 @@
-using BzsCenter.Idp.Components;
+﻿using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Services;
 using BzsCenter.Idp.Services.Identity;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,6 +11,19 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddIdpService(builder.Configuration);
 builder.EnrichFromAspire();
+builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("zh-CN"),
+        new CultureInfo("en-US"),
+    };
+
+    options.DefaultRequestCulture = new RequestCulture("zh-CN");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -37,6 +52,7 @@ if (!app.Environment.IsDevelopment())
 app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
 app.UseForwardedHeaders();
 app.UseHttpsRedirection();
+app.UseRequestLocalization();
 app.UseAuthentication();
 app.UseAuthorization();
 

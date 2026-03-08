@@ -1,4 +1,4 @@
-{
+﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
   "profiles": {
     "https": {
@@ -11,7 +11,12 @@
         "DOTNET_ENVIRONMENT": "Development",
         "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "https://localhost:21100",
         "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "https://localhost:23044",
-        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:22085"
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "https://localhost:22085",
+        "HTTP_PROXY": "",
+        "HTTPS_PROXY": "",
+        "ALL_PROXY": "",
+        "NO_PROXY": "localhost,127.0.0.1,::1",
+        "no_proxy": "localhost,127.0.0.1,::1"
       }
     },
     "http": {
@@ -24,7 +29,12 @@
         "DOTNET_ENVIRONMENT": "Development",
         "ASPIRE_DASHBOARD_OTLP_ENDPOINT_URL": "http://localhost:19277",
         "ASPIRE_DASHBOARD_MCP_ENDPOINT_URL": "http://localhost:18073",
-        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20192"
+        "ASPIRE_RESOURCE_SERVICE_ENDPOINT_URL": "http://localhost:20192",
+        "HTTP_PROXY": "",
+        "HTTPS_PROXY": "",
+        "ALL_PROXY": "",
+        "NO_PROXY": "localhost,127.0.0.1,::1",
+        "no_proxy": "localhost,127.0.0.1,::1"
       }
     }
   }

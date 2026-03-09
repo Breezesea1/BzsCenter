@@ -1,4 +1,4 @@
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Services.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging.Abstractions;

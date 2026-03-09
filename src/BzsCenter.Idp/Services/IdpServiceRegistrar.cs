@@ -1,4 +1,4 @@
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
 using BzsCenter.Idp.Services.Identity;

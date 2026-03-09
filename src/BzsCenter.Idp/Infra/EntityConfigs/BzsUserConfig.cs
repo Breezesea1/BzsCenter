@@ -1,4 +1,4 @@
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

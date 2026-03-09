@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using BzsCenter.Shared.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;

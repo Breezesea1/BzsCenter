@@ -1,4 +1,4 @@
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

@@ -5,7 +5,7 @@ using System.Security.Claims;
 using System.Text.Json;
 using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Controllers;
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Services;
 using BzsCenter.Idp.Services.Authorization;

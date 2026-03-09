@@ -1,4 +1,4 @@
-using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Infra;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;

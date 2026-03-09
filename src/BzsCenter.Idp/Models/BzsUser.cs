@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace BzsCenter.Idp.Domain;
+namespace BzsCenter.Idp.Models;
 
 public sealed class BzsUser : IdentityUser<Guid>
 {

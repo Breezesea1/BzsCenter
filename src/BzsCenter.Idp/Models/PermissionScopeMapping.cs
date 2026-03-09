@@ -1,4 +1,4 @@
-namespace BzsCenter.Idp.Domain;
+namespace BzsCenter.Idp.Models;
 
 public sealed class PermissionScopeMapping
 {

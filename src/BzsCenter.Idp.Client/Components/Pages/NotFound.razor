@@ -1,5 +1,59 @@
-﻿@page "/not-found"
+@page "/not-found"
 @layout MainLayout
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<NotFound> L
 
-<h3>Not Found</h3>
-<p>Sorry, the content you are looking for does not exist.</p>
+<PageTitle>@L["PageTitle"]</PageTitle>
+
+<section class="notfound-shell">
+    <div class="notfound-card">
+        <div class="notfound-copy">
+            <span class="notfound-kicker">@L["StatusKicker"]</span>
+
+            <div class="notfound-brand" aria-label="BzsCenter">
+                <span class="notfound-brand-mark" aria-hidden="true">B</span>
+                <span class="notfound-brand-text">BzsCenter</span>
+            </div>
+
+            <h1>@L["Heading"]</h1>
+
+            <p class="notfound-lead">@L["Lead"]</p>
+
+            <div class="notfound-actions">
+                <a class="notfound-primary-link" href="/">
+                    <span>@L["PrimaryAction"]</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </a>
+
+                <a class="notfound-secondary-link" href="/login">@L["SecondaryAction"]</a>
+            </div>
+        </div>
+
+        <aside class="notfound-aside" aria-label="@L["HelpfulDestinationsAria"]">
+            <div class="notfound-code" aria-hidden="true">
+                <span>4</span>
+                <span>0</span>
+                <span>4</span>
+            </div>
+
+            <div class="notfound-panel">
+                <p class="notfound-panel-label">@L["HelpfulDestinationsLabel"]</p>
+
+                <a class="notfound-nav-link" href="/">
+                    <span class="notfound-nav-title">@L["HomeLinkTitle"]</span>
+                    <span class="notfound-nav-meta">@L["HomeLinkMeta"]</span>
+                </a>
+
+                <a class="notfound-nav-link" href="/login">
+                    <span class="notfound-nav-title">@L["LoginLinkTitle"]</span>
+                    <span class="notfound-nav-meta">@L["LoginLinkMeta"]</span>
+                </a>
+
+                <div class="notfound-tip">@L["BookmarkTip"]</div>
+            </div>
+        </aside>
+    </div>
+</section>

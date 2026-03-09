@@ -56,12 +56,21 @@
       
   </ItemGroup>
 
-  <Target Name="NpmRestore" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" BeforeTargets="Build;Publish">
-    <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
-    <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
+  <Target Name="NpmRestore"
+          Condition="Exists('$(MSBuildProjectDirectory)/package.json')"
+          BeforeTargets="Build;Publish">
+    <Exec Command="npm ci"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
+    <Exec Command="npm install"
+          WorkingDirectory="$(MSBuildProjectDirectory)"
+          Condition="!Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
   </Target>
 
-  <Target Name="BuildFrontendAssets" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" DependsOnTargets="NpmRestore" BeforeTargets="Build;Publish">
+  <Target Name="BuildFrontendAssets"
+          Condition="Exists('$(MSBuildProjectDirectory)/package.json')"
+          DependsOnTargets="NpmRestore"
+          BeforeTargets="Build;Publish">
     <Exec Command="npm run css:build" WorkingDirectory="$(MSBuildProjectDirectory)" />
     <Exec Command="npm run gsap:copy" WorkingDirectory="$(MSBuildProjectDirectory)" />
   </Target>

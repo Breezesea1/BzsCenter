@@ -1,6 +1,8 @@
 @implements IAsyncDisposable
 @using BzsCenter.Idp.Client.Infra.Blazor
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
+@using System.Text
 @inject IStringLocalizer<Preferences> L
 @inject IJSRuntime JS
 @inject NavigationManager Nav
@@ -171,8 +173,64 @@
     private string BuildLocalReturnUrl()
     {
         var current = new Uri(Nav.Uri, UriKind.Absolute);
-        var returnUrl = $"{current.PathAndQuery}{current.Fragment}";
+        var filteredPathAndQuery = RemoveCultureQueryParameters(current.PathAndQuery);
+        var returnUrl = $"{filteredPathAndQuery}{current.Fragment}";
         return string.IsNullOrWhiteSpace(returnUrl) ? "/" : returnUrl;
+    }
+
+    private static string RemoveCultureQueryParameters(string pathAndQuery)
+    {
+        var queryIndex = pathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        if (queryIndex < 0)
+        {
+            return pathAndQuery;
+        }
+
+        var path = pathAndQuery[..queryIndex];
+        var query = pathAndQuery[(queryIndex + 1)..];
+        var parsed = QueryHelpers.ParseQuery($"?{query}");
+
+        var pairs = new List<(string Key, string? Value)>();
+        foreach (var entry in parsed)
+        {
+            if (ShouldSkipCultureKey(entry.Key))
+            {
+                continue;
+            }
+
+            foreach (var value in entry.Value)
+            {
+                pairs.Add((entry.Key, value));
+            }
+        }
+
+        if (pairs.Count == 0)
+        {
+            return path;
+        }
+
+        var builder = new StringBuilder(path);
+        builder.Append('?');
+
+        for (var i = 0; i < pairs.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append('&');
+            }
+
+            builder.Append(Uri.EscapeDataString(pairs[i].Key));
+            builder.Append('=');
+            builder.Append(Uri.EscapeDataString(pairs[i].Value ?? string.Empty));
+        }
+
+        return builder.ToString();
+    }
+
+    private static bool ShouldSkipCultureKey(string key)
+    {
+        return string.Equals(key, "culture", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(key, "ui-culture", StringComparison.OrdinalIgnoreCase);
     }
 
     public ValueTask DisposeAsync()

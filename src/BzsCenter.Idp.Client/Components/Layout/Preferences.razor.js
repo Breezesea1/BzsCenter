@@ -1,15 +1,19 @@
 const THEME_COOKIE = "bzs-theme";
 const MEDIA_DARK = "(prefers-color-scheme: dark)";
 
+function getCookie(name) {
+    const match = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith(name + "="));
+    return match ? decodeURIComponent(match.split("=")[1]) : null;
+}
+
 /**
  * Read the bzs-theme cookie value.
  * Returns "light" | "dark" | "system" | null
  */
 export function getThemeCookie() {
-    const match = document.cookie
-        .split("; ")
-        .find((row) => row.startsWith(THEME_COOKIE + "="));
-    return match ? decodeURIComponent(match.split("=")[1]) : null;
+    return getCookie(THEME_COOKIE);
 }
 
 /**

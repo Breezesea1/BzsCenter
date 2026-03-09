@@ -314,6 +314,10 @@
   - [x] `FirstPartyMachine`
 - [x] 将 unsupported 组合（如 confidential + authorization_code）改为显式 validation failure
 - [x] 为 interactive / machine / unsupported onboarding profile 补齐单元与集成测试
+- [x] 补齐 OIDC client 管理面的 update/delete 成功路径回归验证
+- [x] 补齐更细粒度的 profile strategy 测试（interactive PKCE、machine redirect URI 等）
+- [x] 明确当前实现仅支持 first-party client onboarding；third-party / self-service onboarding 在当前仓库中不受支持
+- [x] 为 `PermissionClaimDestinationsHandler` 补齐 handler 级单测，直接覆盖 scope → claim destination 规则
 
 ---
 
@@ -325,9 +329,10 @@
 
 ### 中优先级
 
-- [ ] 继续评估 consent 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
-- [ ] 继续补 OIDC client 管理面的更新/删除成功路径与更细粒度策略测试
-- [ ] 评估未来是否需要引入真正的 third-party / self-service client trust model
+- [x] 继续评估 consent 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
+- [x] 继续补 OIDC client 管理面的更新/删除成功路径与更细粒度策略测试
+- [x] 评估未来是否需要引入真正的 third-party / self-service client trust model
+- [x] 补 `PermissionClaimDestinationsHandler` 的 handler 级单测
 
 ### 中长期
 
@@ -339,7 +344,7 @@
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：继续收口 consent 等剩余 auth-sensitive UI
+### 主线方案：继续按“协议入口 / 认证账户 / client 管理 / 权限管理”推进模块边界清晰化
 
 这是当前最适合承接的下一步，原因是：
 
@@ -350,13 +355,15 @@
 - `/logout` 也已经收敛回 `.Idp`；
 - `OidcClientsController` 已经收口到应用服务层；
 - current client onboarding 策略也已经在代码中显式化；
-- 当前最适合继续推进的主线，就是把剩余尚未显式建模的 consent 等协议交互 UI 继续收回 server-owned surface。
+- OIDC client 管理面的 success path 与更细粒度 profile 策略测试也已经补齐；
+- `PermissionClaimDestinationsHandler` 的 handler 级单测也已经落地；
+- 因此当前剩余事项已主要转为更长期的模块边界整理，而不是单点回归缺口。
 
 #### 目标
 
-- 让 consent 等高敏感交互也尽量回到 `.Idp` 主项目；
-- 继续减少 `.Client` 对认证关键 UI 的承担；
-- 让认证面在结构上与当前 server-owned `/login`、`/account/denied`、`/logout` 保持一致。
+- 继续降低 controller 直接承担过多 orchestration 的概率；
+- 让协议入口 / 认证账户 / client 管理 / 权限管理的边界更清晰；
+- 让长期维护时的结构成本逐步下降，而不是只依赖补丁式修复。
 
 #### 方案边界
 
@@ -371,36 +378,36 @@
 
 #### 推荐实施顺序
 
-1. **梳理剩余 auth-sensitive 页面**  
-   明确 consent 等页面当前是 server 还是 client 持有。
+1. **梳理剩余跨层耦合点**  
+   找出仍由 controller 直接承担过多流程控制的区域。
 
-2. **优先迁移最靠近协议交互的页面**  
-   先处理最直接影响 OIDC 交互的 consent 周边 UI。
+2. **按职责收口服务边界**  
+   继续让协议入口与管理面 API 只负责 HTTP 映射，复杂规则下沉到服务层。
 
-3. **保留服务端安全语义**  
-   继续让 cookie、returnUrl、antiforgery 与协议跳转由服务端控制器/组件主导。
+3. **补关键回归测试**  
+   每完成一处边界收口，都补与之对应的单元/集成测试。
 
 4. **补回归验证**  
-   对 consent、回跳与未登录路径继续补浏览器级和集成级验证。
+   保持 build / format / test 通过，并避免结构整理破坏当前 auth / OIDC 行为。
 
 #### 完成判定
 
-- auth-sensitive 页面不只 `/login` 是 server-owned；
-- 认证面结构继续向 server-owned surface 收敛；
-- 浏览器级和集成级验证继续保持通过。
+- 协议入口 / 认证账户 / client 管理 / 权限管理的职责边界比当前更清晰；
+- 结构优化不是靠文档约束，而是落到具体实现与测试里；
+- 保持现有 auth / OIDC 行为不回退。
 
 ### 第二阶段候选
 
 如果主线方案完成，下一优先级建议如下：
 
-1. **补 `PermissionClaimDestinationsHandler` 的 handler 级单测**  
-   在现有 token / userinfo 集成覆盖之上，再补更细粒度的规则单测。
+1. **评估 third-party / self-service onboarding 是否需要真实进入 roadmap**  
+   如果 future roadmap 需要扩展，就在现有 first-party profile 之外引入明确 trust model，而不是继续靠隐式默认值扩展。
 
-2. **扩充 OIDC client 管理面的成功/失败测试矩阵**  
-   尤其是 update/delete 成功路径、按 profile 区分的 validation 分支。
+2. **若 future roadmap 引入 consent model，再重新评估 consent UI 的 server-owned 承载方式**  
+   当前 first-party-only 策略下，不需要独立 consent 页面。
 
-3. **评估 third-party / self-service onboarding 是否需要真实进入 roadmap**  
-   如果需要，就在现有 first-party profile 之外引入明确 trust model，而不是继续靠隐式默认值扩展。
+3. **若团队目标不是 DDD，考虑简化术语与目录表达；若目标是 DDD，则真正补齐聚合/值对象/不变量**  
+   避免目录命名与架构事实继续长期偏离。
 
 ---
 

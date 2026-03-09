@@ -142,6 +142,43 @@ public class OidcClientDescriptorFactoryTests
     }
 
     [Fact]
+    public void ValidateRequest_ReturnsErrors_WhenInteractiveProfileDisablesPkce()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Interactive Client",
+            Profile = OidcClientProfile.FirstPartyInteractive,
+            PublicClient = true,
+            RequireProofKeyForCodeExchange = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors,
+            static e => e.Contains("must require PKCE", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ValidateRequest_ReturnsErrors_WhenMachineProfileConfiguresRedirectUris()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Machine Client",
+            Profile = OidcClientProfile.FirstPartyMachine,
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors,
+            static e => e.Contains("must not configure redirect URIs", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
     public void CreateDescriptor_WhenGeneratingSecret_CreatesUniqueCryptographicHexSecret()
     {
         var request = new OidcClientUpsertRequest

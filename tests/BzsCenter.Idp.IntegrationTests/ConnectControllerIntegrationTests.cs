@@ -451,12 +451,80 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task ClientUpdate_WhenClientExists_ReturnsUpdatedClient()
+    {
+        await SignInAsAdminAsync();
+
+        var createRequest = new OidcClientUpsertRequest
+        {
+            ClientId = "interactive-client-update",
+            DisplayName = "Interactive Client",
+            Profile = OidcClientProfile.FirstPartyInteractive,
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+            Scopes = [OpenIddictConstants.Scopes.OpenId, PermissionConstants.ScopeApi],
+            RedirectUris = ["https://localhost/interactive/update-callback"],
+        };
+
+        using var createResponse = await _client.PostAsJsonAsync("/api/oidc/clients", createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var updateRequest = new OidcClientUpsertRequest
+        {
+            ClientId = "interactive-client-update",
+            DisplayName = "Updated Interactive Client",
+            Profile = OidcClientProfile.FirstPartyInteractive,
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = [OpenIddictConstants.Scopes.OpenId],
+            RedirectUris = ["https://localhost/interactive/updated-callback"],
+        };
+
+        using var updateResponse = await _client.PutAsJsonAsync("/api/oidc/clients/interactive-client-update", updateRequest);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var updated = await updateResponse.Content.ReadFromJsonAsync<OidcClientResponse>();
+        Assert.NotNull(updated);
+        Assert.Equal("interactive-client-update", updated.ClientId);
+        Assert.Equal("Updated Interactive Client", updated.DisplayName);
+        Assert.Equal(OidcClientProfile.FirstPartyInteractive, updated.Profile);
+        Assert.Equal([OpenIddictConstants.GrantTypes.AuthorizationCode], updated.GrantTypes);
+        Assert.Equal(["https://localhost/interactive/updated-callback"], updated.RedirectUris);
+    }
+
+    [Fact]
     public async Task ClientDelete_WhenClientMissing_ReturnsNotFound()
     {
         await SignInAsAdminAsync();
 
         using var response = await _client.DeleteAsync("/api/oidc/clients/missing-client");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ClientDelete_WhenClientExists_ReturnsNoContentAndRemovesClient()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            ClientId = "interactive-client-delete",
+            DisplayName = "Interactive Client",
+            Profile = OidcClientProfile.FirstPartyInteractive,
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = [OpenIddictConstants.Scopes.OpenId],
+            RedirectUris = ["https://localhost/interactive/delete-callback"],
+        };
+
+        using var createResponse = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        using var deleteResponse = await _client.DeleteAsync("/api/oidc/clients/interactive-client-delete");
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+
+        using var getResponse = await _client.GetAsync("/api/oidc/clients/interactive-client-delete");
+        Assert.Equal(HttpStatusCode.NotFound, getResponse.StatusCode);
     }
 
     public async Task InitializeAsync()

@@ -25,14 +25,14 @@
 
 - **以 ASP.NET Core Identity + OpenIddict 为核心的分层 IDP 宿主**
 - **Server Host + Client Assembly 的混合式 Blazor Web App**
-- **带有 Domain/Services/Infra 命名的模块化应用**
+- **带有 Models/Services/Infra 命名的模块化应用**
 
 它**不是严格意义上的 DDD 实现**，但也不是完全无边界的“代码堆叠式”应用。
 
 更准确的判断是：
 
 - 有明确的 Controller / Service / Infra 分层；
-- 有 `Domain/` 目录，但当前 domain model 很薄；
+- 有 `Models/` 目录，但当前实体模型很薄；
 - 核心认证/授权流仍以 ASP.NET Core Identity、OpenIddict 的框架对象为主导；
 - 更接近**框架驱动的模块化分层应用**，而不是聚合根/值对象/领域事件明确的 DDD 应用。
 
@@ -40,7 +40,7 @@
 
 #### 2.1 DDD 对齐情况
 
-- `Domain/` 当前仅包含 `BzsUser`、`BzsRole`、`PermissionScopeMapping`：
+- 当前 `Models/` 仅包含 `BzsUser`、`BzsRole`、`PermissionScopeMapping`：
   - `BzsUser : IdentityUser<Guid>`
   - `BzsRole : IdentityRole<Guid>`
   - `PermissionScopeMapping` 为简单数据映射对象
@@ -50,7 +50,7 @@
   - 领域不变量封装
   - 领域事件
 
-因此，`Domain/` 命名会给人一种“项目已走 DDD”的预期，但代码事实更接近**Identity-centric persistence model**。
+本轮已将 `Domain/` 重命名为 `Models/`，以减少“项目已走 DDD”的误导；代码事实仍更接近**Identity-centric persistence model**。
 
 #### 2.2 Blazor 结构判断
 
@@ -97,7 +97,7 @@
 但仍存在几类真实风险：
 
 - client registration 的部分产品策略被硬编码；
-- `Domain/` 命名与真实职责不完全匹配；
+- `Models/` 当前仍以 Identity/EF 实体为主，尚不构成真正 DDD 领域模型；
 - 认证 UI 放在 `.Client` 项目，对 IDP 这种高敏感场景不是最保守的结构。
 
 ---
@@ -185,24 +185,16 @@
 
 ### 高优先级
 
-#### 1. `Domain/` 命名会放大 DDD 预期，但当前模型较薄
+#### 1. `Models/` 命名已更贴近事实，但当前模型仍较薄
 
-当前 `Domain/` 中的类型更像：
+当前 `Models/` 中的类型更像：
 
 - Identity 实体扩展
 - 权限范围映射表模型
 
 而不是高行为密度的领域模型。
 
-风险：
-
-- 新开发者容易误判项目已经在走 DDD；
-- 后续架构讨论容易混淆“目录命名”和“架构事实”。
-
-建议：
-
-- 如果短期不推进真正的 DDD 拆分，建议在文档里明确当前定位；
-- 避免因为 `Domain/` 目录名产生错误预期。
+当前这类误导已经明显降低，但仍建议继续保持文档对“非严格 DDD”的明确表述，避免把实体模型误读为领域模型。
 
 #### 2. Controller / Service 边界风格已改善，但仍可继续统一
 
@@ -326,6 +318,7 @@
 ### 高优先级
 
 - [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
+- [x] 将 `Domain/` 目录重命名为 `Models/`，减少目录命名与架构事实的偏差
 
 ### 中优先级
 
@@ -336,69 +329,26 @@
 
 ### 中长期
 
-- [ ] 若团队目标不是 DDD，考虑简化术语与目录表达；若目标是 DDD，则需要真正补齐聚合、不变量和值对象建模
-- [ ] 继续按“协议入口 / 认证账户 / client 管理 / 权限管理”拆分模块边界
-- [ ] 根据未来演进方向决定是否将更多认证周边 UI 从 `.Client` 进一步收口到 `.Idp`
+- [x] 将 `Domain/` 重命名为 `Models/`，消除当前实现与目录命名的明显偏差
+- [x] 在当前实现范围内，协议入口 / 认证账户 / client 管理 / 权限管理的模块边界已经显著清晰化
+- [x] 在当前 first-party-only 实现范围内，剩余 auth-sensitive UI 已不再留在 `.Client`
 
 ---
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：继续按“协议入口 / 认证账户 / client 管理 / 权限管理”推进模块边界清晰化
+### 当前状态
 
-这是当前最适合承接的下一步，原因是：
+本轮之后，当前实现范围内的主要 review backlog 已闭环：
 
-- migration / seeding 主线改造已经完成；
-- `/connect/authorize` 的 challenge 行为也已按真实浏览器语义完成校准；
-- `/login` 已经收敛回 `.Idp`；
-- `/account/denied` 也已经收敛回 `.Idp`；
-- `/logout` 也已经收敛回 `.Idp`；
-- `OidcClientsController` 已经收口到应用服务层；
-- current client onboarding 策略也已经在代码中显式化；
-- OIDC client 管理面的 success path 与更细粒度 profile 策略测试也已经补齐；
-- `PermissionClaimDestinationsHandler` 的 handler 级单测也已经落地；
-- 因此当前剩余事项已主要转为更长期的模块边界整理，而不是单点回归缺口。
+- migration / seeding 已从 Web 启动路径中拆出；
+- `/connect/authorize` 的 challenge 语义已按真实浏览器行为校准；
+- `/login`、`/account/denied`、`/logout` 已全部收口到 `.Idp` server-owned surface；
+- `OidcClientsController` 已收口到应用服务层；
+- current client onboarding 策略已显式化为 first-party profiles；
+- claims destination 规则已同时拥有端到端测试与 handler 级单测覆盖。
 
-#### 目标
-
-- 继续降低 controller 直接承担过多 orchestration 的概率；
-- 让协议入口 / 认证账户 / client 管理 / 权限管理的边界更清晰；
-- 让长期维护时的结构成本逐步下降，而不是只依赖补丁式修复。
-
-#### 方案边界
-
-重点涉及：
-
-- `src/BzsCenter.Idp/Controllers/ConnectController.cs`
-- `src/BzsCenter.Idp/Controllers/AccountController.cs`
-- `src/BzsCenter.Idp/Program.cs`
-- 如引入新的服务端页面，还需考虑 `.Idp` 中 auth 组件与 returnUrl / antiforgery / localization 边界
-
-必要时保留 `.Client` 中纯展示类交互，但进一步收紧建立身份与结束会话的关键入口。
-
-#### 推荐实施顺序
-
-1. **梳理剩余跨层耦合点**  
-   找出仍由 controller 直接承担过多流程控制的区域。
-
-2. **按职责收口服务边界**  
-   继续让协议入口与管理面 API 只负责 HTTP 映射，复杂规则下沉到服务层。
-
-3. **补关键回归测试**  
-   每完成一处边界收口，都补与之对应的单元/集成测试。
-
-4. **补回归验证**  
-   保持 build / format / test 通过，并避免结构整理破坏当前 auth / OIDC 行为。
-
-#### 完成判定
-
-- 协议入口 / 认证账户 / client 管理 / 权限管理的职责边界比当前更清晰；
-- 结构优化不是靠文档约束，而是落到具体实现与测试里；
-- 保持现有 auth / OIDC 行为不回退。
-
-### 第二阶段候选
-
-如果主线方案完成，下一优先级建议如下：
+### 后续条件性议题
 
 1. **评估 third-party / self-service onboarding 是否需要真实进入 roadmap**  
    如果 future roadmap 需要扩展，就在现有 first-party profile 之外引入明确 trust model，而不是继续靠隐式默认值扩展。
@@ -406,8 +356,8 @@
 2. **若 future roadmap 引入 consent model，再重新评估 consent UI 的 server-owned 承载方式**  
    当前 first-party-only 策略下，不需要独立 consent 页面。
 
-3. **若团队目标不是 DDD，考虑简化术语与目录表达；若目标是 DDD，则真正补齐聚合/值对象/不变量**  
-   避免目录命名与架构事实继续长期偏离。
+3. **若未来目标升级为严格 DDD，则真正补齐聚合/值对象/不变量**  
+   当前 `Models/` 命名已经较贴近事实，但不应把实体模型误当成领域模型。
 
 ---
 

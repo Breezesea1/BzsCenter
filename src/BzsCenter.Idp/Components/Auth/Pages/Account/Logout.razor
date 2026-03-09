@@ -1,0 +1,66 @@
+@page "/logout"
+@using BzsCenter.Idp.Components.Auth.Shared
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<Logout> L
+
+<PageTitle>@L["PageTitle"]</PageTitle>
+
+<div class="logout-page">
+    <section class="logout-card">
+        <div class="logout-top">
+            <div class="logout-brand">
+                <div class="brand-icon">B</div>
+                <span class="brand-name">BzsCenter</span>
+            </div>
+            <AuthPreferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
+        </div>
+
+        <div class="logout-body">
+            <div class="logout-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M15 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 17l5-5-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M15 12H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+
+            <h1>@L["Heading"]</h1>
+            <p>@L["Lead"]</p>
+
+            <form method="post" action="@BuildLogoutAction()" class="logout-form">
+                <AntiforgeryToken />
+                <button type="submit" class="logout-primary">@L["ConfirmLogout"]</button>
+            </form>
+
+            <div class="logout-actions">
+                <a class="logout-secondary" href="/" data-enhance-nav="false">@L["Cancel"]</a>
+            </div>
+
+            <p class="logout-help">@L["HelpText"]</p>
+        </div>
+    </section>
+</div>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private string CurrentCultureName => System.Globalization.CultureInfo.CurrentUICulture.Name;
+
+    private string CurrentThemeName => "system";
+
+    private string BuildLogoutAction()
+    {
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/account/logout";
+        }
+
+        return QueryHelpers.AddQueryString("/account/logout", new Dictionary<string, string?>
+        {
+            ["returnUrl"] = ReturnUrl,
+        });
+    }
+}

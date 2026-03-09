@@ -71,6 +71,30 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task AccessDeniedPage_WhenRequestedDirectly_ReturnsServerOwnedDeniedPage()
+    {
+        using var response = await _client.GetAsync("/account/denied");
+
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("access denied", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("switch account", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task LogoutPage_WhenRequestedDirectly_ReturnsServerOwnedLogoutForm()
+    {
+        using var response = await _client.GetAsync("/logout?returnUrl=%2F");
+
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("<form method=\"post\" action=\"/account/logout?returnUrl=%2F\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("sign out", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public async Task Exchange_WhenGrantTypeUnsupported_ReturnsOpenIddictErrorPayload()
     {
         using var response = await _client.PostAsync(

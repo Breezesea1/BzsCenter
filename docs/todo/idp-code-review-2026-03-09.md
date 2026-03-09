@@ -204,22 +204,22 @@
 - 如果短期不推进真正的 DDD 拆分，建议在文档里明确当前定位；
 - 避免因为 `Domain/` 目录名产生错误预期。
 
-#### 2. Controller / Service 边界风格仍不完全一致
+#### 2. Controller / Service 边界风格已改善，但仍可继续统一
 
 当前边界大致如下：
 
 - `PermissionScopesController` → 应用服务式调用（`IPermissionScopeService`）
 - `ConnectController` → 协议端点 + 框架对象直接编排（合理）
-- `OidcClientsController` → 管理端 API 直接使用 `IOpenIddictApplicationManager`
+- `OidcClientsController` → 管理端 API 已通过 `IOidcClientService` 收口到应用服务层
 
-因此不一致点主要在：
+因此当前结论更准确地说是：
 
-- **协议控制器** 与 **管理类控制器** 的抽象深度不同；
+- **协议控制器** 与 **管理类控制器** 的抽象深度仍不同，但已经更符合各自职责；
 - 其中 `ConnectController` 直接使用框架 manager 不应被视为反模式；
-- 但 `OidcClientsController` 这类偏“后台管理接口”的控制器，仍可以考虑收口到应用服务/Facade，以便：
-  - 降低 controller 体积
-  - 统一校验策略
-  - 简化测试与后续扩展
+- `OidcClientsController` 已不再直接承载 descriptor 构建、存在性检查和 manager orchestration；
+- 后续可继续统一的重点，转为：
+  - 产品策略是否继续硬编码在 OIDC client 管理流程中
+  - 失败分支与审计/日志边界是否还需加强
 
 #### 3. OIDC client 产品策略存在硬编码假设
 
@@ -289,6 +289,13 @@
 - [x] 将 `/login` 从 `BzsCenter.Idp.Client` 收敛到 `BzsCenter.Idp` server-owned surface
 - [x] 将 client 导航中的 `/login` 入口改为 full reload，避免被 client router 拦截
 - [x] 新增 `LoginPage_WhenRequestedDirectly_ReturnsServerOwnedLoginForm` 回归验证
+- [x] 为 `OidcClientsController` 增加 `IOidcClientService` / `OidcClientService`，将 OpenIddict manager orchestration 收口到应用服务层
+- [x] 新增 `OidcClientsControllerTests`，验证 controller 的 HTTP 结果映射与服务委托行为
+- [x] 新增 OIDC client 管理面的失败分支回归验证：
+  - [x] 重复创建返回 `409 Conflict`
+  - [x] 非法请求返回 `400 ValidationProblem`
+  - [x] 更新不存在 client 返回 `404 NotFound`
+  - [x] 删除不存在 client 返回 `404 NotFound`
 
 ---
 
@@ -297,12 +304,12 @@
 ### 高优先级
 
 - [ ] 明确当前 IDP 的 client 策略：first-party only，还是需要完整 consent / third-party model
-- [ ] 为 `OidcClientsController` 增加应用服务/Facade 层，统一 client 管理逻辑与测试边界
 - [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
 
 ### 中优先级
 
 - [ ] 继续评估 consent / logout 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
+- [ ] 继续补 OIDC client 管理面的更新/删除成功路径与更细粒度策略测试
 
 ### 中长期
 
@@ -314,64 +321,65 @@
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：为 `OidcClientsController` 增加应用服务层
+### 主线方案：明确 current client onboarding 策略
 
 这是当前最适合承接的下一步，原因是：
 
 - migration / seeding 主线改造已经完成；
 - `/connect/authorize` 的 challenge 行为也已按真实浏览器语义完成校准；
 - `/login` 已经收敛回 `.Idp`；
-- 当前最适合继续推进、且不依赖产品拍板的主线，就是把 `OidcClientsController` 对 `IOpenIddictApplicationManager` 的直接耦合收口到应用服务层。
+- `OidcClientsController` 也已经收口到应用服务层；
+- 当前最值得尽快明确的是：client onboarding 到底是 first-party only，还是要面向更完整的 consent / third-party 模型。
 
 #### 目标
 
-- 降低 `OidcClientsController` 中直接编排 OpenIddict manager 的复杂度；
-- 把 client 注册、更新、删除、读取的业务校验和描述符构建收口到服务层；
-- 为后续测试、产品策略扩展与审计留出更清晰的边界。
+- 明确当前 OIDC client 管理的产品边界；
+- 决定 `ConsentType = Explicit`、PKCE 要求、client secret 策略是否仍然适用于所有 client；
+- 为后续服务层演进提供明确目标，而不是在产品策略不清晰的前提下继续堆实现细节。
 
 #### 方案边界
 
 重点涉及：
 
-- `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`
 - `src/BzsCenter.Idp/Services/Oidc/OidcClientContracts.cs`
 - `src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
-- 新增或重构 `IOidcClientService` / facade 一类应用服务入口
+- `src/BzsCenter.Idp/Services/Oidc/OidcClientService.cs`
+- `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`
 
-必要时保留 `IOpenIddictApplicationManager` 在服务层中使用，但不要继续让 controller 承担全部 orchestration 责任。
+需要回答的不是“代码放哪”，而是“哪些 client 应该允许被创建，以及允许到什么程度”。
 
 #### 推荐实施顺序
 
-1. **抽出应用服务接口**  
-   定义 client registration / query / update / delete 的服务层职责与返回模型。
+1. **明确 client 类型分层**  
+   区分 first-party browser client、machine client、潜在 third-party client 的支持边界。
 
-2. **迁移 controller 逻辑**  
-   将 `OidcClientsController` 中对 descriptor 构建、存在性检查、OpenIddict manager 调用的流程收口到应用服务。
+2. **校准默认策略**  
+   确认 `ConsentType`、PKCE、redirect URI、secret 生成、grant types 是否应该按 client 类型区分。
 
-3. **补齐失败分支测试**  
-   重点覆盖冲突、非法输入、更新/删除、以及可能的产品策略分支。
+3. **把策略沉淀到服务层**  
+   在 `OidcClientService` / `OidcClientDescriptorFactory` 中落实明确规则，而不是继续让“当前默认值”兼容所有场景。
 
 4. **补回归验证**  
-   保持 build / format / test 通过，并确保 API 行为与当前集成测试契约一致。
+   为不同 client 类型/策略分支增加回归测试，确保 API 行为与策略文档一致。
 
 #### 完成判定
 
-- `OidcClientsController` 明显瘦身；
-- OpenIddict manager orchestration 主要位于应用服务层；
-- 管理面 API 的成功/失败分支拥有更清晰的测试覆盖。
+- 团队能明确回答“支持哪些 client、为什么支持、默认策略是什么”；
+- 相关规则不再只是 `DescriptorFactory` 里的隐式默认值；
+- API 与测试都清楚地区分 first-party 与其他潜在 client 模型。
 
 ### 第二阶段候选
 
 如果主线方案完成，下一优先级建议如下：
 
-1. **明确 current client onboarding 策略**  
-   回答 first-party / consent / third-party registration 的产品边界，再决定是否继续扩展 `OidcClientsController`。
-
-2. **补 `PermissionClaimDestinationsHandler` 的 handler 级单测**  
+1. **补 `PermissionClaimDestinationsHandler` 的 handler 级单测**  
    在现有 token / userinfo 集成覆盖之上，再补更细粒度的规则单测。
 
-3. **继续收口 consent / logout 等 auth-sensitive UI**  
+2. **继续收口 consent / logout 等 auth-sensitive UI**  
    将 server-owned surface 的范围从 login 扩展到更完整的认证周边交互。
+
+3. **扩充 OIDC client 管理面的成功/失败测试矩阵**  
+   尤其是 update/delete 成功路径、按策略区分的 validation 分支。
 
 ---
 
@@ -384,13 +392,15 @@
 - `src/BzsCenter.Idp/Controllers/AccountController.cs`
 - `src/BzsCenter.Idp/Controllers/ConnectController.cs`
 - `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`
+- `src/BzsCenter.Idp/Services/Oidc/OidcClientService.cs`
 - `src/BzsCenter.Idp/Controllers/PermissionScopesController.cs`
 - `src/BzsCenter.Idp/Services/IdpServiceRegistrar.cs`
 - `src/BzsCenter.Idp/Services/Oidc/PermissionClaimDestinationsHandler.cs`
 - `src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
 - `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrationService.cs`
 - `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrateDbContextExtensions.cs`
-- `src/BzsCenter.Idp.Client/Components/Pages/Account/Login.razor`
+- `src/BzsCenter.Idp/Components/Auth/Pages/Account/Login.razor`
+- `src/BzsCenter.Idp/Components/Auth/Shared/AuthPreferences.razor`
 - `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs`
 - `tests/BzsCenter.Idp.IntegrationTests/PreferencesControllerIntegrationTests.cs`
 - `tests/BzsCenter.Idp.IntegrationTests/UnitTest1.cs`（文件名仍需整理，但类名已为 `PermissionScopesApiIntegrationTests`）

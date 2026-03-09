@@ -14,6 +14,7 @@ using BzsCenter.Idp.Services.Oidc;
 using BzsCenter.Shared.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -303,6 +304,79 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.Contains(PermissionConstants.ScopeApi, client.Scopes);
     }
 
+    [Fact]
+    public async Task ClientRegistration_WhenClientExists_ReturnsConflict()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            ClientId = "interactive-client-conflict",
+            DisplayName = "Interactive Client",
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = [OpenIddictConstants.Scopes.OpenId],
+            RedirectUris = ["https://localhost/interactive/conflict-callback"],
+        };
+
+        using var firstResponse = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+
+        using var secondResponse = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
+
+        var error = await secondResponse.Content.ReadAsStringAsync();
+        Assert.Contains("already exists", error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ClientRegistration_WhenRequestInvalid_ReturnsValidationProblem()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = string.Empty,
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = [OpenIddictConstants.Scopes.OpenId],
+        };
+
+        using var response = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var payload = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(payload);
+        Assert.Contains(nameof(OidcClientUpsertRequest), payload.Errors.Keys);
+    }
+
+    [Fact]
+    public async Task ClientUpdate_WhenClientMissing_ReturnsNotFound()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Updated Client",
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = [OpenIddictConstants.Scopes.OpenId],
+            RedirectUris = ["https://localhost/interactive/updated-callback"],
+        };
+
+        using var response = await _client.PutAsJsonAsync("/api/oidc/clients/missing-client", request);
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task ClientDelete_WhenClientMissing_ReturnsNotFound()
+    {
+        await SignInAsAdminAsync();
+
+        using var response = await _client.DeleteAsync("/api/oidc/clients/missing-client");
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
     public async Task InitializeAsync()
     {
         _connection = new SqliteConnection("Data Source=:memory:");
@@ -343,6 +417,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        builder.Services.AddScoped<IOidcClientService, OidcClientService>();
         builder.Services.AddScoped<IdentitySeeder>();
         builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();

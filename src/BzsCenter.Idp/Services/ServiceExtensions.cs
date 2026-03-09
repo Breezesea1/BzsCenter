@@ -2,6 +2,7 @@ using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
 using BzsCenter.Idp.Services.Authorization;
 using BzsCenter.Idp.Services.Identity;
+using BzsCenter.Idp.Services.Oidc;
 using BzsCenter.Shared.Infrastructure.Cache;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
@@ -46,6 +47,7 @@ internal static class ServiceExtensions
         sc.AddScoped<IUserService, UserService>();
         sc.AddScoped<IRolePermissionService, RolePermissionService>();
         sc.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        sc.AddScoped<IOidcClientService, OidcClientService>();
         sc.AddScoped<IdentitySeeder>();
 
         sc.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();

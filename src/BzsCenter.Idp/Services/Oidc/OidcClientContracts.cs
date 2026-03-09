@@ -35,3 +35,18 @@ public sealed class OidcClientRegistrationResponse
     public string? ClientSecret { get; init; }
     public string DisplayName { get; init; } = string.Empty;
 }
+
+public enum OidcClientCommandStatus
+{
+    Success,
+    ValidationFailed,
+    Conflict,
+    NotFound,
+}
+
+public sealed class OidcClientCommandResult<T>
+{
+    public OidcClientCommandStatus Status { get; init; }
+    public T? Value { get; init; }
+    public string[] Errors { get; init; } = [];
+}

@@ -1,12 +1,11 @@
 using BzsCenter.Idp.Services.Oidc;
 using BzsCenter.Shared.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using OpenIddict.Abstractions;
 
 namespace BzsCenter.Idp.Controllers;
 
 [ApiController]
-public sealed class OidcClientsController(IOpenIddictApplicationManager applicationManager) : ControllerBase
+public sealed class OidcClientsController(IOidcClientService oidcClientService) : ControllerBase
 {
     /// <summary>
     /// 注册资源。
@@ -20,31 +19,19 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         [FromBody] OidcClientUpsertRequest request,
         CancellationToken cancellationToken)
     {
-        var validationResult = Validate(request);
-        if (validationResult is not null)
+        var result = await oidcClientService.RegisterAsync(request, cancellationToken);
+        if (result.Status == OidcClientCommandStatus.ValidationFailed)
         {
-            return validationResult;
+            return ValidationProblem(CreateValidationProblem(result.Errors));
         }
 
-        var clientId = string.IsNullOrWhiteSpace(request.ClientId)
-            ? $"client-{Guid.NewGuid():N}"
-            : request.ClientId.Trim();
-
-        var exists = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
-        if (exists is not null)
+        if (result.Status == OidcClientCommandStatus.Conflict)
         {
-            return Conflict($"Client '{clientId}' already exists.");
+            return Conflict(result.Errors[0]);
         }
 
-        var descriptor = OidcClientDescriptorFactory.CreateDescriptor(request, clientId);
-        await applicationManager.CreateAsync(descriptor, cancellationToken);
-
-        return CreatedAtAction(nameof(GetByClientId), new { clientId }, new OidcClientRegistrationResponse
-        {
-            ClientId = descriptor.ClientId!,
-            ClientSecret = descriptor.ClientSecret,
-            DisplayName = descriptor.DisplayName ?? descriptor.ClientId!,
-        });
+        var payload = result.Value!;
+        return CreatedAtAction(nameof(GetByClientId), new { clientId = payload.ClientId }, payload);
     }
 
     /// <summary>
@@ -57,13 +44,12 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
     [PermissionAuthorize(PermissionConstants.ClientsWrite)]
     public async Task<IActionResult> Unregister(string clientId, CancellationToken cancellationToken)
     {
-        var application = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
-        if (application is null)
+        var deleted = await oidcClientService.DeleteAsync(clientId, cancellationToken);
+        if (!deleted)
         {
             return NotFound();
         }
 
-        await applicationManager.DeleteAsync(application, cancellationToken);
         return NoContent();
     }
 
@@ -76,14 +62,8 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
     [PermissionAuthorize(PermissionConstants.ClientsRead)]
     public async Task<ActionResult<IReadOnlyList<OidcClientResponse>>> GetAll(CancellationToken cancellationToken)
     {
-        var list = new List<OidcClientResponse>();
-
-        await foreach (var application in applicationManager.ListAsync())
-        {
-            list.Add(await ToResponseAsync(application, cancellationToken));
-        }
-
-        return Ok(list.OrderBy(static x => x.ClientId, StringComparer.OrdinalIgnoreCase));
+        var list = await oidcClientService.GetAllAsync(cancellationToken);
+        return Ok(list);
     }
 
     /// <summary>
@@ -96,13 +76,13 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
     [PermissionAuthorize(PermissionConstants.ClientsRead)]
     public async Task<ActionResult<OidcClientResponse>> GetByClientId(string clientId, CancellationToken cancellationToken)
     {
-        var application = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
+        var application = await oidcClientService.GetByClientIdAsync(clientId, cancellationToken);
         if (application is null)
         {
             return NotFound();
         }
 
-        return Ok(await ToResponseAsync(application, cancellationToken));
+        return Ok(application);
     }
 
     /// <summary>
@@ -134,22 +114,18 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
         [FromBody] OidcClientUpsertRequest request,
         CancellationToken cancellationToken)
     {
-        var validationResult = Validate(request);
-        if (validationResult is not null)
+        var result = await oidcClientService.UpdateAsync(clientId, request, cancellationToken);
+        if (result.Status == OidcClientCommandStatus.ValidationFailed)
         {
-            return validationResult;
+            return ValidationProblem(CreateValidationProblem(result.Errors));
         }
 
-        var application = await applicationManager.FindByClientIdAsync(clientId, cancellationToken);
-        if (application is null)
+        if (result.Status == OidcClientCommandStatus.NotFound)
         {
             return NotFound();
         }
 
-        var descriptor = OidcClientDescriptorFactory.CreateDescriptor(request, clientId);
-        await applicationManager.UpdateAsync(application, descriptor, cancellationToken);
-
-        return Ok(await ToResponseAsync(application, cancellationToken));
+        return Ok(result.Value);
     }
 
     /// <summary>
@@ -166,65 +142,17 @@ public sealed class OidcClientsController(IOpenIddictApplicationManager applicat
     }
 
     /// <summary>
-    /// 执行ToResponseAsync。
+    /// 创建数据。
     /// </summary>
-    /// <param name="application">参数application。</param>
-    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <param name="errors">参数errors。</param>
     /// <returns>执行结果。</returns>
-    private async Task<OidcClientResponse> ToResponseAsync(object application, CancellationToken cancellationToken)
+    private ValidationProblemDetails CreateValidationProblem(IEnumerable<string> errors)
     {
-        var permissions = (await applicationManager.GetPermissionsAsync(application, cancellationToken)).ToArray();
-        var requirements = (await applicationManager.GetRequirementsAsync(application, cancellationToken)).ToArray();
-        var redirectUris = (await applicationManager.GetRedirectUrisAsync(application, cancellationToken))
-            .Select(static uri => uri)
-            .ToArray();
-        var postLogoutRedirectUris = (await applicationManager.GetPostLogoutRedirectUrisAsync(application, cancellationToken))
-            .Select(static uri => uri)
-            .ToArray();
-
-        return new OidcClientResponse
-        {
-            ClientId = await applicationManager.GetClientIdAsync(application, cancellationToken) ?? string.Empty,
-            DisplayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken),
-            PublicClient = string.Equals(
-                await applicationManager.GetClientTypeAsync(application, cancellationToken),
-                OpenIddictConstants.ClientTypes.Public,
-                StringComparison.OrdinalIgnoreCase),
-            GrantTypes = permissions
-                .Where(static permission => permission.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType,
-                    StringComparison.OrdinalIgnoreCase))
-                .Select(static permission => permission[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])
-                .ToArray(),
-            Scopes = permissions
-                .Where(static permission => permission.StartsWith(OpenIddictConstants.Permissions.Prefixes.Scope,
-                    StringComparison.OrdinalIgnoreCase))
-                .Select(static permission => permission[OpenIddictConstants.Permissions.Prefixes.Scope.Length..])
-                .ToArray(),
-            RedirectUris = redirectUris,
-            PostLogoutRedirectUris = postLogoutRedirectUris,
-            Permissions = permissions,
-            Requirements = requirements,
-        };
-    }
-
-    /// <summary>
-    /// 校验输入。
-    /// </summary>
-    /// <param name="request">参数request。</param>
-    /// <returns>执行结果。</returns>
-    private ActionResult? Validate(OidcClientUpsertRequest request)
-    {
-        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
-        if (errors.Count == 0)
-        {
-            return null;
-        }
-
         foreach (var error in errors)
         {
-            ModelState.AddModelError(nameof(request), error);
+            ModelState.AddModelError(nameof(OidcClientUpsertRequest), error);
         }
 
-        return ValidationProblem(ModelState);
+        return new ValidationProblemDetails(ModelState);
     }
 }

@@ -32,8 +32,18 @@ internal sealed class PermissionClaimsPrincipalFactory(
             .Select(static c => c.Value)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
+        var existingRoles = identity.Claims
+            .Where(claim => string.Equals(claim.Type, identity.RoleClaimType, StringComparison.OrdinalIgnoreCase))
+            .Select(static claim => claim.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
         foreach (var roleName in roleNames)
         {
+            if (existingRoles.Add(roleName))
+            {
+                identity.AddClaim(new Claim(identity.RoleClaimType, roleName));
+            }
+
             var role = await RoleManager.FindByNameAsync(roleName);
             if (role is null)
             {

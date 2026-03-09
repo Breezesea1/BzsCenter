@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BzsCenter.Idp.Domain;
+using BzsCenter.Idp.Services.Oidc;
 using BzsCenter.Idp.Services.Identity;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
@@ -17,6 +18,7 @@ public sealed class ConnectController(
     SignInManager<BzsUser> signInManager,
     UserManager<BzsUser> userManager,
     IOpenIddictApplicationManager applicationManager,
+    IPermissionScopeService permissionScopeService,
     IOptions<IdentitySeedOptions> identityOptions) : ControllerBase
 {
     /// <summary>
@@ -54,8 +56,9 @@ public sealed class ConnectController(
             return Forbid(IdentityConstants.ApplicationScheme);
         }
 
-        var principal = await signInManager.CreateUserPrincipalAsync(user);
+        var principal = await CreateOidcPrincipalAsync(user);
         principal.SetScopes(FilterRequestedScopes(request.GetScopes()));
+        await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService, cancellationToken);
 
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -97,8 +100,10 @@ public sealed class ConnectController(
                 return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
-            var refreshedPrincipal = await signInManager.CreateUserPrincipalAsync(user);
+            var refreshedPrincipal = await CreateOidcPrincipalAsync(user);
             refreshedPrincipal.SetScopes(principal.GetScopes());
+            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(refreshedPrincipal, permissionScopeService,
+                cancellationToken);
 
             return SignIn(refreshedPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -127,6 +132,8 @@ public sealed class ConnectController(
 
             var principal = new ClaimsPrincipal(identity);
             principal.SetScopes(FilterRequestedScopes(request.GetScopes()));
+            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService,
+                cancellationToken);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
@@ -160,7 +167,10 @@ public sealed class ConnectController(
             return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
-        var roles = User.FindAll(ClaimTypes.Role)
+        var roles = User.Claims
+            .Where(static claim =>
+                string.Equals(claim.Type, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(claim.Type, OpenIddictConstants.Claims.Role, StringComparison.OrdinalIgnoreCase))
             .Select(static c => c.Value)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
@@ -179,7 +189,9 @@ public sealed class ConnectController(
             [SharedPermissionConstants.ClaimType] = permissions,
         };
 
-        return Ok(response.Where(static pair => pair.Value is not null));
+        return Ok(response
+            .Where(static pair => pair.Value is not null)
+            .ToDictionary(static pair => pair.Key, static pair => pair.Value));
     }
 
     /// <summary>
@@ -222,6 +234,64 @@ public sealed class ConnectController(
             .Where(scope => allowedScopes.Contains(scope))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
+    }
+
+    /// <summary>
+    /// 创建适用于 OIDC 签发的 principal。
+    /// </summary>
+    /// <param name="user">参数user。</param>
+    /// <returns>执行结果。</returns>
+    private async Task<ClaimsPrincipal> CreateOidcPrincipalAsync(BzsUser user)
+    {
+        var principal = await signInManager.CreateUserPrincipalAsync(user);
+        principal.SetClaim(OpenIddictConstants.Claims.Subject, await userManager.GetUserIdAsync(user));
+
+        if (!string.IsNullOrWhiteSpace(user.UserName))
+        {
+            principal.SetClaim(OpenIddictConstants.Claims.Name, user.UserName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            principal.SetClaim(OpenIddictConstants.Claims.Email, user.Email);
+        }
+
+        var identity = principal.Identities.FirstOrDefault();
+        if (identity is null)
+        {
+            return principal;
+        }
+
+        RemoveClaims(identity, ClaimTypes.Name, ClaimTypes.Email, ClaimTypes.Role);
+
+        var existingRoles = identity.FindAll(OpenIddictConstants.Claims.Role)
+            .Select(static claim => claim.Value)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        foreach (var roleName in (await userManager.GetRolesAsync(user)).Distinct(StringComparer.OrdinalIgnoreCase))
+        {
+            if (existingRoles.Add(roleName))
+            {
+                identity.AddClaim(new Claim(OpenIddictConstants.Claims.Role, roleName));
+            }
+        }
+
+        return principal;
+    }
+
+    /// <summary>
+    /// 删除同类型旧 claims，避免在 token 中重复发放。
+    /// </summary>
+    /// <param name="identity">参数identity。</param>
+    /// <param name="claimTypes">参数claimTypes。</param>
+    private static void RemoveClaims(ClaimsIdentity identity, params string[] claimTypes)
+    {
+        foreach (var claim in identity.Claims
+                     .Where(claim => claimTypes.Contains(claim.Type, StringComparer.OrdinalIgnoreCase))
+                     .ToArray())
+        {
+            identity.RemoveClaim(claim);
+        }
     }
 
     /// <summary>

@@ -1,3 +1,4 @@
+using System.Security.Cryptography;
 using OpenIddict.Abstractions;
 
 namespace BzsCenter.Idp.Services.Oidc;
@@ -170,8 +171,7 @@ public static class OidcClientDescriptorFactory
     /// <returns>执行结果。</returns>
     private static string GenerateClientSecret()
     {
-        return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) +
-               Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+        return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
     }
 
     /// <summary>

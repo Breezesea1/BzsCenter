@@ -24,6 +24,7 @@ public class OidcClientDescriptorFactoryTests
         Assert.Equal("client-confidential", descriptor.ClientId);
         Assert.Equal(OpenIddictConstants.ClientTypes.Confidential, descriptor.ClientType);
         Assert.False(string.IsNullOrWhiteSpace(descriptor.ClientSecret));
+        Assert.Matches("^[0-9A-F]{64}$", descriptor.ClientSecret!);
         Assert.Contains(OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.AuthorizationCode,
             descriptor.Permissions);
         Assert.Contains(OpenIddictConstants.Permissions.Prefixes.Scope + "api",
@@ -95,5 +96,26 @@ public class OidcClientDescriptorFactoryTests
         Assert.Contains(errors,
             static e => e.Contains("Public clients must not specify ClientSecret", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(errors, static e => e.Contains("Invalid URI", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void CreateDescriptor_WhenGeneratingSecret_CreatesUniqueCryptographicHexSecret()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Confidential Client",
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+            Scopes = ["api"],
+        };
+
+        var first = OidcClientDescriptorFactory.CreateDescriptor(request, "client-1");
+        var second = OidcClientDescriptorFactory.CreateDescriptor(request, "client-2");
+
+        Assert.NotNull(first.ClientSecret);
+        Assert.NotNull(second.ClientSecret);
+        Assert.Matches("^[0-9A-F]{64}$", first.ClientSecret);
+        Assert.Matches("^[0-9A-F]{64}$", second.ClientSecret);
+        Assert.NotEqual(first.ClientSecret, second.ClientSecret);
     }
 }

@@ -21,16 +21,38 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
             return;
         }
 
-        var permissionValues = context.Principal
+        await ApplyDestinationsAsync(context.Principal, permissionScopeService, context.CancellationToken);
+    }
+
+    /// <summary>
+    /// 为 principal 应用 claims destinations。
+    /// </summary>
+    /// <param name="principal">参数principal。</param>
+    /// <param name="permissionScopeService">参数permissionScopeService。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
+    /// <remarks>
+    /// 该方法既被 OpenIddict 的 sign-in 事件调用，也被 ConnectController 在 SignIn 前直接调用，
+    /// 用于确保签发点与事件链路共享同一套 destinations 规则。
+    /// </remarks>
+    internal static async Task ApplyDestinationsAsync(
+        ClaimsPrincipal principal,
+        IPermissionScopeService permissionScopeService,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(principal);
+        ArgumentNullException.ThrowIfNull(permissionScopeService);
+
+        var permissionValues = principal
             .FindAll(SharedPermissionConstants.ClaimType)
             .Select(static claim => claim.Value)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var permissionScopes = await permissionScopeService.ResolveScopesAsync(permissionValues, context.CancellationToken);
-        var grantedScopes = context.Principal.GetScopes().ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var permissionScopes = await permissionScopeService.ResolveScopesAsync(permissionValues, cancellationToken);
+        var grantedScopes = principal.GetScopes().ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        context.Principal.SetDestinations(claim =>
+        principal.SetDestinations(claim =>
         {
             if (string.Equals(claim.Type, SharedPermissionConstants.ClaimType, StringComparison.OrdinalIgnoreCase))
             {

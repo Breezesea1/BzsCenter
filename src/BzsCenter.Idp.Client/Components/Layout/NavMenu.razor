@@ -26,7 +26,7 @@
             <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Home</span>
         </NavLink>
 
-        <NavLink class="menu-link group hover:bg-transparent" href="login" @onclick="CloseMobileAsync">
+        <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false" @onclick="CloseMobileAsync">
             <span class="menu-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -34,7 +34,7 @@
                 </svg>
             </span>
             <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Login</span>
-        </NavLink>
+        </a>
     </div>
 
     <div class="menu-divider"></div>

@@ -89,12 +89,14 @@
 
 - 核心 OIDC flow 已有宿主级集成测试覆盖；
 - `PermissionClaimDestinationsHandler` 已明确控制 claims 发放目的地；
+- `ConnectController` 已在签发前显式构建 OIDC principal，并与 destination 规则共用同一套投影逻辑；
+- `OidcClientDescriptorFactory` 已改为使用 `RandomNumberGenerator` 生成 confidential client secret；
 - `AccountController` 对登录回跳使用 `Url.IsLocalUrl` 做了本地地址约束；
 - `IdpServiceRegistrar` 将认证、Identity、OpenIddict 的装配集中在一处。
 
 但仍存在几类真实风险：
 
-- 启动路径仍耦合数据库迁移与 seeding；
+- `/connect/authorize` 的 challenge 语义仍主要在 TestHost 语境下得到确认；
 - client registration 的部分产品策略被硬编码；
 - `Domain/` 命名与真实职责不完全匹配；
 - 认证 UI 放在 `.Client` 项目，对 IDP 这种高敏感场景不是最保守的结构。
@@ -141,11 +143,32 @@
 
 进入 access token / identity token 的方式。
 
-这意味着“role claim 是否投影”**不是完全未实现**，而是**已实现、但测试断言仍可补强**。
+此外，`ConnectController` 已在 `SignIn` 前直接复用 `ApplyDestinationsAsync(...)`，避免 controller 签发点与 OpenIddict 事件链路发生规则漂移。
+
+这意味着 role / email / name / permission claims 的投影**不仅已实现**，且已经通过 token / id token / userinfo 集成测试获得回归保护；后续仍可补 handler 级单元测试来覆盖更细粒度边界分支。
 
 ### 4. 登录回跳具备基本安全约束
 
 `src/BzsCenter.Idp/Controllers/AccountController.cs` 中的登录/登出跳转已通过 `Url.IsLocalUrl` 限制回跳地址，避免开放重定向问题被轻易引入。
+
+### 5. 初始化职责已从 Web 启动路径中拆出
+
+当前已完成：
+
+- 新增 `src/BzsCenter.Idp.Migrator/` 独立初始化入口；
+- `BzsCenter.Idp/Program.cs` 不再直接执行 `MigrateAsync()` / `SeedAsync()`；
+- `BzsCenter.Idp.Migrator/Program.cs` 已复用：
+  - `AddIdpService(...)`
+  - `AddMigration<IdpDbContext>(...)`
+  - `IdentitySeeder.SeedAsync()`
+- `src/BzsCenter.AppHost/AppHost.cs` 已改为让 IDP `WaitForCompletion(idp-migrator)`。
+
+这意味着 migration / seeding 已经从主站点启动路径中抽离，主宿主只承担 Web 服务职责，而初始化职责由独立资源负责。
+
+注意：
+
+- 单独运行 `BzsCenter.Idp` 时，数据库初始化不再由 Web 启动自动承担；
+- 本地与编排环境应优先通过 `BzsCenter.Idp.Migrator` 或 Aspire AppHost 完成初始化，再启动 IDP。
 
 ---
 
@@ -153,59 +176,25 @@
 
 ### 高优先级
 
-#### 1. 启动路径直接执行迁移与 seeding
-
-`src/BzsCenter.Idp/Program.cs`
-
-当前在应用启动时直接执行：
-
-- `dbContext.Database.MigrateAsync()`
-- `identitySeeder.SeedAsync()`
-
-风险：
-
-- 应用可用性与数据库状态/连接状态强绑定；
-- 首次启动、故障恢复、只读环境、并发实例启动时更脆弱；
-- 主宿主职责与运维初始化职责耦合。
-
-建议：
-
-- 至少评估迁移/seed 的独立执行路径；
-- 或在宿主内增加更明确的环境约束与失败策略，而不是默认每次启动都承担初始化责任。
-
-#### 2. confidential client secret 生成方式不够保守
-
-`src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
-
-当前 `GenerateClientSecret()` 通过两个 `Guid.NewGuid().ToByteArray()` 拼接并 Base64 编码生成 secret。
-
-当前判断更适合表述为**保守性与长期维护性问题**，而不是“已证实的不安全实现”。
-
-问题：
-
-- 当前实现可用，但不是最标准的密码学随机 secret 生成方式；
-- 对 IDP 来说，client secret 属于高敏感凭据，建议使用更明确的加密安全随机源。
-
-建议：
-
-- 改为基于 `RandomNumberGenerator` 的高熵 secret 生成策略。
-
-#### 3. 未登录访问 `/connect/authorize` 的语义应做真实宿主确认
+#### 1. `/connect/authorize` 的 challenge 语义仍需在真实宿主确认`
 
 当前测试环境下：
 
 - `ConnectControllerIntegrationTests.Authorize_WhenUnauthenticated_ReturnsUnauthorized()` 断言状态码为 `401`
 - 同时检查 `Location` 指向 `/login`
 
-但同一测试文件中，已登录授权码流又明确期待 `/connect/authorize` 成功时走 `302` 回调。
-
-因此更准确的结论应为：
+结合 Microsoft 关于 cookie auth 对 Web/API endpoint 的差异化 challenge 说明，更准确的结论应为：
 
 - 当前**测试宿主下**表现为 `401 + Location`；
-- 这是否等价于真实浏览器/反向代理环境中的最终挑战语义，仍建议做产品层或真实浏览器层确认；
-- 文档不应过早把它定性为“异常实现”，而应标记为**需在真实宿主语境下确认的行为**。
+- 这可能与 endpoint 类型、Accept 头、cookie auth 默认行为有关；
+- 是否需要对 `/connect/authorize` 强制 redirect 语义，应在真实浏览器/反向代理语境下确认，而不是仅靠当前 TestHost 行为拍板。
 
-#### 4. 认证关键 UI 放在 `.Client` 项目，不是最保守的 IDP 结构
+建议：
+
+- 在真实浏览器语境下补一次行为验证；
+- 如果产品需要始终对 `/connect/authorize` 走 redirect login 语义，再评估 cookie `OnRedirectToLogin` 的 endpoint 定制策略。
+
+#### 2. 认证关键 UI 放在 `.Client` 项目，不是最保守的 IDP 结构
 
 当前登录页虽然最终 POST 到服务端 `AccountController`，但页面本身位于 `BzsCenter.Idp.Client`，并依赖 client assembly、JS module、交互式装配。
 
@@ -221,7 +210,7 @@
 
 ### 中优先级
 
-#### 5. `Domain/` 命名会放大 DDD 预期，但当前模型较薄
+#### 3. `Domain/` 命名会放大 DDD 预期，但当前模型较薄
 
 当前 `Domain/` 中的类型更像：
 
@@ -240,7 +229,7 @@
 - 如果短期不推进真正的 DDD 拆分，建议在文档里明确当前定位；
 - 避免因为 `Domain/` 目录名产生错误预期。
 
-#### 6. Controller / Service 边界风格仍不完全一致
+#### 4. Controller / Service 边界风格仍不完全一致
 
 当前边界大致如下：
 
@@ -257,7 +246,7 @@
   - 统一校验策略
   - 简化测试与后续扩展
 
-#### 7. OIDC client 产品策略存在硬编码假设
+#### 5. OIDC client 产品策略存在硬编码假设
 
 `OidcClientDescriptorFactory` 当前固定：
 
@@ -274,18 +263,18 @@
 
 ### 中长期
 
-#### 8. 测试覆盖已经明显改善，但仍有空白区域
+#### 6. 测试覆盖已经明显改善，但仍有空白区域
 
-当前已有较好的 integration coverage，但对 claims 发放深度、失败分支和管理面行为的覆盖仍可继续补齐：
+当前已有较好的 integration coverage，但对失败分支和管理面行为的覆盖仍可继续补齐：
 
 - `AccountController` 的错误输入/安全跳转分支
 - `OidcClientsController` 的冲突、更新、删除、非法输入分支
-- `PermissionClaimDestinationsHandler` 的 role/email/name/permission 发放断言
+- `PermissionClaimDestinationsHandler` 的 handler 级边界断言（当前已有 token / userinfo 链路验证）
 - `OidcClientDescriptorFactory` 的校验与 secret 生成规则
 
 重点不再是“有没有 OIDC 集成测试”，而是“claims、管理面、失败分支是否也有回归保护”。
 
-#### 9. 认证与管理职责未来可继续模块化
+#### 7. 认证与管理职责未来可继续模块化
 
 从长期看，可按职责继续拆分为：
 
@@ -308,6 +297,17 @@
 - [x] 确认 `ConnectController` 的 passthrough 模式符合 OpenIddict 的典型使用方式
 - [x] 确认 `PermissionClaimDestinationsHandler` 已实现 role/email/name/permission claims 的 destination 控制
 - [x] 确认 `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs` 已覆盖核心 OIDC 主链路
+- [x] 将 `OidcClientDescriptorFactory.GenerateClientSecret()` 升级为基于 `RandomNumberGenerator` 的高熵生成实现
+- [x] 在 `ConnectController` 签发前显式构建 OIDC principal，并复用 `ApplyDestinationsAsync(...)` 保持签发规则一致
+- [x] 新增并通过 claims projection 回归验证：
+  - [x] access token claims 投影
+  - [x] id token claims 投影
+  - [x] `/connect/userinfo` claims 投影
+  - [x] openid-only scope 下的负向断言
+- [x] 新增 `OidcClientDescriptorFactory` 的 secret 格式与唯一性单元测试
+- [x] 新增 `src/BzsCenter.Idp.Migrator/` 独立初始化项目，承接 `IdpDbContext` migration + `IdentitySeeder` seeding
+- [x] 从 `BzsCenter.Idp/Program.cs` 移除直接 `MigrateAsync()` / `SeedAsync()` 启动逻辑
+- [x] 让 `BzsCenter.AppHost/AppHost.cs` 通过 `WaitForCompletion(idp-migrator)` 编排初始化资源先完成，再启动 IDP
 
 ---
 
@@ -315,17 +315,14 @@
 
 ### 高优先级
 
-- [ ] 将 `OidcClientDescriptorFactory.GenerateClientSecret()` 改为密码学安全随机实现
-- [ ] 为 role / email / name / permission claims 的 token / userinfo 投影补齐针对性测试
 - [ ] 在真实浏览器/反向代理语境下确认 `/connect/authorize` 未登录挑战行为
-- [ ] 评估是否将 migration / seeding 从主启动路径中移出，或至少改为更显式的运行策略
 
 ### 中优先级
 
 - [ ] 明确当前 IDP 的 client 策略：first-party only，还是需要完整 consent / third-party model
 - [ ] 评估是否将登录/授权确认等 auth-sensitive UI 收敛到更保守的 server-rendered surface
 - [ ] 为 `OidcClientsController` 增加应用服务/Facade 层，统一 client 管理逻辑与测试边界
-- [ ] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
+- [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
 
 ### 中长期
 
@@ -335,8 +332,73 @@
 
 ---
 
+## 下一步实施方案（推荐）
+
+### 主线方案：确认 `/connect/authorize` 的真实 challenge 语义
+
+这是当前最适合承接的下一步，原因是：
+
+- migration / seeding 主线改造已经完成；
+- 当前剩余的高优先级事项里，它最接近“协议行为确认 + 端点策略决策”；
+- 它会直接影响后续是否需要自定义 cookie challenge 行为。
+
+#### 目标
+
+- 在真实浏览器/反向代理语境下确认 `/connect/authorize` 的未登录行为；
+- 判断当前 `401 + Location` 是否满足产品与协议预期；
+- 如果不满足，明确是否要在 cookie `OnRedirectToLogin` 中对该 endpoint 做特殊处理。
+
+#### 方案边界
+
+重点涉及：
+
+- `src/BzsCenter.Idp/Controllers/ConnectController.cs`
+- `src/BzsCenter.Idp/Services/IdpServiceRegistrar.cs`
+- `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs`
+- 如需浏览器级验证，可新增更贴近真实宿主的验证脚本或测试入口
+
+必要时再引入 cookie challenge 事件定制，而不是先验地改变当前行为。
+
+#### 推荐实施顺序
+
+1. **先验证真实行为**  
+   在真实浏览器/代理语境下访问 `/connect/authorize`，确认未登录时到底是最终跳转、401、还是 401 + Location 混合语义。
+
+2. **补齐判断标准**  
+   结合 OIDC 客户端预期与产品交互需求，明确该 endpoint 是否必须始终对浏览器场景返回 redirect login。
+
+3. **如有必要再定制 cookie challenge**  
+   仅在确认当前语义不满足预期后，再评估对 `/connect/authorize` 增加 `OnRedirectToLogin` 特殊逻辑。
+
+4. **补回归验证**  
+   将最终期望行为补成稳定的测试或验证脚本，避免后续 cookie/auth 中间件升级时悄悄漂移。
+
+#### 完成判定
+
+- 明确记录 `/connect/authorize` 未登录语义在真实宿主下的最终结果；
+- 如果需要特殊 redirect 策略，则实现已落地并有回归验证；
+- 如果不需要，也应把“为何保留当前行为”记录到文档中。
+
+### 第二阶段候选
+
+如果主线方案完成，下一优先级建议如下：
+
+1. **收敛 auth-sensitive UI 到 server-owned surface**  
+   将 login / consent 一类高敏感页面评估迁回 `.Idp` 主项目的静态/服务端渲染面。
+
+2. **为 `OidcClientsController` 增加应用服务层**  
+   降低 controller 对 `IOpenIddictApplicationManager` 的直接耦合，便于后续测试和策略扩展。
+
+3. **明确 current client onboarding 策略**  
+   回答 first-party / consent / third-party registration 的产品边界，再决定是否继续扩展 `OidcClientsController`。
+
+---
+
 ## 关键证据文件
 
+- `src/BzsCenter.AppHost/AppHost.cs`
+- `src/BzsCenter.Idp.Migrator/Program.cs`
+- `src/BzsCenter.Idp.Migrator/BzsCenter.Idp.Migrator.csproj`
 - `src/BzsCenter.Idp/Program.cs`
 - `src/BzsCenter.Idp/Controllers/AccountController.cs`
 - `src/BzsCenter.Idp/Controllers/ConnectController.cs`
@@ -345,6 +407,8 @@
 - `src/BzsCenter.Idp/Services/IdpServiceRegistrar.cs`
 - `src/BzsCenter.Idp/Services/Oidc/PermissionClaimDestinationsHandler.cs`
 - `src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
+- `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrationService.cs`
+- `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrateDbContextExtensions.cs`
 - `src/BzsCenter.Idp.Client/Components/Pages/Account/Login.razor`
 - `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs`
 - `tests/BzsCenter.Idp.IntegrationTests/PreferencesControllerIntegrationTests.cs`
@@ -362,12 +426,20 @@
   https://documentation.openiddict.com/introduction
 - OpenIddict Documentation — Claim destinations  
   https://documentation.openiddict.com/configuration/claim-destinations
+- EF Core — Applying migrations at runtime  
+  https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/applying?tabs=dotnet-core-cli#apply-migrations-at-runtime
+- .NET Aspire — EF Core migrations  
+  https://learn.microsoft.com/en-us/dotnet/aspire/database/ef-core-migrations
+- ASP.NET Core — API endpoint authentication behavior  
+  https://learn.microsoft.com/en-us/aspnet/core/security/authentication/api-endpoint-auth
 
 这些外部资料主要用于支持以下结论：
 
 - 对 auth-sensitive UI，Blazor 官方更偏向保守的 server-owned 结构；
 - OpenIddict 的 authorization/token/userinfo 等 endpoint passthrough 是标准模式；
 - claim 是否进入 access token / identity token 应显式控制，不能靠“默认会发”。
+- EF Core / Aspire 更鼓励将 migration 与 seed 从主站点启动路径中拆出，尤其是在生产或编排环境下；
+- ASP.NET Core 对 cookie challenge 的 401/302 行为会受到 endpoint 类型与请求语义影响。
 
 ---
 

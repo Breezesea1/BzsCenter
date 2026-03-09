@@ -1,5 +1,9 @@
-﻿@using System.Globalization
+@using System.Globalization
+@using System.Text
+@using Microsoft.Extensions.Localization
 @inherits LayoutComponentBase
+@inject IStringLocalizerFactory LocalizerFactory
+@inject NavigationManager NavigationManager
 
 <div class="layout-shell">
     <aside class="sidebar-panel @(_isSidebarCollapsed ? "collapsed" : string.Empty) @(_isMobileMenuOpen ? "mobile-open" : string.Empty)">
@@ -24,7 +28,7 @@
                     </svg>
                 </button>
 
-                <span class="topbar-title">Dashboard</span>
+                <span class="topbar-title">@CurrentPageTitle</span>
             </div>
 
             <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
@@ -46,11 +50,17 @@
     private bool _isMobileMenuOpen;
     private bool _isSidebarCollapsed;
 
+    [CascadingParameter]
+    private RouteData? CurrentRouteData { get; set; }
+
     private string CurrentCultureName =>
         CultureInfo.CurrentUICulture.Name;
 
     private string CurrentThemeName =>
         "system";
+
+    private string CurrentPageTitle =>
+        ResolveCurrentPageTitle();
 
     private void ToggleMobileMenu()
     {
@@ -65,5 +75,60 @@
     private void ToggleSidebarCollapse()
     {
         _isSidebarCollapsed = !_isSidebarCollapsed;
+    }
+
+    private string ResolveCurrentPageTitle()
+    {
+        var pageType = CurrentRouteData?.PageType ?? ResolveSpecialPageType();
+        if (pageType is null)
+        {
+            return "Dashboard";
+        }
+
+        var localized = LocalizerFactory.Create(pageType)["PageTitle"];
+        if (!localized.ResourceNotFound && !string.IsNullOrWhiteSpace(localized.Value))
+        {
+            return localized.Value;
+        }
+
+        return HumanizePageName(pageType.Name);
+    }
+
+    private Type? ResolveSpecialPageType()
+    {
+        var relativePath = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        var path = relativePath.Split('?', '#')[0].Trim('/');
+
+        return path switch
+        {
+            "not-found" => typeof(BzsCenter.Idp.Client.Components.Pages.NotFound),
+            _ => null,
+        };
+    }
+
+    private static string HumanizePageName(string pageName)
+    {
+        if (string.IsNullOrWhiteSpace(pageName))
+        {
+            return "Dashboard";
+        }
+
+        var normalized = pageName.EndsWith("Page", StringComparison.Ordinal)
+            ? pageName[..^4]
+            : pageName;
+
+        var builder = new StringBuilder(normalized.Length + 8);
+        for (var i = 0; i < normalized.Length; i++)
+        {
+            var current = normalized[i];
+            if (i > 0 && char.IsUpper(current) && !char.IsUpper(normalized[i - 1]))
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(current);
+        }
+
+        return builder.ToString();
     }
 }

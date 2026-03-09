@@ -1,6 +1,8 @@
 <Router AppAssembly="typeof(BzsCenter.Idp.Client._Imports).Assembly" NotFoundPage="typeof(BzsCenter.Idp.Client.Components.Pages.NotFound)">
     <Found Context="routeData">
-        <RouteView RouteData="routeData" DefaultLayout="typeof(BzsCenter.Idp.Client.Components.Layout.MainLayout)"/>
-        <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+        <CascadingValue Value="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(BzsCenter.Idp.Client.Components.Layout.MainLayout)"/>
+            <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+        </CascadingValue>
     </Found>
 </Router>

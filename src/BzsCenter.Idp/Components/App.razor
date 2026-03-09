@@ -1,4 +1,5 @@
-﻿@using BzsCenter.Idp.Infra.Preferences
+﻿@using BzsCenter.Idp.Components.Auth.Pages.Account
+@using BzsCenter.Idp.Infra.Preferences
 @inject IHttpContextAccessor HttpContextAccessor
 <!DOCTYPE html>
 <html lang="en" data-theme="@ResolvedTheme">
@@ -14,11 +15,25 @@
     <link rel="stylesheet" href="@Assets["BzsCenter.Idp.styles.css"]"/>
     <ImportMap/>
     <link rel="icon" type="image/png" href="favicon.png"/>
-    <HeadOutlet @rendermode="InteractiveWebAssembly"/>
+    @if (IsLoginPath)
+    {
+        <HeadOutlet @rendermode="InteractiveServer"/>
+    }
+    else
+    {
+        <HeadOutlet @rendermode="InteractiveWebAssembly"/>
+    }
 </head>
 
 <body>
-<BzsCenter.Idp.Client.Components.Routes @rendermode="InteractiveWebAssembly"/>
+@if (IsLoginPath)
+{
+    <Login ReturnUrl="@LoginReturnUrl" Error="@LoginError" @rendermode="InteractiveServer"/>
+}
+else
+{
+    <BzsCenter.Idp.Client.Components.Routes @rendermode="InteractiveWebAssembly"/>
+}
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 <script src="@Assets["lib/gsap/gsap.min.js"]"></script>
 </body>
@@ -34,6 +49,26 @@
             var cookie = HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName];
             return UiPreferences.NormalizeTheme(cookie);
         }
+    }
+
+    private bool IsLoginPath =>
+        HttpContextAccessor.HttpContext?.Request.Path.StartsWithSegments("/login", StringComparison.OrdinalIgnoreCase) ?? false;
+
+    private string? LoginReturnUrl =>
+        GetQueryValue("ReturnUrl") ?? GetQueryValue("returnUrl");
+
+    private string? LoginError =>
+        GetQueryValue("error");
+
+    private string? GetQueryValue(string key)
+    {
+        var query = HttpContextAccessor.HttpContext?.Request.Query;
+        if (query is null)
+        {
+            return null;
+        }
+
+        return query.TryGetValue(key, out var value) ? value.ToString() : null;
     }
 
 }

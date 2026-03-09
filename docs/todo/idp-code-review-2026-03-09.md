@@ -223,18 +223,26 @@
 
 #### 3. OIDC client 产品策略存在硬编码假设
 
+当前状态已经比 review 初稿更清晰：
+
+- 当前 onboarding 策略已在 `OidcClientDescriptorFactory` / `OidcClientService` 中显式化；
+- 当前只支持两类 **first-party** client：
+  - `FirstPartyInteractive`：public + `authorization_code` / `refresh_token` + PKCE + redirect URI
+  - `FirstPartyMachine`：confidential + `client_credentials`
+
 `OidcClientDescriptorFactory` 当前固定：
 
-- `ConsentType = OpenIddictConstants.ConsentTypes.Explicit`
-- PKCE 要求由请求参数驱动
+- `FirstPartyInteractive` → `ConsentType = Implicit`
+- `FirstPartyMachine` → `ConsentType = External`
+- interactive profile 强制 PKCE
+- unsupported 组合（如 confidential + authorization_code）直接返回 validation error
 
-这意味着当前系统对 client onboarding 的产品策略已有默认立场，但文档中尚未明确回答：
+这意味着当前系统已经明确回答了“当前支持什么”，但仍有一个中长期问题没有完全回答：
 
-- 当前 IDP 是否只服务 first-party clients？
-- 是否真的需要完整 consent 模型？
-- 未来是否允许 third-party/self-service registration？
+- 当前是否会扩展到真正的 third-party / self-service onboarding？
+- 如果未来要扩展，是否仍沿用当前 profile 设计，还是引入更细的 client trust model？
 
-如果这些问题不提前明确，后续实现会在产品、协议、安全之间来回返工。
+如果这些问题不提前澄清，后续实现仍可能在产品、协议、安全之间返工；但相比之前，当前代码至少已经不再把“任何组合都默认支持”当成隐式前提。
 
 ### 中长期
 
@@ -296,6 +304,11 @@
   - [x] 非法请求返回 `400 ValidationProblem`
   - [x] 更新不存在 client 返回 `404 NotFound`
   - [x] 删除不存在 client 返回 `404 NotFound`
+- [x] 将 current client onboarding 策略显式化为两类 first-party profile：
+  - [x] `FirstPartyInteractive`
+  - [x] `FirstPartyMachine`
+- [x] 将 unsupported 组合（如 confidential + authorization_code）改为显式 validation failure
+- [x] 为 interactive / machine / unsupported onboarding profile 补齐单元与集成测试
 
 ---
 
@@ -303,13 +316,13 @@
 
 ### 高优先级
 
-- [ ] 明确当前 IDP 的 client 策略：first-party only，还是需要完整 consent / third-party model
 - [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
 
 ### 中优先级
 
 - [ ] 继续评估 consent / logout 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
 - [ ] 继续补 OIDC client 管理面的更新/删除成功路径与更细粒度策略测试
+- [ ] 评估未来是否需要引入真正的 third-party / self-service client trust model
 
 ### 中长期
 
@@ -321,52 +334,53 @@
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：明确 current client onboarding 策略
+### 主线方案：继续收口 consent / logout 等 auth-sensitive UI
 
 这是当前最适合承接的下一步，原因是：
 
 - migration / seeding 主线改造已经完成；
 - `/connect/authorize` 的 challenge 行为也已按真实浏览器语义完成校准；
 - `/login` 已经收敛回 `.Idp`；
-- `OidcClientsController` 也已经收口到应用服务层；
-- 当前最值得尽快明确的是：client onboarding 到底是 first-party only，还是要面向更完整的 consent / third-party 模型。
+- `OidcClientsController` 已经收口到应用服务层；
+- current client onboarding 策略也已经在代码中显式化；
+- 当前最适合继续推进的主线，就是把 login 之外的 consent / logout 等认证周边 UI 继续收回 server-owned surface。
 
 #### 目标
 
-- 明确当前 OIDC client 管理的产品边界；
-- 决定 `ConsentType = Explicit`、PKCE 要求、client secret 策略是否仍然适用于所有 client；
-- 为后续服务层演进提供明确目标，而不是在产品策略不清晰的前提下继续堆实现细节。
+- 让 consent / logout 等高敏感交互也尽量回到 `.Idp` 主项目；
+- 继续减少 `.Client` 对认证关键 UI 的承担；
+- 让认证面在结构上与当前 server-owned `/login` 保持一致。
 
 #### 方案边界
 
 重点涉及：
 
-- `src/BzsCenter.Idp/Services/Oidc/OidcClientContracts.cs`
-- `src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
-- `src/BzsCenter.Idp/Services/Oidc/OidcClientService.cs`
-- `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`
+- `src/BzsCenter.Idp/Controllers/ConnectController.cs`
+- `src/BzsCenter.Idp/Controllers/AccountController.cs`
+- `src/BzsCenter.Idp/Program.cs`
+- 如引入新的服务端页面，还需考虑 `.Idp` 中 auth 组件与 returnUrl / antiforgery / localization 边界
 
-需要回答的不是“代码放哪”，而是“哪些 client 应该允许被创建，以及允许到什么程度”。
+必要时保留 `.Client` 中纯展示类交互，但进一步收紧建立身份与结束会话的关键入口。
 
 #### 推荐实施顺序
 
-1. **明确 client 类型分层**  
-   区分 first-party browser client、machine client、潜在 third-party client 的支持边界。
+1. **梳理剩余 auth-sensitive 页面**  
+   明确 consent、logout、denied 等页面当前是 server 还是 client 持有。
 
-2. **校准默认策略**  
-   确认 `ConsentType`、PKCE、redirect URI、secret 生成、grant types 是否应该按 client 类型区分。
+2. **优先迁移最靠近协议交互的页面**  
+   先处理最直接影响 OIDC 交互的 consent / logout 周边 UI。
 
-3. **把策略沉淀到服务层**  
-   在 `OidcClientService` / `OidcClientDescriptorFactory` 中落实明确规则，而不是继续让“当前默认值”兼容所有场景。
+3. **保留服务端安全语义**  
+   继续让 cookie、returnUrl、antiforgery 与协议跳转由服务端控制器/组件主导。
 
 4. **补回归验证**  
-   为不同 client 类型/策略分支增加回归测试，确保 API 行为与策略文档一致。
+   对 logout、consent、回跳与未登录路径继续补浏览器级和集成级验证。
 
 #### 完成判定
 
-- 团队能明确回答“支持哪些 client、为什么支持、默认策略是什么”；
-- 相关规则不再只是 `DescriptorFactory` 里的隐式默认值；
-- API 与测试都清楚地区分 first-party 与其他潜在 client 模型。
+- auth-sensitive 页面不只 `/login` 是 server-owned；
+- 认证面结构继续向 server-owned surface 收敛；
+- 浏览器级和集成级验证继续保持通过。
 
 ### 第二阶段候选
 
@@ -375,11 +389,11 @@
 1. **补 `PermissionClaimDestinationsHandler` 的 handler 级单测**  
    在现有 token / userinfo 集成覆盖之上，再补更细粒度的规则单测。
 
-2. **继续收口 consent / logout 等 auth-sensitive UI**  
-   将 server-owned surface 的范围从 login 扩展到更完整的认证周边交互。
+2. **扩充 OIDC client 管理面的成功/失败测试矩阵**  
+   尤其是 update/delete 成功路径、按 profile 区分的 validation 分支。
 
-3. **扩充 OIDC client 管理面的成功/失败测试矩阵**  
-   尤其是 update/delete 成功路径、按策略区分的 validation 分支。
+3. **评估 third-party / self-service onboarding 是否需要真实进入 roadmap**  
+   如果需要，就在现有 first-party profile 之外引入明确 trust model，而不是继续靠隐式默认值扩展。
 
 ---
 

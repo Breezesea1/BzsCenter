@@ -138,6 +138,18 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             opt.Cookie.SecurePolicy = CookieSecurePolicy.Always;
             opt.ExpireTimeSpan = TimeSpan.FromHours(36);
             opt.SlidingExpiration = true;
+            opt.Events.OnRedirectToLogin = context =>
+            {
+                if (context.Request.Path.StartsWithSegments("/connect/authorize"))
+                {
+                    context.Response.Redirect(context.RedirectUri);
+                    return Task.CompletedTask;
+                }
+
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                context.Response.Headers.Location = context.RedirectUri;
+                return Task.CompletedTask;
+            };
         });
     }
 

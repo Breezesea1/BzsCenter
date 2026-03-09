@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Controllers;
 using BzsCenter.Idp.Domain;
 using BzsCenter.Idp.Infra;
@@ -39,7 +40,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     private string? _authCookieHeader;
 
     [Fact]
-    public async Task Authorize_WhenUnauthenticated_ReturnsUnauthorized()
+    public async Task Authorize_WhenUnauthenticated_RedirectsToLogin()
     {
         using var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -48,12 +49,24 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         using var response = await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
 
         var location = response.Headers.Location?.OriginalString;
         Assert.False(string.IsNullOrWhiteSpace(location));
         Assert.Contains("/login", location, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ReturnUrl=", location, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task LoginPage_WhenRequestedDirectly_ReturnsServerOwnedLoginForm()
+    {
+        using var response = await _client.GetAsync("/login");
+
+        response.EnsureSuccessStatusCode();
+
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.Contains("<form method=\"post\" action=\"/account/login\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("BzsCenter", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -311,6 +324,10 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpContextAccessor();
+        builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents()
+            .AddInteractiveWebAssemblyComponents();
         builder.Services.AddDbContext<IdpDbContext>(
             options => ConfigureTestDatabase(options, _connection),
             contextLifetime: ServiceLifetime.Scoped,
@@ -335,9 +352,15 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
             .AddApplicationPart(typeof(ConnectController).Assembly);
 
         _app = builder.Build();
+        _app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
         _app.UseAuthentication();
         _app.UseAuthorization();
+        _app.UseAntiforgery();
         _app.MapControllers();
+        _app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode()
+            .AddInteractiveWebAssemblyRenderMode()
+            .AddAdditionalAssemblies(typeof(BzsCenter.Idp.Client._Imports).Assembly);
 
         await _app.StartAsync();
 

@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="..\BzsCenter.Idp\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\BzsCenter.Idp\appsettings.Development.json" Link="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BzsCenter.AppHost.ServiceDefaults\BzsCenter.AppHost.ServiceDefaults.csproj" />
     <ProjectReference Include="..\BzsCenter.Idp\BzsCenter.Idp.csproj" />
     <ProjectReference Include="..\Shared\BzsCenter.Shared.Infrastructure\BzsCenter.Shared.Infrastructure.csproj" />

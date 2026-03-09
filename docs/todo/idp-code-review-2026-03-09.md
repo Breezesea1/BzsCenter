@@ -294,6 +294,9 @@
 - [x] 将 `/logout` 补齐为 `BzsCenter.Idp` 的 server-owned 页面，并复用现有 `POST /account/logout` 语义
 - [x] 新增 `LogoutPage_WhenRequestedDirectly_ReturnsServerOwnedLogoutForm` 回归验证
 - [x] 通过真实浏览器确认 `/account/denied`、`/logout` 都落在新的 server-owned 页面，且 logout 表单可以正常提交
+- [x] 将 `App.razor` 从路径分支式渲染改为更接近 Blazor per-page render mode 的统一 Router 宿主
+- [x] 将 auth 页面声明为 `InteractiveServer`，client 页面声明为 `InteractiveWebAssembly`
+- [x] 进一步将 `HeadOutlet` / `Routes` 简化为无根级 render mode，由页面自身声明 render mode
 - [x] 为 `OidcClientsController` 增加 `IOidcClientService` / `OidcClientService`，将 OpenIddict manager orchestration 收口到应用服务层
 - [x] 新增 `OidcClientsControllerTests`，验证 controller 的 HTTP 结果映射与服务委托行为
 - [x] 新增 OIDC client 管理面的失败分支回归验证：
@@ -367,6 +370,8 @@
 - `src/BzsCenter.Idp.Migrator/Program.cs`
 - `src/BzsCenter.Idp.Migrator/BzsCenter.Idp.Migrator.csproj`
 - `src/BzsCenter.Idp/Program.cs`
+- `src/BzsCenter.Idp/Components/App.razor`
+- `src/BzsCenter.Idp/Components/Routes.razor`
 - `src/BzsCenter.Idp/Controllers/AccountController.cs`
 - `src/BzsCenter.Idp/Controllers/ConnectController.cs`
 - `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`

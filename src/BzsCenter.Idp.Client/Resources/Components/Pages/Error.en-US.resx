@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
+  </resheader>
+  <data name="PageTitle" xml:space="preserve"><value>Something went wrong</value></data>
+  <data name="Heading" xml:space="preserve"><value>Something went wrong.</value></data>
+  <data name="Subheading" xml:space="preserve"><value>We ran into a problem while processing your request.</value></data>
+  <data name="RequestIdLabel" xml:space="preserve"><value>Request ID</value></data>
+  <data name="DevelopmentModeHeading" xml:space="preserve"><value>Development details</value></data>
+  <data name="DevelopmentModeName" xml:space="preserve"><value>Development</value></data>
+  <data name="DevelopmentModeIntroHtml" xml:space="preserve"><value>Switching to the {0} environment shows more detailed diagnostics for this error.</value></data>
+  <data name="DevelopmentModeWarning" xml:space="preserve"><value>The Development environment shouldn't be enabled for deployed applications.</value></data>
+  <data name="DevelopmentModeDetailsHtml" xml:space="preserve"><value>It can expose sensitive exception details to end users. For local debugging, set the {0} environment variable to {1} and restart the app.</value></data>
+</root>

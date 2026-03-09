@@ -66,6 +66,7 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
                 ClientId = descriptor.ClientId!,
                 ClientSecret = descriptor.ClientSecret,
                 DisplayName = descriptor.DisplayName ?? descriptor.ClientId!,
+                Profile = OidcClientDescriptorFactory.ResolveProfile(request, out _)!.Value,
             },
         };
     }
@@ -179,6 +180,9 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
         {
             ClientId = await applicationManager.GetClientIdAsync(application, cancellationToken) ?? string.Empty,
             DisplayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken),
+            Profile = ResolveProfile(permissions,
+                await applicationManager.GetClientTypeAsync(application, cancellationToken),
+                redirectUris),
             PublicClient = string.Equals(
                 await applicationManager.GetClientTypeAsync(application, cancellationToken),
                 OpenIddictConstants.ClientTypes.Public,
@@ -198,5 +202,35 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
             Permissions = permissions,
             Requirements = requirements,
         };
+    }
+
+    /// <summary>
+    /// 解析并返回结果。
+    /// </summary>
+    /// <param name="permissions">参数permissions。</param>
+    /// <param name="clientType">参数clientType。</param>
+    /// <param name="redirectUris">参数redirectUris。</param>
+    /// <returns>执行结果。</returns>
+    private static OidcClientProfile ResolveProfile(
+        IReadOnlyCollection<string> permissions,
+        string? clientType,
+        IReadOnlyCollection<string> redirectUris)
+    {
+        var grantTypes = permissions
+            .Where(static permission => permission.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType,
+                StringComparison.OrdinalIgnoreCase))
+            .Select(static permission => permission[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])
+            .ToArray();
+
+        if (string.Equals(clientType, OpenIddictConstants.ClientTypes.Public, StringComparison.OrdinalIgnoreCase) &&
+            redirectUris.Count > 0 &&
+            grantTypes.All(static grantType =>
+                string.Equals(grantType, OpenIddictConstants.GrantTypes.AuthorizationCode, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(grantType, OpenIddictConstants.GrantTypes.RefreshToken, StringComparison.OrdinalIgnoreCase)))
+        {
+            return OidcClientProfile.FirstPartyInteractive;
+        }
+
+        return OidcClientProfile.FirstPartyMachine;
     }
 }

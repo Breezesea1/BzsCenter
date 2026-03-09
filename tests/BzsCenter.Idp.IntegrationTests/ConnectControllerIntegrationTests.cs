@@ -292,6 +292,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         var created = await createResponse.Content.ReadFromJsonAsync<OidcClientRegistrationResponse>();
         Assert.NotNull(created);
         Assert.Equal("interactive-client", created.ClientId);
+        Assert.Equal(OidcClientProfile.FirstPartyInteractive, created.Profile);
 
         using var getResponse = await _client.GetAsync($"/api/oidc/clients/{created.ClientId}");
         getResponse.EnsureSuccessStatusCode();
@@ -300,8 +301,42 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.NotNull(client);
         Assert.Equal("interactive-client", client.ClientId);
         Assert.Equal("Interactive Client", client.DisplayName);
+        Assert.Equal(OidcClientProfile.FirstPartyInteractive, client.Profile);
         Assert.Contains(OpenIddictConstants.GrantTypes.AuthorizationCode, client.GrantTypes);
         Assert.Contains(PermissionConstants.ScopeApi, client.Scopes);
+    }
+
+    [Fact]
+    public async Task ClientRegistration_WhenMachineProfileRequested_CreatesConfidentialMachineClient()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            ClientId = "machine-client-managed",
+            DisplayName = "Managed Machine Client",
+            Profile = OidcClientProfile.FirstPartyMachine,
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+            Scopes = [PermissionConstants.ScopeApi],
+        };
+
+        using var createResponse = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<OidcClientRegistrationResponse>();
+        Assert.NotNull(created);
+        Assert.Equal(OidcClientProfile.FirstPartyMachine, created.Profile);
+        Assert.False(string.IsNullOrWhiteSpace(created.ClientSecret));
+
+        using var getResponse = await _client.GetAsync($"/api/oidc/clients/{created.ClientId}");
+        getResponse.EnsureSuccessStatusCode();
+
+        var client = await getResponse.Content.ReadFromJsonAsync<OidcClientResponse>();
+        Assert.NotNull(client);
+        Assert.Equal(OidcClientProfile.FirstPartyMachine, client.Profile);
+        Assert.False(client.PublicClient);
+        Assert.Equal([OpenIddictConstants.GrantTypes.ClientCredentials], client.GrantTypes);
     }
 
     [Fact]
@@ -348,6 +383,29 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         var payload = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
         Assert.NotNull(payload);
         Assert.Contains(nameof(OidcClientUpsertRequest), payload.Errors.Keys);
+    }
+
+    [Fact]
+    public async Task ClientRegistration_WhenUnsupportedProfileRequested_ReturnsValidationProblem()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Unsupported Client",
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        using var response = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var payload = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>();
+        Assert.NotNull(payload);
+        Assert.Contains(nameof(OidcClientUpsertRequest), payload.Errors.Keys);
+        Assert.Contains(payload.Errors[nameof(OidcClientUpsertRequest)],
+            static error => error.Contains("first-party interactive", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

@@ -13,6 +13,12 @@ public static class OidcClientDescriptorFactory
     public static IReadOnlyList<string> ValidateRequest(OidcClientUpsertRequest request)
     {
         var errors = new List<string>();
+        var profile = ResolveProfile(request, out var profileError);
+
+        if (profileError is not null)
+        {
+            errors.Add(profileError);
+        }
 
         if (string.IsNullOrWhiteSpace(request.DisplayName))
         {
@@ -44,6 +50,53 @@ public static class OidcClientDescriptorFactory
             errors.Add("Authorization code clients must provide at least one redirect URI.");
         }
 
+        if (profile is OidcClientProfile.FirstPartyInteractive)
+        {
+            if (!request.PublicClient)
+            {
+                errors.Add("First-party interactive clients must be public clients.");
+            }
+
+            if (!grantTypes.All(static grantType =>
+                    string.Equals(grantType, OpenIddictConstants.GrantTypes.AuthorizationCode,
+                        StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(grantType, OpenIddictConstants.GrantTypes.RefreshToken,
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                errors.Add("First-party interactive clients only support authorization_code and refresh_token grants.");
+            }
+
+            if (!request.RequireProofKeyForCodeExchange)
+            {
+                errors.Add("First-party interactive clients must require PKCE.");
+            }
+        }
+
+        if (profile is OidcClientProfile.FirstPartyMachine)
+        {
+            if (request.PublicClient)
+            {
+                errors.Add("First-party machine clients must be confidential clients.");
+            }
+
+            if (grantTypes.Length != 1 ||
+                !string.Equals(grantTypes[0], OpenIddictConstants.GrantTypes.ClientCredentials,
+                    StringComparison.OrdinalIgnoreCase))
+            {
+                errors.Add("First-party machine clients only support the client_credentials grant.");
+            }
+
+            if (request.RedirectUris.Any(static uri => !string.IsNullOrWhiteSpace(uri)))
+            {
+                errors.Add("First-party machine clients must not configure redirect URIs.");
+            }
+
+            if (request.PostLogoutRedirectUris.Any(static uri => !string.IsNullOrWhiteSpace(uri)))
+            {
+                errors.Add("First-party machine clients must not configure post logout redirect URIs.");
+            }
+        }
+
         if (!TryValidateAbsoluteUris(request.RedirectUris, out var redirectError))
         {
             errors.Add(redirectError!);
@@ -65,6 +118,8 @@ public static class OidcClientDescriptorFactory
     /// <returns>执行结果。</returns>
     public static OpenIddictApplicationDescriptor CreateDescriptor(OidcClientUpsertRequest request, string clientId)
     {
+        var profile = ResolveProfile(request, out _);
+
         var descriptor = new OpenIddictApplicationDescriptor
         {
             ClientId = clientId,
@@ -72,7 +127,12 @@ public static class OidcClientDescriptorFactory
             ClientType = request.PublicClient
                 ? OpenIddictConstants.ClientTypes.Public
                 : OpenIddictConstants.ClientTypes.Confidential,
-            ConsentType = OpenIddictConstants.ConsentTypes.Explicit,
+            ConsentType = profile switch
+            {
+                OidcClientProfile.FirstPartyInteractive => OpenIddictConstants.ConsentTypes.Implicit,
+                OidcClientProfile.FirstPartyMachine => OpenIddictConstants.ConsentTypes.External,
+                _ => OpenIddictConstants.ConsentTypes.Explicit,
+            },
         };
 
         if (!request.PublicClient)
@@ -163,6 +223,53 @@ public static class OidcClientDescriptorFactory
         }
 
         return permissions;
+    }
+
+    /// <summary>
+    /// 解析并返回结果。
+    /// </summary>
+    /// <param name="request">参数request。</param>
+    /// <param name="error">参数error。</param>
+    /// <returns>执行结果。</returns>
+    public static OidcClientProfile? ResolveProfile(OidcClientUpsertRequest request, out string? error)
+    {
+        if (request.Profile is not null)
+        {
+            error = null;
+            return request.Profile.Value;
+        }
+
+        var grantTypes = request.GrantTypes
+            .Where(static grantType => !string.IsNullOrWhiteSpace(grantType))
+            .Select(static grantType => grantType.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        var isInteractive = request.PublicClient &&
+            grantTypes.Length > 0 &&
+            grantTypes.All(static grantType =>
+                string.Equals(grantType, OpenIddictConstants.GrantTypes.AuthorizationCode, StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(grantType, OpenIddictConstants.GrantTypes.RefreshToken, StringComparison.OrdinalIgnoreCase));
+
+        if (isInteractive)
+        {
+            error = null;
+            return OidcClientProfile.FirstPartyInteractive;
+        }
+
+        var isMachine = !request.PublicClient &&
+            grantTypes.Length == 1 &&
+            string.Equals(grantTypes[0], OpenIddictConstants.GrantTypes.ClientCredentials,
+                StringComparison.OrdinalIgnoreCase);
+
+        if (isMachine)
+        {
+            error = null;
+            return OidcClientProfile.FirstPartyMachine;
+        }
+
+        error = "Current onboarding only supports first-party interactive (public + auth code/refresh token + PKCE) and first-party machine (confidential + client_credentials) clients.";
+        return null;
     }
 
     /// <summary>

@@ -6,35 +6,33 @@ namespace BzsCenter.Idp.UnitTests.Services.Oidc;
 public class OidcClientDescriptorFactoryTests
 {
     [Fact]
-    public void CreateDescriptor_CreatesConfidentialClientWithGeneratedSecretAndPermissions()
+    public void CreateDescriptor_CreatesFirstPartyMachineClientWithGeneratedSecretAndPermissions()
     {
         var request = new OidcClientUpsertRequest
         {
             DisplayName = "Test Confidential Client",
+            Profile = OidcClientProfile.FirstPartyMachine,
             PublicClient = false,
             ClientSecret = null,
-            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
-            Scopes = ["api", OpenIddictConstants.Scopes.OpenId],
-            RedirectUris = ["https://localhost:6001/signin-oidc"],
-            PostLogoutRedirectUris = ["https://localhost:6001/signout-callback-oidc"],
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+            Scopes = ["api"],
         };
 
         var descriptor = OidcClientDescriptorFactory.CreateDescriptor(request, "client-confidential");
 
         Assert.Equal("client-confidential", descriptor.ClientId);
         Assert.Equal(OpenIddictConstants.ClientTypes.Confidential, descriptor.ClientType);
+        Assert.Equal(OpenIddictConstants.ConsentTypes.External, descriptor.ConsentType);
         Assert.False(string.IsNullOrWhiteSpace(descriptor.ClientSecret));
         Assert.Matches("^[0-9A-F]{64}$", descriptor.ClientSecret!);
-        Assert.Contains(OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.AuthorizationCode,
+        Assert.Contains(OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.ClientCredentials,
             descriptor.Permissions);
         Assert.Contains(OpenIddictConstants.Permissions.Prefixes.Scope + "api",
             descriptor.Permissions);
-        Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Authorization, descriptor.Permissions);
         Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Token, descriptor.Permissions);
-        Assert.Contains(OpenIddictConstants.Permissions.Endpoints.EndSession, descriptor.Permissions);
-        Assert.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange, descriptor.Requirements);
-        Assert.Single(descriptor.RedirectUris);
-        Assert.Single(descriptor.PostLogoutRedirectUris);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Authorization, descriptor.Permissions);
+        Assert.Empty(descriptor.RedirectUris);
+        Assert.Empty(descriptor.PostLogoutRedirectUris);
     }
 
     [Fact]
@@ -52,6 +50,7 @@ public class OidcClientDescriptorFactoryTests
         var descriptor = OidcClientDescriptorFactory.CreateDescriptor(request, "client-public");
 
         Assert.Equal(OpenIddictConstants.ClientTypes.Public, descriptor.ClientType);
+        Assert.Equal(OpenIddictConstants.ConsentTypes.Implicit, descriptor.ConsentType);
         Assert.Null(descriptor.ClientSecret);
         Assert.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange, descriptor.Requirements);
         Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Authorization, descriptor.Permissions);
@@ -96,6 +95,50 @@ public class OidcClientDescriptorFactoryTests
         Assert.Contains(errors,
             static e => e.Contains("Public clients must not specify ClientSecret", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(errors, static e => e.Contains("Invalid URI", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ValidateRequest_ReturnsErrors_ForUnsupportedClientProfile()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Unsupported Client",
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors,
+            static e => e.Contains("Current onboarding only supports first-party interactive", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ResolveProfile_InfersInteractiveAndMachineProfiles()
+    {
+        var interactive = new OidcClientUpsertRequest
+        {
+            DisplayName = "Interactive Client",
+            PublicClient = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var machine = new OidcClientUpsertRequest
+        {
+            DisplayName = "Machine Client",
+            PublicClient = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+        };
+
+        var interactiveProfile = OidcClientDescriptorFactory.ResolveProfile(interactive, out var interactiveError);
+        var machineProfile = OidcClientDescriptorFactory.ResolveProfile(machine, out var machineError);
+
+        Assert.Equal(OidcClientProfile.FirstPartyInteractive, interactiveProfile);
+        Assert.Null(interactiveError);
+        Assert.Equal(OidcClientProfile.FirstPartyMachine, machineProfile);
+        Assert.Null(machineError);
     }
 
     [Fact]

@@ -96,7 +96,6 @@
 
 但仍存在几类真实风险：
 
-- `/connect/authorize` 的 challenge 语义仍主要在 TestHost 语境下得到确认；
 - client registration 的部分产品策略被硬编码；
 - `Domain/` 命名与真实职责不完全匹配；
 - 认证 UI 放在 `.Client` 项目，对 IDP 这种高敏感场景不是最保守的结构。
@@ -170,47 +169,23 @@
 - 单独运行 `BzsCenter.Idp` 时，数据库初始化不再由 Web 启动自动承担；
 - 本地与编排环境应优先通过 `BzsCenter.Idp.Migrator` 或 Aspire AppHost 完成初始化，再启动 IDP。
 
+### 6. `/connect/authorize` 的 challenge 语义已按真实浏览器行为校准
+
+本轮通过真实宿主 + 浏览器验证确认：
+
+- 在 `web-client` 有效存在的前提下，未登录访问 `/connect/authorize` 时，原先的 `401 + Location` 不会把真实浏览器带到登录页；
+- 由于 `Program.cs` 中启用了 `UseStatusCodePagesWithReExecute("/not-found")`，浏览器最终会看到 not-found 页面，而不是 login 页面；
+- 因此当前系统已经针对 `/connect/authorize` 做了定向 cookie challenge override，改为直接 `302` 到 `LoginPath`。
+
+这使该 endpoint 的真实用户体验与 OIDC interactive authorize flow 的预期对齐，同时保留其他 endpoint 的 401 行为不被一刀切改变。
+
 ---
 
 ## 主要问题与风险分级
 
 ### 高优先级
 
-#### 1. `/connect/authorize` 的 challenge 语义仍需在真实宿主确认`
-
-当前测试环境下：
-
-- `ConnectControllerIntegrationTests.Authorize_WhenUnauthenticated_ReturnsUnauthorized()` 断言状态码为 `401`
-- 同时检查 `Location` 指向 `/login`
-
-结合 Microsoft 关于 cookie auth 对 Web/API endpoint 的差异化 challenge 说明，更准确的结论应为：
-
-- 当前**测试宿主下**表现为 `401 + Location`；
-- 这可能与 endpoint 类型、Accept 头、cookie auth 默认行为有关；
-- 是否需要对 `/connect/authorize` 强制 redirect 语义，应在真实浏览器/反向代理语境下确认，而不是仅靠当前 TestHost 行为拍板。
-
-建议：
-
-- 在真实浏览器语境下补一次行为验证；
-- 如果产品需要始终对 `/connect/authorize` 走 redirect login 语义，再评估 cookie `OnRedirectToLogin` 的 endpoint 定制策略。
-
-#### 2. 认证关键 UI 放在 `.Client` 项目，不是最保守的 IDP 结构
-
-当前登录页虽然最终 POST 到服务端 `AccountController`，但页面本身位于 `BzsCenter.Idp.Client`，并依赖 client assembly、JS module、交互式装配。
-
-这里更准确的表述是：当前实现**可工作，也没有证据表明它因此立即失效或不安全**；问题不在于“密码校验在浏览器侧完成”——**事实并非如此**；问题在于：
-
-- 对认证关键页面而言，运行时装配更复杂；
-- 与官方对 auth-sensitive UI 保持 server-owned / conservative surface 的建议相比，当前结构偏激进；
-- 后续如果登录页继续加入更多交互能力，复杂度与维护成本会上升。
-
-建议：
-
-- 评估是否将登录、登出、授权确认等高敏感 UI 收敛到更保守的 server-rendered auth surface。
-
-### 中优先级
-
-#### 3. `Domain/` 命名会放大 DDD 预期，但当前模型较薄
+#### 1. `Domain/` 命名会放大 DDD 预期，但当前模型较薄
 
 当前 `Domain/` 中的类型更像：
 
@@ -229,7 +204,7 @@
 - 如果短期不推进真正的 DDD 拆分，建议在文档里明确当前定位；
 - 避免因为 `Domain/` 目录名产生错误预期。
 
-#### 4. Controller / Service 边界风格仍不完全一致
+#### 2. Controller / Service 边界风格仍不完全一致
 
 当前边界大致如下：
 
@@ -246,7 +221,7 @@
   - 统一校验策略
   - 简化测试与后续扩展
 
-#### 5. OIDC client 产品策略存在硬编码假设
+#### 3. OIDC client 产品策略存在硬编码假设
 
 `OidcClientDescriptorFactory` 当前固定：
 
@@ -263,7 +238,7 @@
 
 ### 中长期
 
-#### 6. 测试覆盖已经明显改善，但仍有空白区域
+#### 4. 测试覆盖已经明显改善，但仍有空白区域
 
 当前已有较好的 integration coverage，但对失败分支和管理面行为的覆盖仍可继续补齐：
 
@@ -274,7 +249,7 @@
 
 重点不再是“有没有 OIDC 集成测试”，而是“claims、管理面、失败分支是否也有回归保护”。
 
-#### 7. 认证与管理职责未来可继续模块化
+#### 5. 认证与管理职责未来可继续模块化
 
 从长期看，可按职责继续拆分为：
 
@@ -308,6 +283,12 @@
 - [x] 新增 `src/BzsCenter.Idp.Migrator/` 独立初始化项目，承接 `IdpDbContext` migration + `IdentitySeeder` seeding
 - [x] 从 `BzsCenter.Idp/Program.cs` 移除直接 `MigrateAsync()` / `SeedAsync()` 启动逻辑
 - [x] 让 `BzsCenter.AppHost/AppHost.cs` 通过 `WaitForCompletion(idp-migrator)` 编排初始化资源先完成，再启动 IDP
+- [x] 通过真实浏览器 + AppHost 运行环境确认 `/connect/authorize` 未登录时的最终用户可见行为
+- [x] 对 `/connect/authorize` 增加定向 cookie redirect override，避免真实浏览器落到 not-found 页面
+- [x] 将 `ConnectControllerIntegrationTests` 的未登录断言更新为 redirect login 语义
+- [x] 将 `/login` 从 `BzsCenter.Idp.Client` 收敛到 `BzsCenter.Idp` server-owned surface
+- [x] 将 client 导航中的 `/login` 入口改为 full reload，避免被 client router 拦截
+- [x] 新增 `LoginPage_WhenRequestedDirectly_ReturnsServerOwnedLoginForm` 回归验证
 
 ---
 
@@ -315,82 +296,82 @@
 
 ### 高优先级
 
-- [ ] 在真实浏览器/反向代理语境下确认 `/connect/authorize` 未登录挑战行为
+- [ ] 明确当前 IDP 的 client 策略：first-party only，还是需要完整 consent / third-party model
+- [ ] 为 `OidcClientsController` 增加应用服务/Facade 层，统一 client 管理逻辑与测试边界
+- [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
 
 ### 中优先级
 
-- [ ] 明确当前 IDP 的 client 策略：first-party only，还是需要完整 consent / third-party model
-- [ ] 评估是否将登录/授权确认等 auth-sensitive UI 收敛到更保守的 server-rendered surface
-- [ ] 为 `OidcClientsController` 增加应用服务/Facade 层，统一 client 管理逻辑与测试边界
-- [x] 在文档中明确当前架构定位，避免 `Domain/` 命名被误读为严格 DDD 实现
+- [ ] 继续评估 consent / logout 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
 
 ### 中长期
 
 - [ ] 若团队目标不是 DDD，考虑简化术语与目录表达；若目标是 DDD，则需要真正补齐聚合、不变量和值对象建模
 - [ ] 继续按“协议入口 / 认证账户 / client 管理 / 权限管理”拆分模块边界
-- [ ] 根据未来演进方向决定是否保留当前 `.Client` 承载登录页的模式
+- [ ] 根据未来演进方向决定是否将更多认证周边 UI 从 `.Client` 进一步收口到 `.Idp`
 
 ---
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：确认 `/connect/authorize` 的真实 challenge 语义
+### 主线方案：为 `OidcClientsController` 增加应用服务层
 
 这是当前最适合承接的下一步，原因是：
 
 - migration / seeding 主线改造已经完成；
-- 当前剩余的高优先级事项里，它最接近“协议行为确认 + 端点策略决策”；
-- 它会直接影响后续是否需要自定义 cookie challenge 行为。
+- `/connect/authorize` 的 challenge 行为也已按真实浏览器语义完成校准；
+- `/login` 已经收敛回 `.Idp`；
+- 当前最适合继续推进、且不依赖产品拍板的主线，就是把 `OidcClientsController` 对 `IOpenIddictApplicationManager` 的直接耦合收口到应用服务层。
 
 #### 目标
 
-- 在真实浏览器/反向代理语境下确认 `/connect/authorize` 的未登录行为；
-- 判断当前 `401 + Location` 是否满足产品与协议预期；
-- 如果不满足，明确是否要在 cookie `OnRedirectToLogin` 中对该 endpoint 做特殊处理。
+- 降低 `OidcClientsController` 中直接编排 OpenIddict manager 的复杂度；
+- 把 client 注册、更新、删除、读取的业务校验和描述符构建收口到服务层；
+- 为后续测试、产品策略扩展与审计留出更清晰的边界。
 
 #### 方案边界
 
 重点涉及：
 
-- `src/BzsCenter.Idp/Controllers/ConnectController.cs`
-- `src/BzsCenter.Idp/Services/IdpServiceRegistrar.cs`
-- `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs`
-- 如需浏览器级验证，可新增更贴近真实宿主的验证脚本或测试入口
+- `src/BzsCenter.Idp/Controllers/OidcClientsController.cs`
+- `src/BzsCenter.Idp/Services/Oidc/OidcClientContracts.cs`
+- `src/BzsCenter.Idp/Services/Oidc/OidcClientDescriptorFactory.cs`
+- 新增或重构 `IOidcClientService` / facade 一类应用服务入口
 
-必要时再引入 cookie challenge 事件定制，而不是先验地改变当前行为。
+必要时保留 `IOpenIddictApplicationManager` 在服务层中使用，但不要继续让 controller 承担全部 orchestration 责任。
 
 #### 推荐实施顺序
 
-1. **先验证真实行为**  
-   在真实浏览器/代理语境下访问 `/connect/authorize`，确认未登录时到底是最终跳转、401、还是 401 + Location 混合语义。
+1. **抽出应用服务接口**  
+   定义 client registration / query / update / delete 的服务层职责与返回模型。
 
-2. **补齐判断标准**  
-   结合 OIDC 客户端预期与产品交互需求，明确该 endpoint 是否必须始终对浏览器场景返回 redirect login。
+2. **迁移 controller 逻辑**  
+   将 `OidcClientsController` 中对 descriptor 构建、存在性检查、OpenIddict manager 调用的流程收口到应用服务。
 
-3. **如有必要再定制 cookie challenge**  
-   仅在确认当前语义不满足预期后，再评估对 `/connect/authorize` 增加 `OnRedirectToLogin` 特殊逻辑。
+3. **补齐失败分支测试**  
+   重点覆盖冲突、非法输入、更新/删除、以及可能的产品策略分支。
 
 4. **补回归验证**  
-   将最终期望行为补成稳定的测试或验证脚本，避免后续 cookie/auth 中间件升级时悄悄漂移。
+   保持 build / format / test 通过，并确保 API 行为与当前集成测试契约一致。
 
 #### 完成判定
 
-- 明确记录 `/connect/authorize` 未登录语义在真实宿主下的最终结果；
-- 如果需要特殊 redirect 策略，则实现已落地并有回归验证；
-- 如果不需要，也应把“为何保留当前行为”记录到文档中。
+- `OidcClientsController` 明显瘦身；
+- OpenIddict manager orchestration 主要位于应用服务层；
+- 管理面 API 的成功/失败分支拥有更清晰的测试覆盖。
 
 ### 第二阶段候选
 
 如果主线方案完成，下一优先级建议如下：
 
-1. **收敛 auth-sensitive UI 到 server-owned surface**  
-   将 login / consent 一类高敏感页面评估迁回 `.Idp` 主项目的静态/服务端渲染面。
-
-2. **为 `OidcClientsController` 增加应用服务层**  
-   降低 controller 对 `IOpenIddictApplicationManager` 的直接耦合，便于后续测试和策略扩展。
-
-3. **明确 current client onboarding 策略**  
+1. **明确 current client onboarding 策略**  
    回答 first-party / consent / third-party registration 的产品边界，再决定是否继续扩展 `OidcClientsController`。
+
+2. **补 `PermissionClaimDestinationsHandler` 的 handler 级单测**  
+   在现有 token / userinfo 集成覆盖之上，再补更细粒度的规则单测。
+
+3. **继续收口 consent / logout 等 auth-sensitive UI**  
+   将 server-owned surface 的范围从 login 扩展到更完整的认证周边交互。
 
 ---
 

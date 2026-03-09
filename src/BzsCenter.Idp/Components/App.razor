@@ -1,5 +1,4 @@
-﻿@using BzsCenter.Idp.Components.Auth.Pages.Account
-@using BzsCenter.Idp.Infra.Preferences
+﻿@using BzsCenter.Idp.Infra.Preferences
 @inject IHttpContextAccessor HttpContextAccessor
 <!DOCTYPE html>
 <html lang="en" data-theme="@ResolvedTheme">
@@ -15,33 +14,11 @@
     <link rel="stylesheet" href="@Assets["BzsCenter.Idp.styles.css"]"/>
     <ImportMap/>
     <link rel="icon" type="image/png" href="favicon.png"/>
-    @if (IsServerOwnedAuthPath)
-    {
-        <HeadOutlet @rendermode="InteractiveServer"/>
-    }
-    else
-    {
-        <HeadOutlet @rendermode="InteractiveWebAssembly"/>
-    }
+    <HeadOutlet/>
 </head>
 
 <body>
-@if (CurrentAuthPage == AuthPageKind.Login)
-{
-    <Login ReturnUrl="@LoginReturnUrl" Error="@LoginError" @rendermode="InteractiveServer"/>
-}
-else if (CurrentAuthPage == AuthPageKind.Denied)
-{
-    <Denied @rendermode="InteractiveServer"/>
-}
-else if (CurrentAuthPage == AuthPageKind.Logout)
-{
-    <Logout ReturnUrl="@LogoutReturnUrl" @rendermode="InteractiveServer"/>
-}
-else
-{
-    <BzsCenter.Idp.Client.Components.Routes @rendermode="InteractiveWebAssembly"/>
-}
+<Routes/>
 <script src="@Assets["_framework/blazor.web.js"]"></script>
 <script src="@Assets["lib/gsap/gsap.min.js"]"></script>
 </body>
@@ -57,67 +34,6 @@ else
             var cookie = HttpContextAccessor.HttpContext?.Request.Cookies[UiPreferences.ThemeCookieName];
             return UiPreferences.NormalizeTheme(cookie);
         }
-    }
-
-    private bool IsServerOwnedAuthPath => CurrentAuthPage != AuthPageKind.None;
-
-    private AuthPageKind CurrentAuthPage
-    {
-        get
-        {
-            var httpContext = HttpContextAccessor.HttpContext;
-            if (httpContext is null)
-            {
-                return AuthPageKind.None;
-            }
-
-            var path = httpContext.Request.Path;
-
-            if (path.StartsWithSegments("/login", StringComparison.OrdinalIgnoreCase))
-            {
-                return AuthPageKind.Login;
-            }
-
-            if (path.StartsWithSegments("/account/denied", StringComparison.OrdinalIgnoreCase))
-            {
-                return AuthPageKind.Denied;
-            }
-
-            if (path.StartsWithSegments("/logout", StringComparison.OrdinalIgnoreCase))
-            {
-                return AuthPageKind.Logout;
-            }
-
-            return AuthPageKind.None;
-        }
-    }
-
-    private string? LoginReturnUrl =>
-        GetQueryValue("ReturnUrl") ?? GetQueryValue("returnUrl");
-
-    private string? LoginError =>
-        GetQueryValue("error");
-
-    private string? LogoutReturnUrl =>
-        GetQueryValue("returnUrl") ?? GetQueryValue("ReturnUrl");
-
-    private string? GetQueryValue(string key)
-    {
-        var query = HttpContextAccessor.HttpContext?.Request.Query;
-        if (query is null)
-        {
-            return null;
-        }
-
-        return query.TryGetValue(key, out var value) ? value.ToString() : null;
-    }
-
-    private enum AuthPageKind
-    {
-        None,
-        Login,
-        Denied,
-        Logout,
     }
 
 }

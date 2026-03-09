@@ -2,6 +2,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @using System.Text
+@using BzsCenter.Idp.Client.Infra.Blazor
 @inject IStringLocalizer<AuthPreferences> L
 @inject IJSRuntime JS
 @inject NavigationManager Nav
@@ -14,8 +15,9 @@
             aria-expanded="@_open.ToString().ToLowerInvariant()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
-            <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
-                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            <path
+                d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
         </svg>
     </button>
 
@@ -32,8 +34,9 @@
                             @onclick='() => SetTheme("light")'>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
                             <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
-                                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path
+                                d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
                         </svg>
                         @L["Light"]
                     </button>
@@ -44,7 +47,8 @@
                             @onclick='() => SetTheme("dark")'>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
-                                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                  fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                  stroke-linejoin="round"/>
                         </svg>
                         @L["Dark"]
                     </button>
@@ -54,8 +58,10 @@
                             aria-checked="@(_currentTheme == "system" ? "true" : "false")"
                             @onclick='() => SetTheme("system")'>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                            <rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor"
+                                  stroke-width="2"/>
+                            <path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round"/>
                         </svg>
                         @L["System"]
                     </button>
@@ -229,17 +235,24 @@
     private static bool ShouldSkipCultureKey(string key)
     {
         return string.Equals(key, "culture", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(key, "ui-culture", StringComparison.OrdinalIgnoreCase);
+               string.Equals(key, "ui-culture", StringComparison.OrdinalIgnoreCase);
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
         _dotNetRef?.Dispose();
 
-        if (_prefModule is not null)
+        return BlazorUtils.DisposeJsModuleAsync(async () =>
         {
+            if (_prefModule is null)
+            {
+                return;
+            }
+
             await _prefModule.DisposeAsync();
             _prefModule = null;
-        }
+        });
     }
+
 }
+

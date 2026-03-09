@@ -1,4 +1,7 @@
 @page "/account/denied"
+@rendermode InteractiveServer
+@attribute [ExcludeFromInteractiveRouting]
+@layout BzsCenter.Idp.Components.Auth.AuthLayout
 @using BzsCenter.Idp.Components.Auth.Shared
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<Denied> L

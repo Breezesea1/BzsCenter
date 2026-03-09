@@ -2,9 +2,9 @@ using Microsoft.JSInterop;
 
 namespace BzsCenter.Idp.Client.Infra.Blazor;
 
-internal static class BlazorUtils
+public static class BlazorUtils
 {
-    internal static async ValueTask DisposeJsModuleAsync(Func<ValueTask> action)
+    public static async ValueTask DisposeJsModuleAsync(Func<ValueTask> action)
     {
         try
         {

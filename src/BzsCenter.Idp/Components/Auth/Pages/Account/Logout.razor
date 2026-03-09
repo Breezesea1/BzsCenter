@@ -1,4 +1,7 @@
 @page "/logout"
+@rendermode InteractiveServer
+@attribute [ExcludeFromInteractiveRouting]
+@layout BzsCenter.Idp.Components.Auth.AuthLayout
 @using BzsCenter.Idp.Components.Auth.Shared
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
@@ -43,7 +46,6 @@
 </div>
 
 @code {
-    [Parameter]
     [SupplyParameterFromQuery]
     public string? ReturnUrl { get; set; }
 

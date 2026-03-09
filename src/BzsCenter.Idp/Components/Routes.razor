@@ -1,4 +1,6 @@
-<Router AppAssembly="typeof(BzsCenter.Idp.Client._Imports).Assembly" NotFoundPage="typeof(BzsCenter.Idp.Client.Components.Pages.NotFound)">
+<Router AppAssembly="typeof(App).Assembly"
+        AdditionalAssemblies="[typeof(BzsCenter.Idp.Client._Imports).Assembly]"
+        NotFoundPage="typeof(BzsCenter.Idp.Client.Components.Pages.NotFound)">
     <Found Context="routeData">
         <CascadingValue Value="routeData">
             <RouteView RouteData="routeData" DefaultLayout="typeof(BzsCenter.Idp.Client.Components.Layout.MainLayout)"/>

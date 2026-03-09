@@ -1,8 +1,12 @@
-@page "/login"
+﻿@page "/login"
+@rendermode InteractiveServer
+@attribute [ExcludeFromInteractiveRouting]
+@layout BzsCenter.Idp.Components.Auth.AuthLayout
 @implements IAsyncDisposable
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @using System.Globalization
+@using BzsCenter.Idp.Client.Infra.Blazor
 @using BzsCenter.Idp.Components.Auth.Shared
 @inject IStringLocalizer<Login> L
 @inject IJSRuntime JS
@@ -73,7 +77,7 @@
             }
 
             <form method="post" action="@BuildLoginAction()" class="login-form" autocomplete="off">
-                <AntiforgeryToken />
+                <AntiforgeryToken/>
                 <div class="field">
                     <label for="username">@L["UserNameLabel"]</label>
                     <input id="username"
@@ -90,21 +94,19 @@
                 <div class="field">
                     <label for="password">@L["PasswordLabel"]</label>
                     <div class="password-wrap">
-                        <input
-                             id="password"
-                             name="Password"
-                             type="@(_showPassword ? "text" : "password")"
-                             placeholder="@L["PasswordPlaceholder"]"
-                             autocomplete="new-password"
-                             autocapitalize="off"
-                             autocorrect="off"
-                             spellcheck="false"
-                             required/>
-                        <button
-                            class="password-toggle"
-                            type="button"
-                            @onclick="TogglePassword"
-                            aria-label="@L["TogglePassword"]">
+                        <input id="password"
+                               name="Password"
+                               type="@(_showPassword ? "text" : "password")"
+                               placeholder="@L["PasswordPlaceholder"]"
+                               autocomplete="new-password"
+                               autocapitalize="off"
+                               autocorrect="off"
+                               spellcheck="false"
+                               required/>
+                        <button class="password-toggle"
+                                type="button"
+                                @onclick="TogglePassword"
+                                aria-label="@L["TogglePassword"]">
                             @if (_showPassword)
                             {
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -192,13 +194,9 @@
 </div>
 
 @code {
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? ReturnUrl { get; set; }
+    [SupplyParameterFromQuery] public string? ReturnUrl { get; set; }
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string? Error { get; set; }
+    [SupplyParameterFromQuery] public string? Error { get; set; }
 
     private bool _showPassword;
     private ElementReference _heroArtRef;
@@ -221,11 +219,14 @@
 
     public async ValueTask DisposeAsync()
     {
-        if (_loginModule is not null)
+        await BlazorUtils.DisposeJsModuleAsync(async () =>
         {
-            await _loginModule.DisposeAsync();
-            _loginModule = null;
-        }
+            if (_loginModule is not null)
+            {
+                await _loginModule.DisposeAsync();
+                _loginModule = null;
+            }
+        });
     }
 
     private string? ErrorMessage => Error switch
@@ -252,4 +253,5 @@
             ["returnUrl"] = ReturnUrl,
         });
     }
+
 }

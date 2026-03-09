@@ -297,6 +297,11 @@
 - [x] 将 `/login` 从 `BzsCenter.Idp.Client` 收敛到 `BzsCenter.Idp` server-owned surface
 - [x] 将 client 导航中的 `/login` 入口改为 full reload，避免被 client router 拦截
 - [x] 新增 `LoginPage_WhenRequestedDirectly_ReturnsServerOwnedLoginForm` 回归验证
+- [x] 将 `/account/denied` 补齐为 `BzsCenter.Idp` 的 server-owned 页面，避免 `AccessDeniedPath` 落回 client not-found
+- [x] 新增 `AccessDeniedPage_WhenRequestedDirectly_ReturnsServerOwnedDeniedPage` 回归验证
+- [x] 将 `/logout` 补齐为 `BzsCenter.Idp` 的 server-owned 页面，并复用现有 `POST /account/logout` 语义
+- [x] 新增 `LogoutPage_WhenRequestedDirectly_ReturnsServerOwnedLogoutForm` 回归验证
+- [x] 通过真实浏览器确认 `/account/denied`、`/logout` 都落在新的 server-owned 页面，且 logout 表单可以正常提交
 - [x] 为 `OidcClientsController` 增加 `IOidcClientService` / `OidcClientService`，将 OpenIddict manager orchestration 收口到应用服务层
 - [x] 新增 `OidcClientsControllerTests`，验证 controller 的 HTTP 结果映射与服务委托行为
 - [x] 新增 OIDC client 管理面的失败分支回归验证：
@@ -320,7 +325,7 @@
 
 ### 中优先级
 
-- [ ] 继续评估 consent / logout 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
+- [ ] 继续评估 consent 等剩余 auth-sensitive UI 是否也应迁回 `.Idp`
 - [ ] 继续补 OIDC client 管理面的更新/删除成功路径与更细粒度策略测试
 - [ ] 评估未来是否需要引入真正的 third-party / self-service client trust model
 
@@ -334,22 +339,24 @@
 
 ## 下一步实施方案（推荐）
 
-### 主线方案：继续收口 consent / logout 等 auth-sensitive UI
+### 主线方案：继续收口 consent 等剩余 auth-sensitive UI
 
 这是当前最适合承接的下一步，原因是：
 
 - migration / seeding 主线改造已经完成；
 - `/connect/authorize` 的 challenge 行为也已按真实浏览器语义完成校准；
 - `/login` 已经收敛回 `.Idp`；
+- `/account/denied` 也已经收敛回 `.Idp`；
+- `/logout` 也已经收敛回 `.Idp`；
 - `OidcClientsController` 已经收口到应用服务层；
 - current client onboarding 策略也已经在代码中显式化；
-- 当前最适合继续推进的主线，就是把 login 之外的 consent / logout 等认证周边 UI 继续收回 server-owned surface。
+- 当前最适合继续推进的主线，就是把剩余尚未显式建模的 consent 等协议交互 UI 继续收回 server-owned surface。
 
 #### 目标
 
-- 让 consent / logout 等高敏感交互也尽量回到 `.Idp` 主项目；
+- 让 consent 等高敏感交互也尽量回到 `.Idp` 主项目；
 - 继续减少 `.Client` 对认证关键 UI 的承担；
-- 让认证面在结构上与当前 server-owned `/login` 保持一致。
+- 让认证面在结构上与当前 server-owned `/login`、`/account/denied`、`/logout` 保持一致。
 
 #### 方案边界
 
@@ -365,16 +372,16 @@
 #### 推荐实施顺序
 
 1. **梳理剩余 auth-sensitive 页面**  
-   明确 consent、logout、denied 等页面当前是 server 还是 client 持有。
+   明确 consent 等页面当前是 server 还是 client 持有。
 
 2. **优先迁移最靠近协议交互的页面**  
-   先处理最直接影响 OIDC 交互的 consent / logout 周边 UI。
+   先处理最直接影响 OIDC 交互的 consent 周边 UI。
 
 3. **保留服务端安全语义**  
    继续让 cookie、returnUrl、antiforgery 与协议跳转由服务端控制器/组件主导。
 
 4. **补回归验证**  
-   对 logout、consent、回跳与未登录路径继续补浏览器级和集成级验证。
+   对 consent、回跳与未登录路径继续补浏览器级和集成级验证。
 
 #### 完成判定
 
@@ -414,6 +421,8 @@
 - `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrationService.cs`
 - `src/Shared/BzsCenter.Shared.Infrastructure/Database/MigrateDbContextExtensions.cs`
 - `src/BzsCenter.Idp/Components/Auth/Pages/Account/Login.razor`
+- `src/BzsCenter.Idp/Components/Auth/Pages/Account/Denied.razor`
+- `src/BzsCenter.Idp/Components/Auth/Pages/Account/Logout.razor`
 - `src/BzsCenter.Idp/Components/Auth/Shared/AuthPreferences.razor`
 - `tests/BzsCenter.Idp.IntegrationTests/ConnectControllerIntegrationTests.cs`
 - `tests/BzsCenter.Idp.IntegrationTests/PreferencesControllerIntegrationTests.cs`

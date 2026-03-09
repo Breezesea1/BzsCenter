@@ -20,6 +20,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BzsCenter.Idp.IntegrationTe
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BzsCenter.Idp.Client", "src\BzsCenter.Idp.Client\BzsCenter.Idp.Client.csproj", "{3657B0FE-2B8E-467A-9A2F-96A265D4F873}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BzsCenter.Idp.Migrator", "src\BzsCenter.Idp.Migrator\BzsCenter.Idp.Migrator.csproj", "{1C71025B-C0F2-4DA1-9F74-23F2D687E960}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -114,6 +116,18 @@ Global
 		{3657B0FE-2B8E-467A-9A2F-96A265D4F873}.Release|x64.Build.0 = Release|Any CPU
 		{3657B0FE-2B8E-467A-9A2F-96A265D4F873}.Release|x86.ActiveCfg = Release|Any CPU
 		{3657B0FE-2B8E-467A-9A2F-96A265D4F873}.Release|x86.Build.0 = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|x64.Build.0 = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Debug|x86.Build.0 = Debug|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|x64.ActiveCfg = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|x64.Build.0 = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|x86.ActiveCfg = Release|Any CPU
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -127,5 +141,6 @@ Global
 		{AF828796-EA4C-49BA-9611-DC81E849D064} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{D63B6D4F-BB7F-4C42-B012-57763DDA954C} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
 		{3657B0FE-2B8E-467A-9A2F-96A265D4F873} = {E89D576C-B9A6-4E48-B6CE-582EEF0C3843}
+		{1C71025B-C0F2-4DA1-9F74-23F2D687E960} = {E89D576C-B9A6-4E48-B6CE-582EEF0C3843}
 	EndGlobalSection
 EndGlobal

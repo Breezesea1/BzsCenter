@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\BzsCenter.Idp\BzsCenter.Idp.csproj" />
+      <ProjectReference Include="..\BzsCenter.Idp.Migrator\BzsCenter.Idp.Migrator.csproj" />
     </ItemGroup>
 
 </Project>

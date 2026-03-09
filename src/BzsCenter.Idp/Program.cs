@@ -1,11 +1,8 @@
 using BzsCenter.Idp.Components;
-using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Preferences;
 using BzsCenter.Idp.Services;
-using BzsCenter.Idp.Services.Identity;
 using System.Globalization;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,15 +33,6 @@ builder.Services.AddRazorComponents()
 builder.Services.AddControllers();
 
 var app = builder.Build();
-
-await using (var scope = app.Services.CreateAsyncScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<IdpDbContext>();
-    await dbContext.Database.MigrateAsync();
-
-    var identitySeeder = scope.ServiceProvider.GetRequiredService<IdentitySeeder>();
-    await identitySeeder.SeedAsync();
-}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

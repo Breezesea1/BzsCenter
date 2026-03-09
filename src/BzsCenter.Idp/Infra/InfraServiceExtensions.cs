@@ -23,7 +23,6 @@ internal static class InfraServiceExtensions
             contextLifetime: ServiceLifetime.Scoped,
             optionsLifetime: ServiceLifetime.Singleton);
         sc.AddDbContextFactory<IdpDbContext>(opt => opt.ConfigureIdentityDb(connectionString));
-        sc.AddMigration<IdpDbContext>();
 
         return sc;
     }

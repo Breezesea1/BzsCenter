@@ -78,7 +78,6 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         var oidcOptions = cfg.GetSection(OidcSectionName).Get<OidcOptions>();
         var identityOptions = cfg.GetSection(IdentitySectionName).Get<IdentitySeedOptions>() ?? new IdentitySeedOptions();
 
-        sc.AddAuthorization();
         ConfigureAuthenticationSchemes();
         ConfigureIdentity();
         ConfigureApplicationCookie();

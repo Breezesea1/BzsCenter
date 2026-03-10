@@ -50,6 +50,12 @@ internal static class ServiceExtensions
         sc.AddScoped<IOidcClientService, OidcClientService>();
         sc.AddScoped<IdentitySeeder>();
 
+        return sc;
+    }
+
+    internal static IServiceCollection AddIdpAuthorization(this IServiceCollection sc)
+    {
+        sc.AddAuthorization();
         sc.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         sc.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 

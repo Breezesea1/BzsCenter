@@ -71,22 +71,25 @@ public static class MigrateDbContextExtensions
             try
             {
                 var pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToArray();
-                if (pending.Length == 0)
-                {
-                    logger.LogInformation("No pending migrations found on context {DbContextName}",
-                        typeof(TContext).Name);
-                    return;
-                }
-
-                logger.LogInformation("Applying {Count} migrations for {DbContextName}: {Migrations}",
-                    pending.Length, typeof(TContext).Name, string.Join(", ", pending));
-
                 var strategy = context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(async () =>
                 {
-                    await context.Database.MigrateAsync(cancellationToken);
+                    if (pending.Length == 0)
+                    {
+                        logger.LogInformation("No pending migrations found on context {DbContextName}",
+                            typeof(TContext).Name);
+                    }
+                    else
+                    {
+                        logger.LogInformation("Applying {Count} migrations for {DbContextName}: {Migrations}",
+                            pending.Length, typeof(TContext).Name, string.Join(", ", pending));
+                        await context.Database.MigrateAsync(cancellationToken);
+                    }
+
                     if (seeder is not null)
+                    {
                         await seeder(context, sp);
+                    }
                 });
 
                 return;

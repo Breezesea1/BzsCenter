@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="PrimaryNavigation" xml:space="preserve"><value>Primary navigation</value></data>
+  <data name="CloseNavigation" xml:space="preserve"><value>Close navigation</value></data>
+  <data name="Home" xml:space="preserve"><value>Home</value></data>
+  <data name="Login" xml:space="preserve"><value>Login</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Clients" xml:space="preserve"><value>Clients</value></data>
+</root>

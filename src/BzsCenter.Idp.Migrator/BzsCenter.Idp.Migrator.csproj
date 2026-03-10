@@ -13,7 +13,10 @@
 
   <ItemGroup>
     <Content Include="..\BzsCenter.Idp\appsettings.json" Link="appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <Content Include="..\BzsCenter.Idp\appsettings.Development.json" Link="appsettings.Development.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\BzsCenter.Idp\appsettings.Development.json" CopyToOutputDirectory="PreserveNewest">
+      <Link>appsettings.Development.json</Link>
+      <DependentUpon>appsettings.json</DependentUpon>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

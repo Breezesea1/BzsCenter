@@ -9,13 +9,6 @@ using Microsoft.Extensions.Hosting;
 
 var builder = Host.CreateApplicationBuilder(args);
 
-builder.Configuration
-    .AddJsonFile(Path.Combine(AppContext.BaseDirectory, "appsettings.json"), optional: true, reloadOnChange: false)
-    .AddJsonFile(
-        Path.Combine(AppContext.BaseDirectory, $"appsettings.{builder.Environment.EnvironmentName}.json"),
-        optional: true,
-        reloadOnChange: false);
-
 builder.AddServiceDefaults();
 builder.Services.AddIdpService(builder.Configuration);
 builder.Services.AddMigration<IdpDbContext>(static (_, sp) => sp.GetRequiredService<IdentitySeeder>().SeedAsync());

@@ -9,8 +9,8 @@
     width: 2.25rem;
     height: 2.25rem;
     border-radius: 9999px;
-    border: 1px solid rgba(226, 232, 240, 0.7);
-    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgb(226, 232, 240);
+    background: rgb(255, 255, 255);
     color: #64748b;
     cursor: pointer;
     transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
@@ -38,7 +38,7 @@
     min-width: 13rem;
     border-radius: 14px;
     border: 1px solid rgba(226, 232, 240, 0.8);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 1.0);
     backdrop-filter: blur(16px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06);
     padding: 0.75rem;

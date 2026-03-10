@@ -1,0 +1,550 @@
+@page "/admin/users"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
+@using System.Security.Claims
+@using BzsCenter.Idp.Models
+@using BzsCenter.Idp.Services.Identity
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.WebUtilities
+@inject IHttpContextAccessor HttpContextAccessor
+@inject NavigationManager NavigationManager
+@inject IUserService UserService
+@inject UserManager<BzsUser> UserManager
+@layout BzsCenter.Idp.Client.Components.Layout.MainLayout
+
+<PageTitle>User Management</PageTitle>
+
+@if (!_hasAccess)
+{
+    <div class="admin-loading-shell">
+        <div class="admin-loading-card">
+            <span class="admin-loading-kicker">Admin Area</span>
+            <h1>Checking access</h1>
+            <p>Verifying your session before loading user management.</p>
+        </div>
+    </div>
+}
+else
+{
+    <section class="admin-page-shell">
+        <header class="admin-hero">
+            <div>
+                <span class="admin-kicker">Identity</span>
+                <h1>User Management</h1>
+                <p>Manage sign-in accounts, rotate passwords, and keep administrator access under control.</p>
+            </div>
+
+            <div class="admin-hero-actions">
+                <button type="button" class="admin-ghost-button" @onclick="LoadUsersAsync" disabled="@_isBusy">
+                    Refresh
+                </button>
+                <button type="button" class="admin-primary-button" @onclick="BeginCreate">
+                    New User
+                </button>
+            </div>
+        </header>
+
+        <section class="admin-stats-grid" aria-label="User overview">
+            <article class="admin-stat-card">
+                <span class="admin-stat-label">Total users</span>
+                <strong>@_users.Count</strong>
+                <p>All accounts currently provisioned in the IDP.</p>
+            </article>
+
+            <article class="admin-stat-card">
+                <span class="admin-stat-label">Admins</span>
+                <strong>@AdminCount</strong>
+                <p>Users holding the reserved <span class="admin-inline-code">admin</span> role.</p>
+            </article>
+
+            <article class="admin-stat-card accent-card">
+                <span class="admin-stat-label">Standard users</span>
+                <strong>@(_users.Count - AdminCount)</strong>
+                <p>Accounts without elevated management permissions.</p>
+            </article>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_statusMessage))
+        {
+            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">@_statusMessage</div>
+        }
+
+        <div class="admin-content-grid">
+            <section class="admin-panel admin-list-panel">
+                <div class="admin-panel-header">
+                    <div>
+                        <h2>Accounts</h2>
+                        <p>Filter the list, inspect privileges, and open any row for editing.</p>
+                    </div>
+
+                    <label class="admin-search-field" for="user-search">
+                        <span>Search</span>
+                        <input id="user-search"
+                               type="search"
+                               placeholder="Search by username or email"
+                               value="@_searchTerm"
+                               @oninput="HandleSearchInput" />
+                    </label>
+                </div>
+
+                <div class="admin-table-shell">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Email</th>
+                                <th>Identifier</th>
+                                <th class="admin-actions-column">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_filteredUsers.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="5">
+                                        <div class="admin-empty-state">
+                                            <strong>No matching users</strong>
+                                            <p>Try another keyword or create a new account.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var user in _filteredUsers)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="admin-user-cell">
+                                                <span class="admin-avatar" aria-hidden="true">@GetInitial(user.UserName)</span>
+                                                <div>
+                                                    <strong>@user.UserName</strong>
+                                                    <span>@(user.Id == _currentUserId ? "Current session" : "Managed account")</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="admin-badge @(user.IsAdmin ? "is-admin" : "is-standard")">
+                                                @(user.IsAdmin ? "Admin" : "User")
+                                            </span>
+                                        </td>
+                                        <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
+                                        <td class="admin-mono">@user.Id</td>
+                                        <td class="admin-actions-column">
+                                            <button type="button" class="admin-row-button" @onclick="() => BeginEdit(user)">Edit</button>
+                                            <button type="button"
+                                                    class="admin-row-button danger"
+                                                    @onclick="() => DeleteUserAsync(user)"
+                                                    disabled="@(user.Id == _currentUserId || _isBusy)">
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <aside class="admin-panel admin-editor-panel">
+                <div class="admin-panel-header compact">
+                    <div>
+                        <h2>@(_isEditing ? "Edit user" : "Create user")</h2>
+                        <p>@(_isEditing ? "Update identity details, admin access, or password." : "Provision a new sign-in account for the platform.")</p>
+                    </div>
+                </div>
+
+                @if (_formErrors.Count > 0)
+                {
+                    <div class="admin-feedback is-error">
+                        <strong>Could not save this user.</strong>
+                        <ul>
+                            @foreach (var error in _formErrors)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="admin-form-grid">
+                    <label class="admin-field" for="editor-user-name">
+                        <span>User name</span>
+                        <input id="editor-user-name" type="text" @bind="_editor.UserName" @bind:event="oninput" />
+                    </label>
+
+                    <label class="admin-field" for="editor-email">
+                        <span>Email</span>
+                        <input id="editor-email" type="email" @bind="_editor.Email" @bind:event="oninput" />
+                    </label>
+
+                    <label class="admin-field" for="editor-password">
+                        <span>@(_isEditing ? "New password" : "Password")</span>
+                        <input id="editor-password" type="password" @bind="_editor.Password" @bind:event="oninput" />
+                        <small>@(_isEditing ? "Leave blank to keep the current password." : "Password must satisfy the configured Identity policy.")</small>
+                    </label>
+
+                    <label class="admin-toggle-field" for="editor-admin-role">
+                        <input id="editor-admin-role" type="checkbox" @bind="_editor.IsAdmin" />
+                        <div>
+                            <strong>Administrator access</strong>
+                            <span>Grant the reserved <span class="admin-inline-code">admin</span> role.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <div class="admin-editor-actions">
+                    <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
+                        Reset
+                    </button>
+                    <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
+                        @(_isBusy ? "Saving..." : _isEditing ? "Save Changes" : "Create User")
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </section>
+}
+
+@code {
+    private readonly List<UserRow> _users = [];
+    private readonly List<UserRow> _filteredUsers = [];
+    private readonly List<string> _formErrors = [];
+
+    private UserEditor _editor = new();
+    private Guid _currentUserId;
+    private bool _hasAccess;
+    private bool _isBusy;
+    private bool _isEditing;
+    private string _searchTerm = string.Empty;
+    private string? _statusMessage;
+    private bool _statusIsError;
+
+    private int AdminCount => _users.Count(static user => user.IsAdmin);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!EnsureAdminAccess())
+        {
+            return;
+        }
+
+        await LoadUsersAsync();
+    }
+
+    private bool EnsureAdminAccess()
+    {
+        var user = HttpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            var loginPath = QueryHelpers.AddQueryString("/login", new Dictionary<string, string?>
+            {
+                ["returnUrl"] = "/admin/users",
+            });
+
+            NavigationManager.NavigateTo(loginPath, forceLoad: true);
+            return false;
+        }
+
+        if (!user.IsInRole(IdentitySeedConstants.AdminRoleName))
+        {
+            NavigationManager.NavigateTo("/account/denied", forceLoad: true);
+            return false;
+        }
+
+        _hasAccess = true;
+
+        if (Guid.TryParse(user.FindFirstValue(ClaimTypes.NameIdentifier), out var currentUserId))
+        {
+            _currentUserId = currentUserId;
+        }
+
+        return true;
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        _isBusy = true;
+
+        try
+        {
+            _users.Clear();
+
+            var users = await UserService.GetAllAsync();
+            foreach (var user in users)
+            {
+                _users.Add(new UserRow
+                {
+                    Id = user.Id,
+                    UserName = user.UserName ?? string.Empty,
+                    Email = user.Email,
+                    IsAdmin = await UserManager.IsInRoleAsync(user, IdentitySeedConstants.AdminRoleName),
+                });
+            }
+
+            ApplyFilter();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredUsers.Clear();
+
+        IEnumerable<UserRow> query = _users;
+        if (!string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            var searchTerm = _searchTerm.Trim();
+            query = query.Where(user =>
+                user.UserName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(user.Email) &&
+                 user.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        _filteredUsers.AddRange(query);
+    }
+
+    private void BeginCreate()
+    {
+        _isEditing = false;
+        _editor = new UserEditor();
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void BeginEdit(UserRow user)
+    {
+        _isEditing = true;
+        _editor = new UserEditor
+        {
+            Id = user.Id,
+            UserName = user.UserName,
+            Email = user.Email,
+            IsAdmin = user.IsAdmin,
+        };
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void ResetEditor()
+    {
+        if (_isEditing)
+        {
+            var current = _users.FirstOrDefault(user => user.Id == _editor.Id);
+            if (current is not null)
+            {
+                BeginEdit(current);
+                return;
+            }
+        }
+
+        BeginCreate();
+    }
+
+    private async Task SaveAsync()
+    {
+        _formErrors.Clear();
+        ClearStatus();
+
+        ValidateEditor();
+        if (_formErrors.Count > 0)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            IdentityResult result;
+
+            if (_isEditing)
+            {
+                result = await UserService.UpdateAsync(_editor.Id, _editor.UserName.Trim(), NormalizeOptional(_editor.Email));
+                CollectErrors(result);
+
+                if (_formErrors.Count == 0 && !string.IsNullOrWhiteSpace(_editor.Password))
+                {
+                    var passwordResult = await UserService.EnsurePasswordAsync(_editor.Id, _editor.Password.Trim());
+                    CollectErrors(passwordResult);
+                }
+            }
+            else
+            {
+                result = await UserService.CreateAsync(
+                    _editor.UserName.Trim(),
+                    _editor.Password.Trim(),
+                    NormalizeOptional(_editor.Email));
+                CollectErrors(result);
+            }
+
+            if (_formErrors.Count > 0)
+            {
+                return;
+            }
+
+            var persistedUser = await UserService.GetByNameAsync(_editor.UserName.Trim());
+            if (persistedUser is null)
+            {
+                _formErrors.Add("The saved user could not be reloaded from the database.");
+                return;
+            }
+
+            var roleResult = await SyncAdminRoleAsync(persistedUser, _editor.IsAdmin);
+            CollectErrors(roleResult);
+            if (_formErrors.Count > 0)
+            {
+                return;
+            }
+
+            await LoadUsersAsync();
+            _statusMessage = _isEditing
+                ? $"Updated '{_editor.UserName.Trim()}' successfully."
+                : $"Created '{_editor.UserName.Trim()}' successfully.";
+            _statusIsError = false;
+            _isEditing = false;
+            _editor = new UserEditor();
+            _formErrors.Clear();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task DeleteUserAsync(UserRow user)
+    {
+        ClearStatus();
+
+        if (user.Id == _currentUserId)
+        {
+            _statusMessage = "You cannot delete the account used for the current session.";
+            _statusIsError = true;
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var result = await UserService.DeleteAsync(user.Id);
+            if (!result.Succeeded)
+            {
+                _statusMessage = string.Join(" ", result.Errors.Select(static error => error.Description));
+                _statusIsError = true;
+                return;
+            }
+
+            await LoadUsersAsync();
+            _statusMessage = $"Deleted '{user.UserName}'.";
+            _statusIsError = false;
+
+            if (_editor.Id == user.Id)
+            {
+                BeginCreate();
+            }
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private static string GetInitial(string value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? "?" : value.Trim()[0].ToString().ToUpperInvariant();
+    }
+
+    private void ValidateEditor()
+    {
+        if (string.IsNullOrWhiteSpace(_editor.UserName))
+        {
+            _formErrors.Add("User name is required.");
+        }
+
+        if (!_isEditing && string.IsNullOrWhiteSpace(_editor.Password))
+        {
+            _formErrors.Add("Password is required when creating a user.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(_editor.Email) &&
+            !new EmailAddressAttribute().IsValid(_editor.Email))
+        {
+            _formErrors.Add("Email must be a valid address.");
+        }
+    }
+
+    private async Task<IdentityResult> SyncAdminRoleAsync(BzsUser user, bool shouldBeAdmin)
+    {
+        var isAdmin = await UserManager.IsInRoleAsync(user, IdentitySeedConstants.AdminRoleName);
+        if (shouldBeAdmin == isAdmin)
+        {
+            return IdentityResult.Success;
+        }
+
+        if (shouldBeAdmin)
+        {
+            return await UserManager.AddToRoleAsync(user, IdentitySeedConstants.AdminRoleName);
+        }
+
+        if (user.Id == _currentUserId)
+        {
+            return IdentityResult.Failed(new IdentityError
+            {
+                Code = "ProtectedUser",
+                Description = "You cannot remove admin access from the account used for the current session.",
+            });
+        }
+
+        return await UserManager.RemoveFromRoleAsync(user, IdentitySeedConstants.AdminRoleName);
+    }
+
+    private void CollectErrors(IdentityResult result)
+    {
+        if (result.Succeeded)
+        {
+            return;
+        }
+
+        _formErrors.AddRange(result.Errors.Select(static error => error.Description));
+    }
+
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = null;
+        _statusIsError = false;
+    }
+
+    private sealed class UserEditor
+    {
+        public Guid Id { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string? Email { get; set; }
+        public string Password { get; set; } = string.Empty;
+        public bool IsAdmin { get; set; }
+    }
+
+    private sealed class UserRow
+    {
+        public Guid Id { get; init; }
+        public string UserName { get; init; } = string.Empty;
+        public string? Email { get; init; }
+        public bool IsAdmin { get; init; }
+    }
+
+    private void HandleSearchInput(ChangeEventArgs args)
+    {
+        _searchTerm = args.Value?.ToString() ?? string.Empty;
+        ApplyFilter();
+    }
+}

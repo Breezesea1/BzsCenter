@@ -10,31 +10,70 @@
                 aria-label="Close navigation"
                 @onclick="CloseMobileAsync">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                <path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2"
+                      stroke-linecap="round"/>
             </svg>
         </button>
     </header>
 
     <div class="menu-body">
-        <NavLink class="menu-link group hover:bg-transparent" href="" Match="NavLinkMatch.All" @onclick="CloseMobileAsync">
+        <NavLink class="menu-link group hover:bg-transparent" href="" Match="NavLinkMatch.All"
+                 @onclick="CloseMobileAsync">
             <span class="menu-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M5 10.5V20h14v-9.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M5 10.5V20h14v-9.5" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
             </span>
-            <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Home</span>
+            <span
+                class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Home</span>
         </NavLink>
 
-        <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false" @onclick="CloseMobileAsync">
+        <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false"
+           @onclick="CloseMobileAsync">
             <span class="menu-icon" aria-hidden="true">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round"/>
                 </svg>
             </span>
-            <span class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Login</span>
+            <span
+                class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Login</span>
         </a>
+
+   
+        <NavLink class="menu-link group hover:bg-transparent" href="/admin/users" Match="NavLinkMatch.All"
+                 data-enhance-nav="false" @onclick="CloseMobileAsync">
+            <span class="menu-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" fill="none" stroke="currentColor" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="9" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span
+                class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Users</span>
+        </NavLink>
+
+        <NavLink class="menu-link group hover:bg-transparent" href="/admin/clients" Match="NavLinkMatch.All"
+                 data-enhance-nav="false" @onclick="CloseMobileAsync">
+            <span class="menu-icon" aria-hidden="true">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor"
+                          stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                          stroke-linejoin="round"/>
+                </svg>
+            </span>
+            <span
+                class="menu-text transition-all duration-200 group-hover:translate-x-1 group-hover:font-semibold group-hover:text-lg">Clients</span>
+        </NavLink>
     </div>
 
     <div class="menu-divider"></div>
@@ -78,4 +117,5 @@
     {
         await OnToggleCollapse.InvokeAsync();
     }
+
 }

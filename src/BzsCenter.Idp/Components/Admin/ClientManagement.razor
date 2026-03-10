@@ -1,0 +1,598 @@
+@page "/admin/clients"
+@rendermode InteractiveServer
+@using BzsCenter.Idp.Services.Identity
+@using BzsCenter.Idp.Services.Oidc
+@using BzsCenter.Shared.Infrastructure.Authorization
+@using Microsoft.AspNetCore.WebUtilities
+@using OpenIddict.Abstractions
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IOidcClientService ClientService
+@inject NavigationManager NavigationManager
+@layout BzsCenter.Idp.Client.Components.Layout.MainLayout
+
+<PageTitle>Client Management</PageTitle>
+
+@if (!_hasAccess)
+{
+    <div class="admin-loading-shell">
+        <div class="admin-loading-card">
+            <span class="admin-loading-kicker">Admin Area</span>
+            <h1>Checking access</h1>
+            <p>Verifying your session before loading client management.</p>
+        </div>
+    </div>
+}
+else
+{
+    <section class="admin-page-shell">
+        <header class="admin-hero">
+            <div>
+                <span class="admin-kicker">OpenID Connect</span>
+                <h1>Client Management</h1>
+                <p>Register first-party apps, update redirect URIs, and manage confidential machine clients.</p>
+            </div>
+
+            <div class="admin-hero-actions">
+                <button type="button" class="admin-ghost-button" @onclick="LoadClientsAsync" disabled="@_isBusy">
+                    Refresh
+                </button>
+                <button type="button" class="admin-primary-button" @onclick="BeginCreate">
+                    New Client
+                </button>
+            </div>
+        </header>
+
+        <section class="admin-stats-grid" aria-label="Client overview">
+            <article class="admin-stat-card">
+                <span class="admin-stat-label">Total clients</span>
+                <strong>@_clients.Count</strong>
+                <p>Interactive apps and machine-to-machine consumers managed by the IDP.</p>
+            </article>
+
+            <article class="admin-stat-card">
+                <span class="admin-stat-label">Interactive</span>
+                <strong>@InteractiveCount</strong>
+                <p>Public PKCE clients using authorization code and refresh token grants.</p>
+            </article>
+
+            <article class="admin-stat-card accent-card">
+                <span class="admin-stat-label">Machine</span>
+                <strong>@MachineCount</strong>
+                <p>Confidential clients using the client credentials grant.</p>
+            </article>
+        </section>
+
+        @if (!string.IsNullOrWhiteSpace(_statusMessage))
+        {
+            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">
+                @_statusMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(_generatedClientSecret))
+        {
+            <div class="admin-secret-banner" role="alert">
+                <div>
+                    <strong>Client secret generated</strong>
+                    <p>Copy it now. OpenIddict won&apos;t show the plain-text secret again after this response.</p>
+                </div>
+                <code>@_generatedClientSecret</code>
+            </div>
+        }
+
+        <div class="admin-content-grid">
+            <section class="admin-panel admin-list-panel">
+                <div class="admin-panel-header">
+                    <div>
+                        <h2>Registered clients</h2>
+                        <p>Review profiles, scopes, and redirect behavior before shipping integrations.</p>
+                    </div>
+
+                    <label class="admin-search-field" for="client-search">
+                        <span>Search</span>
+                        <input id="client-search"
+                               type="search"
+                               placeholder="Search by client id or display name"
+                               value="@_searchTerm"
+                               @oninput="HandleSearchInput" />
+                    </label>
+                </div>
+
+                <div class="client-card-grid">
+                    @if (_filteredClients.Count == 0)
+                    {
+                        <div class="admin-empty-state panel-empty-state">
+                            <strong>No matching clients</strong>
+                            <p>Try another keyword or register a new application.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var client in _filteredClients)
+                        {
+                            <article class="client-card">
+                                <div class="client-card-top">
+                                    <div>
+                                        <span class="admin-badge @(client.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
+                                            @FormatProfile(client.Profile)
+                                        </span>
+                                        <h3>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</h3>
+                                    </div>
+                                    <code>@client.ClientId</code>
+                                </div>
+
+                                <dl class="client-meta-grid">
+                                    <div>
+                                        <dt>Grant types</dt>
+                                        <dd>@string.Join(", ", client.GrantTypes)</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Scopes</dt>
+                                        <dd>@(client.Scopes.Length == 0 ? "-" : string.Join(", ", client.Scopes))</dd>
+                                    </div>
+                                </dl>
+
+                                @if (client.RedirectUris.Length > 0)
+                                {
+                                    <div class="client-uri-block">
+                                        <strong>Redirect URIs</strong>
+                                        <ul>
+                                            @foreach (var uri in client.RedirectUris)
+                                            {
+                                                <li>@uri</li>
+                                            }
+                                        </ul>
+                                    </div>
+                                }
+
+                                <div class="client-card-actions">
+                                    <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">Edit</button>
+                                    <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(client.ClientId)" disabled="@_isBusy">
+                                        Delete
+                                    </button>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
+            </section>
+
+            <aside class="admin-panel admin-editor-panel">
+                <div class="admin-panel-header compact">
+                    <div>
+                        <h2>@(_isEditing ? "Edit client" : "Register client")</h2>
+                        <p>@(_isEditing ? "Only supported first-party profiles are exposed here." : "Pick the profile first and the form adapts to valid OpenIddict settings.")</p>
+                    </div>
+                </div>
+
+                @if (_formErrors.Count > 0)
+                {
+                    <div class="admin-feedback is-error">
+                        <strong>Could not save this client.</strong>
+                        <ul>
+                            @foreach (var error in _formErrors)
+                            {
+                                <li>@error</li>
+                            }
+                        </ul>
+                    </div>
+                }
+
+                <div class="admin-form-grid">
+                    <label class="admin-field" for="editor-client-id">
+                        <span>Client ID</span>
+                        <input id="editor-client-id"
+                               type="text"
+                               @bind="_editor.ClientId"
+                               @bind:event="oninput"
+                               disabled="@_isEditing"
+                               placeholder="Leave empty to auto-generate" />
+                    </label>
+
+                    <label class="admin-field" for="editor-display-name">
+                        <span>Display name</span>
+                        <input id="editor-display-name" type="text" @bind="_editor.DisplayName" @bind:event="oninput" />
+                    </label>
+
+                    <label class="admin-field" for="editor-profile">
+                        <span>Profile</span>
+                        <select id="editor-profile" @bind="_editor.Profile">
+                            <option value="@OidcClientProfile.FirstPartyInteractive">First-party interactive</option>
+                            <option value="@OidcClientProfile.FirstPartyMachine">First-party machine</option>
+                        </select>
+                    </label>
+
+                    <label class="admin-field" for="editor-scopes">
+                        <span>Scopes</span>
+                        <textarea id="editor-scopes"
+                                  rows="4"
+                                  @bind="_editor.ScopesText"
+                                  @bind:event="oninput"
+                                  placeholder="One scope per line or comma separated"></textarea>
+                        <small>The default API scope is prefilled for new clients.</small>
+                    </label>
+
+                    @if (_editor.Profile == OidcClientProfile.FirstPartyInteractive)
+                    {
+                        <label class="admin-field" for="editor-redirect-uris">
+                            <span>Redirect URIs</span>
+                            <textarea id="editor-redirect-uris"
+                                      rows="4"
+                                      @bind="_editor.RedirectUrisText"
+                                      @bind:event="oninput"
+                                      placeholder="One absolute URI per line"></textarea>
+                        </label>
+
+                        <label class="admin-field" for="editor-post-logout-uris">
+                            <span>Post-logout redirect URIs</span>
+                            <textarea id="editor-post-logout-uris"
+                                      rows="3"
+                                      @bind="_editor.PostLogoutRedirectUrisText"
+                                      @bind:event="oninput"
+                                      placeholder="One absolute URI per line"></textarea>
+                        </label>
+
+                        <div class="admin-helper-card">
+                            <strong>Profile behavior</strong>
+                            <p>This profile is always configured as a public PKCE client using <span class="admin-inline-code">authorization_code</span> and <span class="admin-inline-code">refresh_token</span>.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <label class="admin-field" for="editor-client-secret">
+                            <span>Client secret</span>
+                            <input id="editor-client-secret"
+                                   type="text"
+                                   @bind="_editor.ClientSecret"
+                                   @bind:event="oninput"
+                                   placeholder="Leave empty to auto-generate" />
+                        </label>
+
+                        <div class="admin-helper-card">
+                            <strong>Profile behavior</strong>
+                            <p>This profile is always configured as a confidential client using the <span class="admin-inline-code">client_credentials</span> grant.</p>
+                        </div>
+                    }
+                </div>
+
+                <div class="admin-editor-actions">
+                    <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
+                        Reset
+                    </button>
+                    <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
+                        @(_isBusy ? "Saving..." : _isEditing ? "Save Changes" : "Register Client")
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </section>
+}
+
+@code {
+    private readonly List<OidcClientResponse> _clients = [];
+    private readonly List<OidcClientResponse> _filteredClients = [];
+    private readonly List<string> _formErrors = [];
+
+    private ClientEditor _editor = CreateDefaultEditor();
+    private bool _hasAccess;
+    private bool _isBusy;
+    private bool _isEditing;
+    private string _searchTerm = string.Empty;
+    private string? _generatedClientSecret;
+    private string? _statusMessage;
+    private bool _statusIsError;
+
+    private int InteractiveCount => _clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyInteractive);
+    private int MachineCount => _clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyMachine);
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!EnsureAdminAccess())
+        {
+            return;
+        }
+
+        await LoadClientsAsync();
+    }
+
+    private bool EnsureAdminAccess()
+    {
+        var user = HttpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            var loginPath = QueryHelpers.AddQueryString("/login", new Dictionary<string, string?>
+            {
+                ["returnUrl"] = "/admin/clients",
+            });
+
+            NavigationManager.NavigateTo(loginPath, forceLoad: true);
+            return false;
+        }
+
+        if (!user.IsInRole(IdentitySeedConstants.AdminRoleName))
+        {
+            NavigationManager.NavigateTo("/account/denied", forceLoad: true);
+            return false;
+        }
+
+        _hasAccess = true;
+        return true;
+    }
+
+    private async Task LoadClientsAsync()
+    {
+        _isBusy = true;
+
+        try
+        {
+            _clients.Clear();
+            _clients.AddRange(await ClientService.GetAllAsync());
+            ApplyFilter();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredClients.Clear();
+
+        IEnumerable<OidcClientResponse> query = _clients;
+        if (!string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            var searchTerm = _searchTerm.Trim();
+            query = query.Where(client =>
+                client.ClientId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(client.DisplayName) &&
+                 client.DisplayName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        _filteredClients.AddRange(query);
+    }
+
+    private void BeginCreate()
+    {
+        _isEditing = false;
+        _editor = CreateDefaultEditor();
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void BeginEdit(OidcClientResponse client)
+    {
+        _isEditing = true;
+        _editor = new ClientEditor
+        {
+            ClientId = client.ClientId,
+            DisplayName = client.DisplayName ?? string.Empty,
+            Profile = client.Profile,
+            ScopesText = string.Join(Environment.NewLine, client.Scopes),
+            RedirectUrisText = string.Join(Environment.NewLine, client.RedirectUris),
+            PostLogoutRedirectUrisText = string.Join(Environment.NewLine, client.PostLogoutRedirectUris),
+        };
+        _generatedClientSecret = null;
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void ResetEditor()
+    {
+        if (_isEditing)
+        {
+            var current = _clients.FirstOrDefault(client => string.Equals(client.ClientId, _editor.ClientId, StringComparison.Ordinal));
+            if (current is not null)
+            {
+                BeginEdit(current);
+                return;
+            }
+        }
+
+        BeginCreate();
+    }
+
+    private async Task SaveAsync()
+    {
+        _formErrors.Clear();
+        ClearStatus();
+        _generatedClientSecret = null;
+
+        ValidateEditor();
+        if (_formErrors.Count > 0)
+        {
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var request = BuildRequest();
+
+            if (_isEditing)
+            {
+                var result = await ClientService.UpdateAsync(_editor.ClientId, request);
+                if (result.Status != OidcClientCommandStatus.Success)
+                {
+                    AddCommandErrors(result);
+                    return;
+                }
+
+                _statusMessage = $"Updated '{_editor.ClientId}'.";
+            }
+            else
+            {
+                var result = await ClientService.RegisterAsync(request);
+                if (result.Status != OidcClientCommandStatus.Success)
+                {
+                    AddCommandErrors(result);
+                    return;
+                }
+
+                _statusMessage = $"Registered '{result.Value?.ClientId ?? _editor.DisplayName}'.";
+                _generatedClientSecret = result.Value?.ClientSecret;
+            }
+
+            _statusIsError = false;
+            await LoadClientsAsync();
+            _isEditing = false;
+            _editor = CreateDefaultEditor();
+            _formErrors.Clear();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task DeleteClientAsync(string clientId)
+    {
+        ClearStatus();
+        _generatedClientSecret = null;
+        _isBusy = true;
+
+        try
+        {
+            var deleted = await ClientService.DeleteAsync(clientId);
+            if (!deleted)
+            {
+                _statusMessage = $"Client '{clientId}' no longer exists.";
+                _statusIsError = true;
+                return;
+            }
+
+            await LoadClientsAsync();
+            _statusMessage = $"Deleted '{clientId}'.";
+            _statusIsError = false;
+
+            if (string.Equals(_editor.ClientId, clientId, StringComparison.Ordinal))
+            {
+                BeginCreate();
+            }
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void ValidateEditor()
+    {
+        if (string.IsNullOrWhiteSpace(_editor.DisplayName))
+        {
+            _formErrors.Add("Display name is required.");
+        }
+
+        var scopes = ParseLines(_editor.ScopesText);
+        if (scopes.Length == 0)
+        {
+            _formErrors.Add("At least one scope is required.");
+        }
+
+        if (_editor.Profile == OidcClientProfile.FirstPartyInteractive && ParseLines(_editor.RedirectUrisText).Length == 0)
+        {
+            _formErrors.Add("Interactive clients require at least one redirect URI.");
+        }
+    }
+
+    private OidcClientUpsertRequest BuildRequest()
+    {
+        var scopes = ParseLines(_editor.ScopesText);
+
+        if (_editor.Profile == OidcClientProfile.FirstPartyInteractive)
+        {
+            return new OidcClientUpsertRequest
+            {
+                ClientId = string.IsNullOrWhiteSpace(_editor.ClientId) ? null : _editor.ClientId.Trim(),
+                DisplayName = _editor.DisplayName.Trim(),
+                Profile = OidcClientProfile.FirstPartyInteractive,
+                PublicClient = true,
+                RequireProofKeyForCodeExchange = true,
+                GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+                Scopes = scopes,
+                RedirectUris = ParseLines(_editor.RedirectUrisText),
+                PostLogoutRedirectUris = ParseLines(_editor.PostLogoutRedirectUrisText),
+            };
+        }
+
+        return new OidcClientUpsertRequest
+        {
+            ClientId = string.IsNullOrWhiteSpace(_editor.ClientId) ? null : _editor.ClientId.Trim(),
+            ClientSecret = string.IsNullOrWhiteSpace(_editor.ClientSecret) ? null : _editor.ClientSecret.Trim(),
+            DisplayName = _editor.DisplayName.Trim(),
+            Profile = OidcClientProfile.FirstPartyMachine,
+            PublicClient = false,
+            RequireProofKeyForCodeExchange = false,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+            Scopes = scopes,
+        };
+    }
+
+    private void AddCommandErrors<T>(OidcClientCommandResult<T> result)
+    {
+        if (result.Errors.Length > 0)
+        {
+            _formErrors.AddRange(result.Errors);
+            return;
+        }
+
+        _formErrors.Add($"Request failed with status '{result.Status}'.");
+    }
+
+    private static string[] ParseLines(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        return raw
+            .Split([',', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static string FormatProfile(OidcClientProfile profile)
+    {
+        return profile switch
+        {
+            OidcClientProfile.FirstPartyInteractive => "Interactive",
+            OidcClientProfile.FirstPartyMachine => "Machine",
+            _ => profile.ToString(),
+        };
+    }
+
+    private static ClientEditor CreateDefaultEditor()
+    {
+        return new ClientEditor
+        {
+            Profile = OidcClientProfile.FirstPartyInteractive,
+            ScopesText = PermissionConstants.ScopeApi,
+        };
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = null;
+        _statusIsError = false;
+    }
+
+    private void HandleSearchInput(ChangeEventArgs args)
+    {
+        _searchTerm = args.Value?.ToString() ?? string.Empty;
+        ApplyFilter();
+    }
+
+    private sealed class ClientEditor
+    {
+        public string ClientId { get; set; } = string.Empty;
+        public string ClientSecret { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public OidcClientProfile Profile { get; set; }
+        public string ScopesText { get; set; } = string.Empty;
+        public string RedirectUrisText { get; set; } = string.Empty;
+        public string PostLogoutRedirectUrisText { get; set; } = string.Empty;
+    }
+}

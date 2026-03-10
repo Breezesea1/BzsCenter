@@ -4,21 +4,23 @@
 @using BzsCenter.Idp.Services.Oidc
 @using BzsCenter.Shared.Infrastructure.Authorization
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
 @using OpenIddict.Abstractions
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOidcClientService ClientService
+@inject IStringLocalizer<ClientManagement> L
 @inject NavigationManager NavigationManager
 @layout BzsCenter.Idp.Client.Components.Layout.MainLayout
 
-<PageTitle>Client Management</PageTitle>
+<PageTitle>@L["PageTitle"]</PageTitle>
 
 @if (!_hasAccess)
 {
     <div class="admin-loading-shell">
         <div class="admin-loading-card">
-            <span class="admin-loading-kicker">Admin Area</span>
-            <h1>Checking access</h1>
-            <p>Verifying your session before loading client management.</p>
+            <span class="admin-loading-kicker">@L["AdminArea"]</span>
+            <h1>@L["CheckingAccess"]</h1>
+            <p>@L["CheckingAccessLead"]</p>
         </div>
     </div>
 }
@@ -28,37 +30,37 @@ else
         <header class="admin-hero">
             <div>
                 <span class="admin-kicker">OpenID Connect</span>
-                <h1>Client Management</h1>
-                <p>Register first-party apps, update redirect URIs, and manage confidential machine clients.</p>
+                <h1>@L["PageTitle"]</h1>
+                <p>@L["HeroLead"]</p>
             </div>
 
             <div class="admin-hero-actions">
                 <button type="button" class="admin-ghost-button" @onclick="LoadClientsAsync" disabled="@_isBusy">
-                    Refresh
+                    @L["Refresh"]
                 </button>
                 <button type="button" class="admin-primary-button" @onclick="BeginCreate">
-                    New Client
+                    @L["NewClient"]
                 </button>
             </div>
         </header>
 
-        <section class="admin-stats-grid" aria-label="Client overview">
+        <section class="admin-stats-grid" aria-label="@L["ClientOverview"]">
             <article class="admin-stat-card">
-                <span class="admin-stat-label">Total clients</span>
+                <span class="admin-stat-label">@L["TotalClients"]</span>
                 <strong>@_clients.Count</strong>
-                <p>Interactive apps and machine-to-machine consumers managed by the IDP.</p>
+                <p>@L["TotalClientsLead"]</p>
             </article>
 
             <article class="admin-stat-card">
-                <span class="admin-stat-label">Interactive</span>
+                <span class="admin-stat-label">@L["Interactive"]</span>
                 <strong>@InteractiveCount</strong>
-                <p>Public PKCE clients using authorization code and refresh token grants.</p>
+                <p>@L["InteractiveLead"]</p>
             </article>
 
             <article class="admin-stat-card accent-card">
-                <span class="admin-stat-label">Machine</span>
+                <span class="admin-stat-label">@L["Machine"]</span>
                 <strong>@MachineCount</strong>
-                <p>Confidential clients using the client credentials grant.</p>
+                <p>@L["MachineLead"]</p>
             </article>
         </section>
 
@@ -73,8 +75,8 @@ else
         {
             <div class="admin-secret-banner" role="alert">
                 <div>
-                    <strong>Client secret generated</strong>
-                    <p>Copy it now. OpenIddict won&apos;t show the plain-text secret again after this response.</p>
+                    <strong>@L["ClientSecretGenerated"]</strong>
+                    <p>@L["ClientSecretGeneratedLead"]</p>
                 </div>
                 <code>@_generatedClientSecret</code>
             </div>
@@ -84,15 +86,15 @@ else
             <section class="admin-panel admin-list-panel">
                 <div class="admin-panel-header">
                     <div>
-                        <h2>Registered clients</h2>
-                        <p>Review profiles, scopes, and redirect behavior before shipping integrations.</p>
+                        <h2>@L["RegisteredClients"]</h2>
+                        <p>@L["RegisteredClientsLead"]</p>
                     </div>
 
                     <label class="admin-search-field" for="client-search">
-                        <span>Search</span>
+                        <span>@L["Search"]</span>
                         <input id="client-search"
                                type="search"
-                               placeholder="Search by client id or display name"
+                               placeholder="@L["SearchPlaceholder"]"
                                value="@_searchTerm"
                                @oninput="HandleSearchInput" />
                     </label>
@@ -102,8 +104,8 @@ else
                     @if (_filteredClients.Count == 0)
                     {
                         <div class="admin-empty-state panel-empty-state">
-                            <strong>No matching clients</strong>
-                            <p>Try another keyword or register a new application.</p>
+                            <strong>@L["NoMatchingClients"]</strong>
+                            <p>@L["NoMatchingClientsLead"]</p>
                         </div>
                     }
                     else
@@ -123,11 +125,11 @@ else
 
                                 <dl class="client-meta-grid">
                                     <div>
-                                        <dt>Grant types</dt>
+                                        <dt>@L["GrantTypes"]</dt>
                                         <dd>@string.Join(", ", client.GrantTypes)</dd>
                                     </div>
                                     <div>
-                                        <dt>Scopes</dt>
+                                        <dt>@L["Scopes"]</dt>
                                         <dd>@(client.Scopes.Length == 0 ? "-" : string.Join(", ", client.Scopes))</dd>
                                     </div>
                                 </dl>
@@ -135,7 +137,7 @@ else
                                 @if (client.RedirectUris.Length > 0)
                                 {
                                     <div class="client-uri-block">
-                                        <strong>Redirect URIs</strong>
+                                        <strong>@L["RedirectUris"]</strong>
                                         <ul>
                                             @foreach (var uri in client.RedirectUris)
                                             {
@@ -146,9 +148,9 @@ else
                                 }
 
                                 <div class="client-card-actions">
-                                    <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">Edit</button>
+                                    <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">@L["Edit"]</button>
                                     <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(client.ClientId)" disabled="@_isBusy">
-                                        Delete
+                                        @L["Delete"]
                                     </button>
                                 </div>
                             </article>
@@ -160,15 +162,15 @@ else
             <aside class="admin-panel admin-editor-panel">
                 <div class="admin-panel-header compact">
                     <div>
-                        <h2>@(_isEditing ? "Edit client" : "Register client")</h2>
-                        <p>@(_isEditing ? "Only supported first-party profiles are exposed here." : "Pick the profile first and the form adapts to valid OpenIddict settings.")</p>
+                        <h2>@(_isEditing ? L["EditClient"] : L["RegisterClient"])</h2>
+                        <p>@(_isEditing ? L["EditClientLead"] : L["RegisterClientLead"])</p>
                     </div>
                 </div>
 
                 @if (_formErrors.Count > 0)
                 {
                     <div class="admin-feedback is-error">
-                        <strong>Could not save this client.</strong>
+                        <strong>@L["CouldNotSaveClient"]</strong>
                         <ul>
                             @foreach (var error in _formErrors)
                             {
@@ -180,87 +182,87 @@ else
 
                 <div class="admin-form-grid">
                     <label class="admin-field" for="editor-client-id">
-                        <span>Client ID</span>
+                        <span>@L["ClientId"]</span>
                         <input id="editor-client-id"
                                type="text"
                                @bind="_editor.ClientId"
                                @bind:event="oninput"
                                disabled="@_isEditing"
-                               placeholder="Leave empty to auto-generate" />
+                               placeholder="@L["LeaveEmptyToAutoGenerate"]" />
                     </label>
 
                     <label class="admin-field" for="editor-display-name">
-                        <span>Display name</span>
+                        <span>@L["DisplayName"]</span>
                         <input id="editor-display-name" type="text" @bind="_editor.DisplayName" @bind:event="oninput" />
                     </label>
 
                     <label class="admin-field" for="editor-profile">
-                        <span>Profile</span>
+                        <span>@L["Profile"]</span>
                         <select id="editor-profile" @bind="_editor.Profile">
-                            <option value="@OidcClientProfile.FirstPartyInteractive">First-party interactive</option>
-                            <option value="@OidcClientProfile.FirstPartyMachine">First-party machine</option>
+                            <option value="@OidcClientProfile.FirstPartyInteractive">@L["FirstPartyInteractive"]</option>
+                            <option value="@OidcClientProfile.FirstPartyMachine">@L["FirstPartyMachine"]</option>
                         </select>
                     </label>
 
                     <label class="admin-field" for="editor-scopes">
-                        <span>Scopes</span>
+                        <span>@L["Scopes"]</span>
                         <textarea id="editor-scopes"
                                   rows="4"
                                   @bind="_editor.ScopesText"
                                   @bind:event="oninput"
-                                  placeholder="One scope per line or comma separated"></textarea>
-                        <small>The default API scope is prefilled for new clients.</small>
+                                  placeholder="@L["ScopesPlaceholder"]"></textarea>
+                        <small>@L["ScopesHelp"]</small>
                     </label>
 
                     @if (_editor.Profile == OidcClientProfile.FirstPartyInteractive)
                     {
                         <label class="admin-field" for="editor-redirect-uris">
-                            <span>Redirect URIs</span>
+                            <span>@L["RedirectUris"]</span>
                             <textarea id="editor-redirect-uris"
                                       rows="4"
                                       @bind="_editor.RedirectUrisText"
                                       @bind:event="oninput"
-                                      placeholder="One absolute URI per line"></textarea>
+                                      placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
                         </label>
 
                         <label class="admin-field" for="editor-post-logout-uris">
-                            <span>Post-logout redirect URIs</span>
+                            <span>@L["PostLogoutRedirectUris"]</span>
                             <textarea id="editor-post-logout-uris"
                                       rows="3"
                                       @bind="_editor.PostLogoutRedirectUrisText"
                                       @bind:event="oninput"
-                                      placeholder="One absolute URI per line"></textarea>
+                                      placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
                         </label>
 
                         <div class="admin-helper-card">
-                            <strong>Profile behavior</strong>
-                            <p>This profile is always configured as a public PKCE client using <span class="admin-inline-code">authorization_code</span> and <span class="admin-inline-code">refresh_token</span>.</p>
+                            <strong>@L["ProfileBehavior"]</strong>
+                            <p>@L["InteractiveProfileBehavior"]</p>
                         </div>
                     }
                     else
                     {
                         <label class="admin-field" for="editor-client-secret">
-                            <span>Client secret</span>
+                            <span>@L["ClientSecret"]</span>
                             <input id="editor-client-secret"
                                    type="text"
                                    @bind="_editor.ClientSecret"
                                    @bind:event="oninput"
-                                   placeholder="Leave empty to auto-generate" />
+                                   placeholder="@L["LeaveEmptyToAutoGenerate"]" />
                         </label>
 
                         <div class="admin-helper-card">
-                            <strong>Profile behavior</strong>
-                            <p>This profile is always configured as a confidential client using the <span class="admin-inline-code">client_credentials</span> grant.</p>
+                            <strong>@L["ProfileBehavior"]</strong>
+                            <p>@L["MachineProfileBehavior"]</p>
                         </div>
                     }
                 </div>
 
                 <div class="admin-editor-actions">
                     <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
-                        Reset
+                        @L["Reset"]
                     </button>
                     <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
-                        @(_isBusy ? "Saving..." : _isEditing ? "Save Changes" : "Register Client")
+                        @(_isBusy ? L["Saving"] : _isEditing ? L["SaveChanges"] : L["RegisterClient"])
                     </button>
                 </div>
             </aside>
@@ -419,7 +421,7 @@ else
                     return;
                 }
 
-                _statusMessage = $"Updated '{_editor.ClientId}'.";
+                _statusMessage = L["UpdatedStatus", _editor.ClientId].Value;
             }
             else
             {
@@ -430,7 +432,7 @@ else
                     return;
                 }
 
-                _statusMessage = $"Registered '{result.Value?.ClientId ?? _editor.DisplayName}'.";
+                _statusMessage = L["RegisteredStatus", result.Value?.ClientId ?? _editor.DisplayName].Value;
                 _generatedClientSecret = result.Value?.ClientSecret;
             }
 
@@ -457,13 +459,13 @@ else
             var deleted = await ClientService.DeleteAsync(clientId);
             if (!deleted)
             {
-                _statusMessage = $"Client '{clientId}' no longer exists.";
+                _statusMessage = L["ClientNoLongerExistsStatus", clientId].Value;
                 _statusIsError = true;
                 return;
             }
 
             await LoadClientsAsync();
-            _statusMessage = $"Deleted '{clientId}'.";
+            _statusMessage = L["DeletedStatus", clientId].Value;
             _statusIsError = false;
 
             if (string.Equals(_editor.ClientId, clientId, StringComparison.Ordinal))
@@ -481,18 +483,18 @@ else
     {
         if (string.IsNullOrWhiteSpace(_editor.DisplayName))
         {
-            _formErrors.Add("Display name is required.");
+            _formErrors.Add(L["DisplayNameRequired"].Value);
         }
 
         var scopes = ParseLines(_editor.ScopesText);
         if (scopes.Length == 0)
         {
-            _formErrors.Add("At least one scope is required.");
+            _formErrors.Add(L["AtLeastOneScopeRequired"].Value);
         }
 
         if (_editor.Profile == OidcClientProfile.FirstPartyInteractive && ParseLines(_editor.RedirectUrisText).Length == 0)
         {
-            _formErrors.Add("Interactive clients require at least one redirect URI.");
+            _formErrors.Add(L["InteractiveClientRedirectRequired"].Value);
         }
     }
 
@@ -533,11 +535,53 @@ else
     {
         if (result.Errors.Length > 0)
         {
-            _formErrors.AddRange(result.Errors);
+            _formErrors.AddRange(result.Errors.Select(LocalizeCommandError));
             return;
         }
 
-        _formErrors.Add($"Request failed with status '{result.Status}'.");
+        _formErrors.Add(result.Status switch
+        {
+            OidcClientCommandStatus.Conflict => L["ClientAlreadyExists"].Value,
+            OidcClientCommandStatus.NotFound => L["ClientNotFound"].Value,
+            _ => L["RequestFailedWithStatus", result.Status].Value,
+        });
+    }
+
+    private string LocalizeCommandError(string error)
+    {
+        if (string.IsNullOrWhiteSpace(error))
+        {
+            return L["UnknownClientError"].Value;
+        }
+
+        if (error.StartsWith("Client '", StringComparison.Ordinal) && error.EndsWith("' already exists.", StringComparison.Ordinal))
+        {
+            var clientId = error[8..^17];
+            return L["ClientAlreadyExistsForId", clientId].Value;
+        }
+
+        if (error.StartsWith("Invalid URI: '", StringComparison.Ordinal) && error.EndsWith("'.", StringComparison.Ordinal))
+        {
+            var uri = error[14..^2];
+            return L["InvalidUri", uri].Value;
+        }
+
+        return error switch
+        {
+            "DisplayName is required." => L["DisplayNameRequired"].Value,
+            "Public clients must not specify ClientSecret." => L["PublicClientsMustNotSpecifyClientSecret"].Value,
+            "At least one grant type must be provided." => L["AtLeastOneGrantTypeRequired"].Value,
+            "Authorization code clients must provide at least one redirect URI." => L["AuthorizationCodeRedirectRequired"].Value,
+            "First-party interactive clients must be public clients." => L["InteractiveClientsMustBePublic"].Value,
+            "First-party interactive clients only support authorization_code and refresh_token grants." => L["InteractiveClientsGrantTypesInvalid"].Value,
+            "First-party interactive clients must require PKCE." => L["InteractiveClientsMustRequirePkce"].Value,
+            "First-party machine clients must be confidential clients." => L["MachineClientsMustBeConfidential"].Value,
+            "First-party machine clients only support the client_credentials grant." => L["MachineClientsGrantTypesInvalid"].Value,
+            "First-party machine clients must not configure redirect URIs." => L["MachineClientsMustNotConfigureRedirectUris"].Value,
+            "First-party machine clients must not configure post logout redirect URIs." => L["MachineClientsMustNotConfigurePostLogoutRedirectUris"].Value,
+            "Current onboarding only supports first-party interactive (public + auth code/refresh token + PKCE) and first-party machine (confidential + client_credentials) clients." => L["UnsupportedOnboardingProfile"].Value,
+            _ => error,
+        };
     }
 
     private static string[] ParseLines(string? raw)
@@ -554,12 +598,12 @@ else
             .ToArray();
     }
 
-    private static string FormatProfile(OidcClientProfile profile)
+    private string FormatProfile(OidcClientProfile profile)
     {
         return profile switch
         {
-            OidcClientProfile.FirstPartyInteractive => "Interactive",
-            OidcClientProfile.FirstPartyMachine => "Machine",
+            OidcClientProfile.FirstPartyInteractive => L["Interactive"].Value,
+            OidcClientProfile.FirstPartyMachine => L["Machine"].Value,
             _ => profile.ToString(),
         };
     }

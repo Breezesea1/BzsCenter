@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="PageTitle" xml:space="preserve"><value>Client Management</value></data>
+  <data name="AdminArea" xml:space="preserve"><value>Admin Area</value></data>
+  <data name="CheckingAccess" xml:space="preserve"><value>Checking access</value></data>
+  <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session before loading client management.</value></data>
+  <data name="HeroLead" xml:space="preserve"><value>Register first-party apps, update redirect URIs, and manage confidential machine clients.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="NewClient" xml:space="preserve"><value>New Client</value></data>
+  <data name="ClientOverview" xml:space="preserve"><value>Client overview</value></data>
+  <data name="TotalClients" xml:space="preserve"><value>Total clients</value></data>
+  <data name="TotalClientsLead" xml:space="preserve"><value>Interactive apps and machine-to-machine consumers managed by the IDP.</value></data>
+  <data name="Interactive" xml:space="preserve"><value>Interactive</value></data>
+  <data name="InteractiveLead" xml:space="preserve"><value>Public PKCE clients using authorization code and refresh token grants.</value></data>
+  <data name="Machine" xml:space="preserve"><value>Machine</value></data>
+  <data name="MachineLead" xml:space="preserve"><value>Confidential clients using the client credentials grant.</value></data>
+  <data name="ClientSecretGenerated" xml:space="preserve"><value>Client secret generated</value></data>
+  <data name="ClientSecretGeneratedLead" xml:space="preserve"><value>Copy it now. OpenIddict will not show the plain-text secret again after this response.</value></data>
+  <data name="RegisteredClients" xml:space="preserve"><value>Registered clients</value></data>
+  <data name="RegisteredClientsLead" xml:space="preserve"><value>Review profiles, scopes, and redirect behavior before shipping integrations.</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search by client id or display name</value></data>
+  <data name="NoMatchingClients" xml:space="preserve"><value>No matching clients</value></data>
+  <data name="NoMatchingClientsLead" xml:space="preserve"><value>Try another keyword or register a new application.</value></data>
+  <data name="GrantTypes" xml:space="preserve"><value>Grant types</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
+  <data name="RedirectUris" xml:space="preserve"><value>Redirect URIs</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="EditClient" xml:space="preserve"><value>Edit client</value></data>
+  <data name="RegisterClient" xml:space="preserve"><value>Register client</value></data>
+  <data name="EditClientLead" xml:space="preserve"><value>Only supported first-party profiles are exposed here.</value></data>
+  <data name="RegisterClientLead" xml:space="preserve"><value>Pick the profile first and the form adapts to valid OpenIddict settings.</value></data>
+  <data name="CouldNotSaveClient" xml:space="preserve"><value>Could not save this client.</value></data>
+  <data name="ClientId" xml:space="preserve"><value>Client ID</value></data>
+  <data name="LeaveEmptyToAutoGenerate" xml:space="preserve"><value>Leave empty to auto-generate</value></data>
+  <data name="DisplayName" xml:space="preserve"><value>Display name</value></data>
+  <data name="Profile" xml:space="preserve"><value>Profile</value></data>
+  <data name="FirstPartyInteractive" xml:space="preserve"><value>First-party interactive</value></data>
+  <data name="FirstPartyMachine" xml:space="preserve"><value>First-party machine</value></data>
+  <data name="ScopesPlaceholder" xml:space="preserve"><value>One scope per line or comma separated</value></data>
+  <data name="ScopesHelp" xml:space="preserve"><value>The default API scope is prefilled for new clients.</value></data>
+  <data name="RedirectUrisPlaceholder" xml:space="preserve"><value>One absolute URI per line</value></data>
+  <data name="PostLogoutRedirectUris" xml:space="preserve"><value>Post-logout redirect URIs</value></data>
+  <data name="ProfileBehavior" xml:space="preserve"><value>Profile behavior</value></data>
+  <data name="InteractiveProfileBehavior" xml:space="preserve"><value>This profile is always configured as a public PKCE client using authorization_code and refresh_token.</value></data>
+  <data name="ClientSecret" xml:space="preserve"><value>Client secret</value></data>
+  <data name="MachineProfileBehavior" xml:space="preserve"><value>This profile is always configured as a confidential client using the client_credentials grant.</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="UpdatedStatus" xml:space="preserve"><value>Updated '{0}'.</value></data>
+  <data name="RegisteredStatus" xml:space="preserve"><value>Registered '{0}'.</value></data>
+  <data name="ClientNoLongerExistsStatus" xml:space="preserve"><value>Client '{0}' no longer exists.</value></data>
+  <data name="DeletedStatus" xml:space="preserve"><value>Deleted '{0}'.</value></data>
+  <data name="DisplayNameRequired" xml:space="preserve"><value>Display name is required.</value></data>
+  <data name="PublicClientsMustNotSpecifyClientSecret" xml:space="preserve"><value>Public clients must not specify a client secret.</value></data>
+  <data name="AtLeastOneGrantTypeRequired" xml:space="preserve"><value>At least one grant type must be provided.</value></data>
+  <data name="AuthorizationCodeRedirectRequired" xml:space="preserve"><value>Authorization code clients must provide at least one redirect URI.</value></data>
+  <data name="InteractiveClientsMustBePublic" xml:space="preserve"><value>First-party interactive clients must be public clients.</value></data>
+  <data name="InteractiveClientsGrantTypesInvalid" xml:space="preserve"><value>First-party interactive clients only support authorization_code and refresh_token grants.</value></data>
+  <data name="InteractiveClientsMustRequirePkce" xml:space="preserve"><value>First-party interactive clients must require PKCE.</value></data>
+  <data name="MachineClientsMustBeConfidential" xml:space="preserve"><value>First-party machine clients must be confidential clients.</value></data>
+  <data name="MachineClientsGrantTypesInvalid" xml:space="preserve"><value>First-party machine clients only support the client_credentials grant.</value></data>
+  <data name="MachineClientsMustNotConfigureRedirectUris" xml:space="preserve"><value>First-party machine clients must not configure redirect URIs.</value></data>
+  <data name="MachineClientsMustNotConfigurePostLogoutRedirectUris" xml:space="preserve"><value>First-party machine clients must not configure post-logout redirect URIs.</value></data>
+  <data name="UnsupportedOnboardingProfile" xml:space="preserve"><value>Only first-party interactive (public + auth code/refresh token + PKCE) and first-party machine (confidential + client_credentials) clients are supported.</value></data>
+  <data name="ClientAlreadyExists" xml:space="preserve"><value>This client already exists.</value></data>
+  <data name="ClientAlreadyExistsForId" xml:space="preserve"><value>Client '{0}' already exists.</value></data>
+  <data name="ClientNotFound" xml:space="preserve"><value>The client could not be found.</value></data>
+  <data name="InvalidUri" xml:space="preserve"><value>Invalid URI: '{0}'.</value></data>
+  <data name="AtLeastOneScopeRequired" xml:space="preserve"><value>At least one scope is required.</value></data>
+  <data name="InteractiveClientRedirectRequired" xml:space="preserve"><value>Interactive clients require at least one redirect URI.</value></data>
+  <data name="UnknownClientError" xml:space="preserve"><value>An unknown client error occurred.</value></data>
+  <data name="RequestFailedWithStatus" xml:space="preserve"><value>Request failed with status '{0}'.</value></data>
+</root>

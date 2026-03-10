@@ -6,21 +6,23 @@
 @using BzsCenter.Idp.Services.Identity
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject NavigationManager NavigationManager
 @inject IUserService UserService
 @inject UserManager<BzsUser> UserManager
+@inject IStringLocalizer<UserManagement> L
 @layout BzsCenter.Idp.Client.Components.Layout.MainLayout
 
-<PageTitle>User Management</PageTitle>
+<PageTitle>@L["PageTitle"]</PageTitle>
 
 @if (!_hasAccess)
 {
     <div class="admin-loading-shell">
         <div class="admin-loading-card">
-            <span class="admin-loading-kicker">Admin Area</span>
-            <h1>Checking access</h1>
-            <p>Verifying your session before loading user management.</p>
+            <span class="admin-loading-kicker">@L["AdminArea"]</span>
+            <h1>@L["CheckingAccess"]</h1>
+            <p>@L["CheckingAccessLead"]</p>
         </div>
     </div>
 }
@@ -29,38 +31,38 @@ else
     <section class="admin-page-shell">
         <header class="admin-hero">
             <div>
-                <span class="admin-kicker">Identity</span>
-                <h1>User Management</h1>
-                <p>Manage sign-in accounts, rotate passwords, and keep administrator access under control.</p>
+                <span class="admin-kicker">@L["Identity"]</span>
+                <h1>@L["PageTitle"]</h1>
+                <p>@L["HeroLead"]</p>
             </div>
 
             <div class="admin-hero-actions">
                 <button type="button" class="admin-ghost-button" @onclick="LoadUsersAsync" disabled="@_isBusy">
-                    Refresh
+                    @L["Refresh"]
                 </button>
                 <button type="button" class="admin-primary-button" @onclick="BeginCreate">
-                    New User
+                    @L["NewUser"]
                 </button>
             </div>
         </header>
 
-        <section class="admin-stats-grid" aria-label="User overview">
+        <section class="admin-stats-grid" aria-label="@L["UserOverview"]">
             <article class="admin-stat-card">
-                <span class="admin-stat-label">Total users</span>
+                <span class="admin-stat-label">@L["TotalUsers"]</span>
                 <strong>@_users.Count</strong>
-                <p>All accounts currently provisioned in the IDP.</p>
+                <p>@L["TotalUsersLead"]</p>
             </article>
 
             <article class="admin-stat-card">
-                <span class="admin-stat-label">Admins</span>
+                <span class="admin-stat-label">@L["Admins"]</span>
                 <strong>@AdminCount</strong>
-                <p>Users holding the reserved <span class="admin-inline-code">admin</span> role.</p>
+                <p>@L["AdminsLead"]</p>
             </article>
 
             <article class="admin-stat-card accent-card">
-                <span class="admin-stat-label">Standard users</span>
+                <span class="admin-stat-label">@L["StandardUsers"]</span>
                 <strong>@(_users.Count - AdminCount)</strong>
-                <p>Accounts without elevated management permissions.</p>
+                <p>@L["StandardUsersLead"]</p>
             </article>
         </section>
 
@@ -73,15 +75,15 @@ else
             <section class="admin-panel admin-list-panel">
                 <div class="admin-panel-header">
                     <div>
-                        <h2>Accounts</h2>
-                        <p>Filter the list, inspect privileges, and open any row for editing.</p>
+                        <h2>@L["Accounts"]</h2>
+                        <p>@L["AccountsLead"]</p>
                     </div>
 
                     <label class="admin-search-field" for="user-search">
-                        <span>Search</span>
+                        <span>@L["Search"]</span>
                         <input id="user-search"
                                type="search"
-                               placeholder="Search by username or email"
+                               placeholder="@L["SearchPlaceholder"]"
                                value="@_searchTerm"
                                @oninput="HandleSearchInput" />
                     </label>
@@ -91,11 +93,11 @@ else
                     <table class="admin-table">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Role</th>
-                                <th>Email</th>
-                                <th>Identifier</th>
-                                <th class="admin-actions-column">Actions</th>
+                                <th>@L["User"]</th>
+                                <th>@L["Role"]</th>
+                                <th>@L["Email"]</th>
+                                <th>@L["Identifier"]</th>
+                                <th class="admin-actions-column">@L["Actions"]</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -104,8 +106,8 @@ else
                                 <tr>
                                     <td colspan="5">
                                         <div class="admin-empty-state">
-                                            <strong>No matching users</strong>
-                                            <p>Try another keyword or create a new account.</p>
+                                            <strong>@L["NoMatchingUsers"]</strong>
+                                            <p>@L["NoMatchingUsersLead"]</p>
                                         </div>
                                     </td>
                                 </tr>
@@ -120,24 +122,24 @@ else
                                                 <span class="admin-avatar" aria-hidden="true">@GetInitial(user.UserName)</span>
                                                 <div>
                                                     <strong>@user.UserName</strong>
-                                                    <span>@(user.Id == _currentUserId ? "Current session" : "Managed account")</span>
+                                                    <span>@(user.Id == _currentUserId ? L["CurrentSession"] : L["ManagedAccount"])</span>
                                                 </div>
                                             </div>
                                         </td>
                                         <td>
                                             <span class="admin-badge @(user.IsAdmin ? "is-admin" : "is-standard")">
-                                                @(user.IsAdmin ? "Admin" : "User")
+                                                @(user.IsAdmin ? L["Admin"] : L["User"])
                                             </span>
                                         </td>
                                         <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
                                         <td class="admin-mono">@user.Id</td>
                                         <td class="admin-actions-column">
-                                            <button type="button" class="admin-row-button" @onclick="() => BeginEdit(user)">Edit</button>
+                                            <button type="button" class="admin-row-button" @onclick="() => BeginEdit(user)">@L["Edit"]</button>
                                             <button type="button"
                                                     class="admin-row-button danger"
                                                     @onclick="() => DeleteUserAsync(user)"
                                                     disabled="@(user.Id == _currentUserId || _isBusy)">
-                                                Delete
+                                                @L["Delete"]
                                             </button>
                                         </td>
                                     </tr>
@@ -151,15 +153,15 @@ else
             <aside class="admin-panel admin-editor-panel">
                 <div class="admin-panel-header compact">
                     <div>
-                        <h2>@(_isEditing ? "Edit user" : "Create user")</h2>
-                        <p>@(_isEditing ? "Update identity details, admin access, or password." : "Provision a new sign-in account for the platform.")</p>
+                        <h2>@(_isEditing ? L["EditUser"] : L["CreateUser"])</h2>
+                        <p>@(_isEditing ? L["EditUserLead"] : L["CreateUserLead"])</p>
                     </div>
                 </div>
 
                 @if (_formErrors.Count > 0)
                 {
                     <div class="admin-feedback is-error">
-                        <strong>Could not save this user.</strong>
+                        <strong>@L["CouldNotSaveUser"]</strong>
                         <ul>
                             @foreach (var error in _formErrors)
                             {
@@ -171,36 +173,36 @@ else
 
                 <div class="admin-form-grid">
                     <label class="admin-field" for="editor-user-name">
-                        <span>User name</span>
+                        <span>@L["UserName"]</span>
                         <input id="editor-user-name" type="text" @bind="_editor.UserName" @bind:event="oninput" />
                     </label>
 
                     <label class="admin-field" for="editor-email">
-                        <span>Email</span>
+                        <span>@L["Email"]</span>
                         <input id="editor-email" type="email" @bind="_editor.Email" @bind:event="oninput" />
                     </label>
 
                     <label class="admin-field" for="editor-password">
-                        <span>@(_isEditing ? "New password" : "Password")</span>
+                        <span>@(_isEditing ? L["NewPassword"] : L["Password"])</span>
                         <input id="editor-password" type="password" @bind="_editor.Password" @bind:event="oninput" />
-                        <small>@(_isEditing ? "Leave blank to keep the current password." : "Password must satisfy the configured Identity policy.")</small>
+                        <small>@(_isEditing ? L["LeavePasswordBlankHelp"] : L["PasswordPolicyHelp"])</small>
                     </label>
 
                     <label class="admin-toggle-field" for="editor-admin-role">
                         <input id="editor-admin-role" type="checkbox" @bind="_editor.IsAdmin" />
                         <div>
-                            <strong>Administrator access</strong>
-                            <span>Grant the reserved <span class="admin-inline-code">admin</span> role.</span>
+                            <strong>@L["AdministratorAccess"]</strong>
+                            <span>@L["AdministratorAccessLead"]</span>
                         </div>
                     </label>
                 </div>
 
                 <div class="admin-editor-actions">
                     <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
-                        Reset
+                        @L["Reset"]
                     </button>
                     <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
-                        @(_isBusy ? "Saving..." : _isEditing ? "Save Changes" : "Create User")
+                        @(_isBusy ? L["Saving"] : _isEditing ? L["SaveChanges"] : L["CreateUser"])
                     </button>
                 </div>
             </aside>
@@ -391,7 +393,7 @@ else
             var persistedUser = await UserService.GetByNameAsync(_editor.UserName.Trim());
             if (persistedUser is null)
             {
-                _formErrors.Add("The saved user could not be reloaded from the database.");
+                _formErrors.Add(L["SavedUserCouldNotBeReloaded"].Value);
                 return;
             }
 
@@ -404,8 +406,8 @@ else
 
             await LoadUsersAsync();
             _statusMessage = _isEditing
-                ? $"Updated '{_editor.UserName.Trim()}' successfully."
-                : $"Created '{_editor.UserName.Trim()}' successfully.";
+                ? L["UpdatedUserStatus", _editor.UserName.Trim()].Value
+                : L["CreatedUserStatus", _editor.UserName.Trim()].Value;
             _statusIsError = false;
             _isEditing = false;
             _editor = new UserEditor();
@@ -423,7 +425,7 @@ else
 
         if (user.Id == _currentUserId)
         {
-            _statusMessage = "You cannot delete the account used for the current session.";
+            _statusMessage = L["CannotDeleteCurrentSessionAccount"].Value;
             _statusIsError = true;
             return;
         }
@@ -435,13 +437,13 @@ else
             var result = await UserService.DeleteAsync(user.Id);
             if (!result.Succeeded)
             {
-                _statusMessage = string.Join(" ", result.Errors.Select(static error => error.Description));
+                _statusMessage = string.Join(" ", result.Errors.Select(LocalizeIdentityError));
                 _statusIsError = true;
                 return;
             }
 
             await LoadUsersAsync();
-            _statusMessage = $"Deleted '{user.UserName}'.";
+            _statusMessage = L["DeletedUserStatus", user.UserName].Value;
             _statusIsError = false;
 
             if (_editor.Id == user.Id)
@@ -464,18 +466,18 @@ else
     {
         if (string.IsNullOrWhiteSpace(_editor.UserName))
         {
-            _formErrors.Add("User name is required.");
+            _formErrors.Add(L["UserNameRequired"].Value);
         }
 
         if (!_isEditing && string.IsNullOrWhiteSpace(_editor.Password))
         {
-            _formErrors.Add("Password is required when creating a user.");
+            _formErrors.Add(L["PasswordRequiredOnCreate"].Value);
         }
 
         if (!string.IsNullOrWhiteSpace(_editor.Email) &&
             !new EmailAddressAttribute().IsValid(_editor.Email))
         {
-            _formErrors.Add("Email must be a valid address.");
+            _formErrors.Add(L["EmailMustBeValid"].Value);
         }
     }
 
@@ -497,7 +499,7 @@ else
             return IdentityResult.Failed(new IdentityError
             {
                 Code = "ProtectedUser",
-                Description = "You cannot remove admin access from the account used for the current session.",
+                Description = L["CannotRemoveCurrentSessionAdminAccess"].Value,
             });
         }
 
@@ -511,7 +513,49 @@ else
             return;
         }
 
-        _formErrors.AddRange(result.Errors.Select(static error => error.Description));
+        _formErrors.AddRange(result.Errors.Select(LocalizeIdentityError));
+    }
+
+    private string LocalizeIdentityError(IdentityError error)
+    {
+        return error.Code switch
+        {
+            "UserNotFound" => L["UserNotFound", ExtractQuotedValue(error.Description) ?? error.Description].Value,
+            "ProtectedUser" => L["CannotRemoveCurrentSessionAdminAccess"].Value,
+            nameof(IdentityErrorDescriber.DuplicateUserName) => L["DuplicateUserName", ExtractQuotedValue(error.Description) ?? string.Empty].Value,
+            nameof(IdentityErrorDescriber.DuplicateEmail) => L["DuplicateEmail", ExtractQuotedValue(error.Description) ?? string.Empty].Value,
+            nameof(IdentityErrorDescriber.InvalidUserName) => L["InvalidUserName", ExtractQuotedValue(error.Description) ?? string.Empty].Value,
+            nameof(IdentityErrorDescriber.InvalidEmail) => L["InvalidEmail", ExtractQuotedValue(error.Description) ?? string.Empty].Value,
+            nameof(IdentityErrorDescriber.PasswordTooShort) => L["PasswordTooShort"].Value,
+            nameof(IdentityErrorDescriber.PasswordRequiresNonAlphanumeric) => L["PasswordRequiresNonAlphanumeric"].Value,
+            nameof(IdentityErrorDescriber.PasswordRequiresDigit) => L["PasswordRequiresDigit"].Value,
+            nameof(IdentityErrorDescriber.PasswordRequiresLower) => L["PasswordRequiresLower"].Value,
+            nameof(IdentityErrorDescriber.PasswordRequiresUpper) => L["PasswordRequiresUpper"].Value,
+            nameof(IdentityErrorDescriber.PasswordRequiresUniqueChars) => L["PasswordRequiresUniqueChars"].Value,
+            _ => error.Description,
+        };
+    }
+
+    private static string? ExtractQuotedValue(string? description)
+    {
+        if (string.IsNullOrWhiteSpace(description))
+        {
+            return null;
+        }
+
+        var start = description.IndexOf('\'', StringComparison.Ordinal);
+        if (start < 0)
+        {
+            return null;
+        }
+
+        var end = description.IndexOf('\'', start + 1);
+        if (end <= start)
+        {
+            return null;
+        }
+
+        return description[(start + 1)..end];
     }
 
     private static string? NormalizeOptional(string? value)

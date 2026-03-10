@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="PageTitle" xml:space="preserve"><value>User Management</value></data>
+  <data name="AdminArea" xml:space="preserve"><value>Admin Area</value></data>
+  <data name="CheckingAccess" xml:space="preserve"><value>Checking access</value></data>
+  <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session before loading user management.</value></data>
+  <data name="Identity" xml:space="preserve"><value>Identity</value></data>
+  <data name="HeroLead" xml:space="preserve"><value>Manage sign-in accounts, rotate passwords, and keep administrator access under control.</value></data>
+  <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="NewUser" xml:space="preserve"><value>New User</value></data>
+  <data name="UserOverview" xml:space="preserve"><value>User overview</value></data>
+  <data name="TotalUsers" xml:space="preserve"><value>Total users</value></data>
+  <data name="TotalUsersLead" xml:space="preserve"><value>All accounts currently provisioned in the IDP.</value></data>
+  <data name="Admins" xml:space="preserve"><value>Admins</value></data>
+  <data name="AdminsLead" xml:space="preserve"><value>Users holding the reserved admin role.</value></data>
+  <data name="StandardUsers" xml:space="preserve"><value>Standard users</value></data>
+  <data name="StandardUsersLead" xml:space="preserve"><value>Accounts without elevated management permissions.</value></data>
+  <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
+  <data name="AccountsLead" xml:space="preserve"><value>Filter the list, inspect privileges, and open any row for editing.</value></data>
+  <data name="Search" xml:space="preserve"><value>Search</value></data>
+  <data name="SearchPlaceholder" xml:space="preserve"><value>Search by username or email</value></data>
+  <data name="User" xml:space="preserve"><value>User</value></data>
+  <data name="Role" xml:space="preserve"><value>Role</value></data>
+  <data name="Email" xml:space="preserve"><value>Email</value></data>
+  <data name="Identifier" xml:space="preserve"><value>Identifier</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
+  <data name="NoMatchingUsers" xml:space="preserve"><value>No matching users</value></data>
+  <data name="NoMatchingUsersLead" xml:space="preserve"><value>Try another keyword or create a new account.</value></data>
+  <data name="CurrentSession" xml:space="preserve"><value>Current session</value></data>
+  <data name="ManagedAccount" xml:space="preserve"><value>Managed account</value></data>
+  <data name="Admin" xml:space="preserve"><value>Admin</value></data>
+  <data name="UserName" xml:space="preserve"><value>User name</value></data>
+  <data name="Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="EditUser" xml:space="preserve"><value>Edit user</value></data>
+  <data name="CreateUser" xml:space="preserve"><value>Create user</value></data>
+  <data name="EditUserLead" xml:space="preserve"><value>Update identity details, admin access, or password.</value></data>
+  <data name="CreateUserLead" xml:space="preserve"><value>Provision a new sign-in account for the platform.</value></data>
+  <data name="CouldNotSaveUser" xml:space="preserve"><value>Could not save this user.</value></data>
+  <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
+  <data name="Password" xml:space="preserve"><value>Password</value></data>
+  <data name="LeavePasswordBlankHelp" xml:space="preserve"><value>Leave blank to keep the current password.</value></data>
+  <data name="PasswordPolicyHelp" xml:space="preserve"><value>Password must satisfy the configured Identity policy.</value></data>
+  <data name="AdministratorAccess" xml:space="preserve"><value>Administrator access</value></data>
+  <data name="AdministratorAccessLead" xml:space="preserve"><value>Grant the reserved admin role.</value></data>
+  <data name="Reset" xml:space="preserve"><value>Reset</value></data>
+  <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
+  <data name="CreatedUserStatus" xml:space="preserve"><value>Created '{0}' successfully.</value></data>
+  <data name="UpdatedUserStatus" xml:space="preserve"><value>Updated '{0}' successfully.</value></data>
+  <data name="CannotDeleteCurrentSessionAccount" xml:space="preserve"><value>You cannot delete the account used for the current session.</value></data>
+  <data name="DeletedUserStatus" xml:space="preserve"><value>Deleted '{0}'.</value></data>
+  <data name="UserNotFound" xml:space="preserve"><value>User '{0}' does not exist.</value></data>
+  <data name="UserNameRequired" xml:space="preserve"><value>User name is required.</value></data>
+  <data name="DuplicateUserName" xml:space="preserve"><value>User name '{0}' is already taken.</value></data>
+  <data name="DuplicateEmail" xml:space="preserve"><value>Email '{0}' is already in use.</value></data>
+  <data name="InvalidUserName" xml:space="preserve"><value>User name '{0}' is invalid.</value></data>
+  <data name="InvalidEmail" xml:space="preserve"><value>Email '{0}' is invalid.</value></data>
+  <data name="PasswordRequiredOnCreate" xml:space="preserve"><value>Password is required when creating a user.</value></data>
+  <data name="PasswordTooShort" xml:space="preserve"><value>Password does not meet the minimum length requirement.</value></data>
+  <data name="PasswordRequiresNonAlphanumeric" xml:space="preserve"><value>Password must include at least one non-alphanumeric character.</value></data>
+  <data name="PasswordRequiresDigit" xml:space="preserve"><value>Password must include at least one digit.</value></data>
+  <data name="PasswordRequiresLower" xml:space="preserve"><value>Password must include at least one lowercase letter.</value></data>
+  <data name="PasswordRequiresUpper" xml:space="preserve"><value>Password must include at least one uppercase letter.</value></data>
+  <data name="PasswordRequiresUniqueChars" xml:space="preserve"><value>Password must include more unique characters.</value></data>
+  <data name="EmailMustBeValid" xml:space="preserve"><value>Email must be a valid address.</value></data>
+  <data name="CannotRemoveCurrentSessionAdminAccess" xml:space="preserve"><value>You cannot remove admin access from the account used for the current session.</value></data>
+  <data name="SavedUserCouldNotBeReloaded" xml:space="preserve"><value>The saved user could not be reloaded from the database.</value></data>
+</root>

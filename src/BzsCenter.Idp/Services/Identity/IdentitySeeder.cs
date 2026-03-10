@@ -80,6 +80,9 @@ internal sealed class IdentitySeeder(
             logger.LogInformation("Identity seeding ensured admin user exists: {UserName}", adminUserName);
         }
 
+        var ensurePasswordResult = await userService.EnsurePasswordAsync(adminUser.Id, adminPassword, cancellationToken);
+        EnsureSuccess(ensurePasswordResult, $"同步管理员用户 '{adminUserName}' 的密码");
+
         var inAdminRole = await userService.IsInRoleAsync(adminUser.Id, IdentitySeedConstants.AdminRoleName, cancellationToken);
         if (!inAdminRole)
         {

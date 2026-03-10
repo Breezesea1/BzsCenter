@@ -11,6 +11,7 @@ public interface IUserService
     Task<BzsUser?> GetByNameAsync(string userName, CancellationToken cancellationToken = default);
     Task<IdentityResult> CreateAsync(string userName, string password, string? email = null,
         CancellationToken cancellationToken = default);
+    Task<IdentityResult> EnsurePasswordAsync(Guid userId, string password, CancellationToken cancellationToken = default);
 
     Task<IdentityResult> UpdateAsync(Guid userId, string userName, string? email = null,
         CancellationToken cancellationToken = default);
@@ -81,6 +82,33 @@ internal sealed class UserService(UserManager<BzsUser> userManager) : IUserServi
         };
 
         return await userManager.CreateAsync(user, password);
+    }
+
+    /// <summary>
+    /// 确保用户密码与给定密码一致。
+    /// </summary>
+    /// <param name="userId">参数userId。</param>
+    /// <param name="password">参数password。</param>
+    /// <param name="cancellationToken">参数cancellationToken。</param>
+    /// <returns>执行结果。</returns>
+    public async Task<IdentityResult> EnsurePasswordAsync(Guid userId, string password,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(password);
+
+        var user = await userManager.FindByIdAsync(userId.ToString());
+        if (user is null)
+        {
+            return IdentityResult.Failed(CreateError("UserNotFound", $"用户 '{userId}' 不存在"));
+        }
+
+        if (await userManager.CheckPasswordAsync(user, password))
+        {
+            return IdentityResult.Success;
+        }
+
+        var resetToken = await userManager.GeneratePasswordResetTokenAsync(user);
+        return await userManager.ResetPasswordAsync(user, resetToken, password);
     }
 
     /// <summary>

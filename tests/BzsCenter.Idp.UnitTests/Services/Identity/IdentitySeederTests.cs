@@ -58,6 +58,8 @@ public sealed class IdentitySeederTests
 
         userService.GetByNameAsync("admin", Arg.Any<CancellationToken>())
             .Returns(existingAdmin);
+        userService.EnsurePasswordAsync(existingAdmin.Id, "Passw0rd!", Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(IdentityResult.Success));
         userService.IsInRoleAsync(default, default!, default)
             .ReturnsForAnyArgs(Task.FromResult(true));
 
@@ -91,6 +93,8 @@ public sealed class IdentitySeederTests
 
         await permissionScopeService.Received(1)
             .InitializeDefaultsIfEmptyAsync(options.Value.PermissionScopes, Arg.Any<CancellationToken>());
+        await userService.Received(1)
+            .EnsurePasswordAsync(existingAdmin.Id, "Passw0rd!", Arg.Any<CancellationToken>());
         await userService.DidNotReceive()
             .CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
         await userService.DidNotReceive()
@@ -119,6 +123,8 @@ public sealed class IdentitySeederTests
         userService.GetByNameAsync("admin", Arg.Any<CancellationToken>())
             .Returns((BzsUser?)null, createdAdmin);
         userService.CreateAsync("admin", "Passw0rd!", Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(IdentityResult.Success));
+        userService.EnsurePasswordAsync(createdAdmin.Id, "Passw0rd!", Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(IdentityResult.Success));
         userService.IsInRoleAsync(default, default!, default)
             .ReturnsForAnyArgs(Task.FromResult(false));
@@ -155,6 +161,8 @@ public sealed class IdentitySeederTests
 
         await userService.Received(1)
             .CreateAsync("admin", "Passw0rd!", Arg.Any<string?>(), Arg.Any<CancellationToken>());
+        await userService.Received(1)
+            .EnsurePasswordAsync(createdAdmin.Id, "Passw0rd!", Arg.Any<CancellationToken>());
         await userService.Received(1)
             .AddToRoleAsync(createdAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>());
     }

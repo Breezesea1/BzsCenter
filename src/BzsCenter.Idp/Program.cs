@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Localization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
-builder.Services.AddIdpService(builder.Configuration);
+builder.Services.AddIdpService(builder.Configuration, builder.Environment);
 builder.Services.AddIdpAuthorization();
 builder.EnrichFromAspire();
 builder.Services.AddHttpContextAccessor();

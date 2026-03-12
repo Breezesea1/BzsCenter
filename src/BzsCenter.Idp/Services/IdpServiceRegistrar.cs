@@ -13,7 +13,7 @@ namespace BzsCenter.Idp.Services;
 /// <summary>
 /// IDP 服务注册协调器：统一装配选项、DataProtection 与 OIDC。
 /// </summary>
-internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration cfg)
+internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration cfg, IHostEnvironment hostEnvironment)
 {
     private const string ForwardedHeadersSectionName = "ForwardedHeaders";
     private const string DataProtectionSectionName = "DataProtection";
@@ -50,20 +50,22 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     /// <returns>执行结果。</returns>
     internal IServiceCollection AddDataProtection()
     {
-#if !DEBUG
-        var options = cfg.GetSection(DataProtectionSectionName).Get<DataProtectionOptions>();
-        if (options is null)
+        DataProtectionOptions options;
+
+        if (hostEnvironment.IsDevelopment())
         {
-            throw new InvalidOperationException("DataProtection options are not configured.");
+            options = new DataProtectionOptions()
+            {
+                ApplicationName = "BzsCenter.Idp.Test",
+                KeyLifetimeDays = 365,
+                StorageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DevDataProtectionKeys"),
+            };
         }
-#else
-        var options = new DataProtectionOptions()
+        else
         {
-            ApplicationName = "BzsCenter.Idp.Test",
-            KeyLifetimeDays = 365,
-            StorageDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DevDataProtectionKeys"),
-        };
-#endif
+            options = cfg.GetSection(DataProtectionSectionName).Get<DataProtectionOptions>()
+                ?? throw new InvalidOperationException("DataProtection options are not configured.");
+        }
 
         sc.AddDataProtectionKeyStorage(options);
         return sc;
@@ -224,11 +226,13 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     /// <param name="oidcOptions">参数oidcOptions。</param>
     private void ConfigureOpenIddictCertificates(OpenIddictServerBuilder options, OidcOptions? oidcOptions)
     {
-#if DEBUG
-        // DEBUG 只使用开发证书，避免本地环境引入证书文件依赖。
-        options.AddDevelopmentEncryptionCertificate()
-            .AddDevelopmentSigningCertificate();
-#else
+        if (hostEnvironment.IsDevelopment())
+        {
+            options.AddDevelopmentEncryptionCertificate()
+                .AddDevelopmentSigningCertificate();
+            return;
+        }
+
         if (oidcOptions is null)
         {
             throw new InvalidOperationException("Oidc options are not configured.");
@@ -251,7 +255,6 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         {
             options.AddEncryptionCertificate(cert);
         }
-#endif
     }
 
     /// <summary>

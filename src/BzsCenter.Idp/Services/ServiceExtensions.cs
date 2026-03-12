@@ -27,7 +27,7 @@ internal static class ServiceExtensions
     /// <param name="sc">服务集合。</param>
     /// <param name="configuration">应用程序配置。</param>
     /// <returns>服务集合，用于链式调用。</returns>
-    internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration)
+    internal static IServiceCollection AddIdpService(this IServiceCollection sc, IConfiguration configuration, IHostEnvironment hostEnvironment)
     {
         sc.AddForwardedHeaders();
         sc.AddMemoryCache();
@@ -38,7 +38,7 @@ internal static class ServiceExtensions
 
         sc.AddInfraServices(connectionString);
 
-        var registrar = new IdpServiceRegistrar(sc, configuration);
+        var registrar = new IdpServiceRegistrar(sc, configuration, hostEnvironment);
         registrar.AddIdpOptions();
         registrar.AddDataProtection();
         registrar.AddOidc();

@@ -558,7 +558,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
             optionsLifetime: ServiceLifetime.Singleton);
         builder.Services.AddDbContextFactory<IdpDbContext>(options => ConfigureTestDatabase(options, _connection));
 
-        var registrar = new IdpServiceRegistrar(builder.Services, builder.Configuration);
+        var registrar = new IdpServiceRegistrar(builder.Services, builder.Configuration, builder.Environment);
         registrar.AddIdpOptions();
         registrar.AddDataProtection();
         registrar.AddOidc();

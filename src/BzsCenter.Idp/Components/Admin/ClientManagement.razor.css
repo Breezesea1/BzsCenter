@@ -1,4 +1,10 @@
 .admin-page-shell {
+    --admin-surface-radius: 1rem;
+    --admin-card-radius: 0.875rem;
+    --admin-control-radius: 0.75rem;
+    --admin-chip-radius: 0.6rem;
+    --admin-inline-radius: 0.4rem;
+
     display: grid;
     gap: 1.25rem;
 }
@@ -26,7 +32,7 @@
 .admin-panel,
 .admin-feedback,
 .admin-secret-banner {
-    border-radius: 1.35rem;
+    border-radius: var(--admin-surface-radius);
 }
 
 .admin-loading-card {
@@ -120,7 +126,7 @@
     justify-content: center;
     min-height: 2.9rem;
     padding: 0.8rem 1.1rem;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -229,7 +235,7 @@
 .admin-secret-banner code {
     display: block;
     overflow-wrap: anywhere;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     padding: 0.85rem 1rem;
     background: rgba(255, 255, 255, 0.92);
     color: #0f172a;
@@ -292,7 +298,7 @@
 .admin-field select,
 .admin-field textarea {
     min-height: 2.9rem;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
     background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
     padding: 0.75rem 0.95rem;
@@ -324,7 +330,7 @@
 .client-card,
 .admin-helper-card {
     border: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
-    border-radius: 1.15rem;
+    border-radius: var(--admin-card-radius);
     background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
 }
 
@@ -358,7 +364,7 @@
     display: inline-flex;
     align-items: center;
     padding: 0.45rem 0.7rem;
-    border-radius: 0.8rem;
+    border-radius: var(--admin-chip-radius);
     background: color-mix(in srgb, var(--sidebar-bg) 70%, transparent);
     color: var(--sidebar-text-muted);
     font-size: 0.82rem;
@@ -438,7 +444,7 @@
 
 .admin-inline-code {
     padding: 0.1rem 0.35rem;
-    border-radius: 0.45rem;
+    border-radius: var(--admin-inline-radius);
     background: color-mix(in srgb, var(--sidebar-bg) 70%, transparent);
 }
 

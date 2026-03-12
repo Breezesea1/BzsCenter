@@ -38,7 +38,7 @@ else
                 <button type="button" class="admin-ghost-button" @onclick="LoadClientsAsync" disabled="@_isBusy">
                     @L["Refresh"]
                 </button>
-                <button type="button" class="admin-primary-button" @onclick="BeginCreate">
+                <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
                     @L["NewClient"]
                 </button>
             </div>
@@ -82,191 +82,103 @@ else
             </div>
         }
 
-        <div class="admin-content-grid">
-            <section class="admin-panel admin-list-panel">
-                <div class="admin-panel-header">
-                    <div>
-                        <h2>@L["RegisteredClients"]</h2>
-                        <p>@L["RegisteredClientsLead"]</p>
-                    </div>
-
-                    <label class="admin-search-field" for="client-search">
-                        <span>@L["Search"]</span>
-                        <input id="client-search"
-                               type="search"
-                               placeholder="@L["SearchPlaceholder"]"
-                               value="@_searchTerm"
-                               @oninput="HandleSearchInput" />
-                    </label>
+        <section class="admin-panel admin-list-panel">
+            <div class="admin-panel-header">
+                <div>
+                    <h2>@L["RegisteredClients"]</h2>
+                    <p>@L["RegisteredClientsLead"]</p>
                 </div>
 
-                <div class="client-card-grid">
-                    @if (_filteredClients.Count == 0)
-                    {
-                        <div class="admin-empty-state panel-empty-state">
-                            <strong>@L["NoMatchingClients"]</strong>
-                            <p>@L["NoMatchingClientsLead"]</p>
-                        </div>
-                    }
-                    else
-                    {
-                        @foreach (var client in _filteredClients)
-                        {
-                            <article class="client-card">
-                                <div class="client-card-top">
-                                    <div>
-                                        <span class="admin-badge @(client.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
-                                            @FormatProfile(client.Profile)
-                                        </span>
-                                        <h3>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</h3>
-                                    </div>
-                                    <code>@client.ClientId</code>
-                                </div>
+                <label class="admin-search-field" for="client-search">
+                    <span>@L["Search"]</span>
+                    <input id="client-search"
+                           type="search"
+                           placeholder="@L["SearchPlaceholder"]"
+                           value="@_searchTerm"
+                           @oninput="HandleSearchInput" />
+                </label>
+            </div>
 
-                                <dl class="client-meta-grid">
-                                    <div>
-                                        <dt>@L["GrantTypes"]</dt>
-                                        <dd>@string.Join(", ", client.GrantTypes)</dd>
-                                    </div>
-                                    <div>
-                                        <dt>@L["Scopes"]</dt>
-                                        <dd>@(client.Scopes.Length == 0 ? "-" : string.Join(", ", client.Scopes))</dd>
-                                    </div>
-                                </dl>
-
-                                @if (client.RedirectUris.Length > 0)
-                                {
-                                    <div class="client-uri-block">
-                                        <strong>@L["RedirectUris"]</strong>
-                                        <ul>
-                                            @foreach (var uri in client.RedirectUris)
-                                            {
-                                                <li>@uri</li>
-                                            }
-                                        </ul>
-                                    </div>
-                                }
-
-                                <div class="client-card-actions">
-                                    <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">@L["Edit"]</button>
-                                    <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(client.ClientId)" disabled="@_isBusy">
-                                        @L["Delete"]
-                                    </button>
-                                </div>
-                            </article>
-                        }
-                    }
-                </div>
-            </section>
-
-            <aside class="admin-panel admin-editor-panel">
-                <div class="admin-panel-header compact">
-                    <div>
-                        <h2>@(_isEditing ? L["EditClient"] : L["RegisterClient"])</h2>
-                        <p>@(_isEditing ? L["EditClientLead"] : L["RegisterClientLead"])</p>
-                    </div>
-                </div>
-
-                @if (_formErrors.Count > 0)
+            <div class="client-card-grid">
+                @if (_filteredClients.Count == 0)
                 {
-                    <div class="admin-feedback is-error">
-                        <strong>@L["CouldNotSaveClient"]</strong>
-                        <ul>
-                            @foreach (var error in _formErrors)
-                            {
-                                <li>@error</li>
-                            }
-                        </ul>
+                    <div class="admin-empty-state panel-empty-state">
+                        <strong>@L["NoMatchingClients"]</strong>
+                        <p>@L["NoMatchingClientsLead"]</p>
                     </div>
                 }
-
-                <div class="admin-form-grid">
-                    <label class="admin-field" for="editor-client-id">
-                        <span>@L["ClientId"]</span>
-                        <input id="editor-client-id"
-                               type="text"
-                               @bind="_editor.ClientId"
-                               @bind:event="oninput"
-                               disabled="@_isEditing"
-                               placeholder="@L["LeaveEmptyToAutoGenerate"]" />
-                    </label>
-
-                    <label class="admin-field" for="editor-display-name">
-                        <span>@L["DisplayName"]</span>
-                        <input id="editor-display-name" type="text" @bind="_editor.DisplayName" @bind:event="oninput" />
-                    </label>
-
-                    <label class="admin-field" for="editor-profile">
-                        <span>@L["Profile"]</span>
-                        <select id="editor-profile" @bind="_editor.Profile">
-                            <option value="@OidcClientProfile.FirstPartyInteractive">@L["FirstPartyInteractive"]</option>
-                            <option value="@OidcClientProfile.FirstPartyMachine">@L["FirstPartyMachine"]</option>
-                        </select>
-                    </label>
-
-                    <label class="admin-field" for="editor-scopes">
-                        <span>@L["Scopes"]</span>
-                        <textarea id="editor-scopes"
-                                  rows="4"
-                                  @bind="_editor.ScopesText"
-                                  @bind:event="oninput"
-                                  placeholder="@L["ScopesPlaceholder"]"></textarea>
-                        <small>@L["ScopesHelp"]</small>
-                    </label>
-
-                    @if (_editor.Profile == OidcClientProfile.FirstPartyInteractive)
+                else
+                {
+                    @foreach (var client in _filteredClients)
                     {
-                        <label class="admin-field" for="editor-redirect-uris">
-                            <span>@L["RedirectUris"]</span>
-                            <textarea id="editor-redirect-uris"
-                                      rows="4"
-                                      @bind="_editor.RedirectUrisText"
-                                      @bind:event="oninput"
-                                      placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
-                        </label>
+                        <article class="client-card">
+                            <div class="client-card-top">
+                                <div>
+                                    <span class="admin-badge @(client.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
+                                        @FormatProfile(client.Profile)
+                                    </span>
+                                    <h3>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</h3>
+                                </div>
+                                <code>@client.ClientId</code>
+                            </div>
 
-                        <label class="admin-field" for="editor-post-logout-uris">
-                            <span>@L["PostLogoutRedirectUris"]</span>
-                            <textarea id="editor-post-logout-uris"
-                                      rows="3"
-                                      @bind="_editor.PostLogoutRedirectUrisText"
-                                      @bind:event="oninput"
-                                      placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
-                        </label>
+                            <dl class="client-meta-grid">
+                                <div>
+                                    <dt>@L["GrantTypes"]</dt>
+                                    <dd>@string.Join(", ", client.GrantTypes)</dd>
+                                </div>
+                                <div>
+                                    <dt>@L["Scopes"]</dt>
+                                    <dd>@(client.Scopes.Length == 0 ? "-" : string.Join(", ", client.Scopes))</dd>
+                                </div>
+                            </dl>
 
-                        <div class="admin-helper-card">
-                            <strong>@L["ProfileBehavior"]</strong>
-                            <p>@L["InteractiveProfileBehavior"]</p>
-                        </div>
+                            @if (client.RedirectUris.Length > 0)
+                            {
+                                <div class="client-uri-block">
+                                    <strong>@L["RedirectUris"]</strong>
+                                    <ul>
+                                        @foreach (var uri in client.RedirectUris)
+                                        {
+                                            <li>@uri</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <div class="client-card-actions">
+                                <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">@L["Edit"]</button>
+                                <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(client.ClientId)" disabled="@_isBusy">
+                                    @L["Delete"]
+                                </button>
+                            </div>
+                        </article>
                     }
-                    else
-                    {
-                        <label class="admin-field" for="editor-client-secret">
-                            <span>@L["ClientSecret"]</span>
-                            <input id="editor-client-secret"
-                                   type="text"
-                                   @bind="_editor.ClientSecret"
-                                   @bind:event="oninput"
-                                   placeholder="@L["LeaveEmptyToAutoGenerate"]" />
-                        </label>
+                }
+            </div>
+        </section>
 
-                        <div class="admin-helper-card">
-                            <strong>@L["ProfileBehavior"]</strong>
-                            <p>@L["MachineProfileBehavior"]</p>
-                        </div>
-                    }
-                </div>
-
-                <div class="admin-editor-actions">
-                    <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
-                        @L["Reset"]
-                    </button>
-                    <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
-                        @(_isBusy ? L["Saving"] : _isEditing ? L["SaveChanges"] : L["RegisterClient"])
-                    </button>
-                </div>
-            </aside>
-        </div>
+        <ClientManagementDialog IsOpen="@_isEditorOpen"
+                                IsEditing="@_isEditing"
+                                IsBusy="@_isBusy"
+                                ClientId="@_editor.ClientId"
+                                ClientIdChanged="HandleClientIdChanged"
+                                DisplayName="@_editor.DisplayName"
+                                DisplayNameChanged="HandleDisplayNameChanged"
+                                Profile="@_editor.Profile"
+                                ProfileChanged="HandleProfileChanged"
+                                ScopesText="@_editor.ScopesText"
+                                ScopesTextChanged="HandleScopesTextChanged"
+                                RedirectUrisText="@_editor.RedirectUrisText"
+                                RedirectUrisTextChanged="HandleRedirectUrisTextChanged"
+                                PostLogoutRedirectUrisText="@_editor.PostLogoutRedirectUrisText"
+                                PostLogoutRedirectUrisTextChanged="HandlePostLogoutRedirectUrisTextChanged"
+                                ClientSecret="@_editor.ClientSecret"
+                                ClientSecretChanged="HandleClientSecretChanged"
+                                FormErrors="@_formErrors"
+                                OnClose="CloseEditor"
+                                OnReset="ResetEditor"
+                                OnSave="SaveAsync" />
     </section>
 }
 
@@ -279,6 +191,7 @@ else
     private bool _hasAccess;
     private bool _isBusy;
     private bool _isEditing;
+    private bool _isEditorOpen;
     private string _searchTerm = string.Empty;
     private string? _generatedClientSecret;
     private string? _statusMessage;
@@ -356,15 +269,15 @@ else
 
     private void BeginCreate()
     {
-        _isEditing = false;
-        _editor = CreateDefaultEditor();
-        _formErrors.Clear();
+        ResetEditorState();
+        _isEditorOpen = true;
         ClearStatus();
     }
 
     private void BeginEdit(OidcClientResponse client)
     {
         _isEditing = true;
+        _isEditorOpen = true;
         _editor = new ClientEditor
         {
             ClientId = client.ClientId,
@@ -392,6 +305,17 @@ else
         }
 
         BeginCreate();
+    }
+
+    private void CloseEditor()
+    {
+        if (_isBusy)
+        {
+            return;
+        }
+
+        _isEditorOpen = false;
+        ResetEditorState();
     }
 
     private async Task SaveAsync()
@@ -438,6 +362,7 @@ else
 
             _statusIsError = false;
             await LoadClientsAsync();
+            _isEditorOpen = false;
             _isEditing = false;
             _editor = CreateDefaultEditor();
             _formErrors.Clear();
@@ -470,7 +395,8 @@ else
 
             if (string.Equals(_editor.ClientId, clientId, StringComparison.Ordinal))
             {
-                BeginCreate();
+                _isEditorOpen = false;
+                ResetEditorState();
             }
         }
         finally
@@ -617,6 +543,13 @@ else
         };
     }
 
+    private void ResetEditorState()
+    {
+        _isEditing = false;
+        _editor = CreateDefaultEditor();
+        _formErrors.Clear();
+    }
+
     private void ClearStatus()
     {
         _statusMessage = null;
@@ -627,6 +560,48 @@ else
     {
         _searchTerm = args.Value?.ToString() ?? string.Empty;
         ApplyFilter();
+    }
+
+    private Task HandleClientIdChanged(string value)
+    {
+        _editor.ClientId = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleClientSecretChanged(string value)
+    {
+        _editor.ClientSecret = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDisplayNameChanged(string value)
+    {
+        _editor.DisplayName = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleProfileChanged(OidcClientProfile value)
+    {
+        _editor.Profile = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleScopesTextChanged(string value)
+    {
+        _editor.ScopesText = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleRedirectUrisTextChanged(string value)
+    {
+        _editor.RedirectUrisText = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePostLogoutRedirectUrisTextChanged(string value)
+    {
+        _editor.PostLogoutRedirectUrisText = value;
+        return Task.CompletedTask;
     }
 
     private sealed class ClientEditor

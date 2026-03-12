@@ -1,0 +1,195 @@
+@using BzsCenter.Idp.Services.Oidc
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<ClientManagement> L
+
+<AdminDialogShell IsOpen="@IsOpen"
+                  IsBusy="@IsBusy"
+                  Title="@DialogTitle"
+                  Lead="@DialogLead"
+                  CloseLabel="@L["Close"]"
+                  OnClose="OnClose">
+    <ChildContent>
+        @if (FormErrors.Count > 0)
+        {
+            <div class="admin-feedback is-error">
+                <strong>@L["CouldNotSaveClient"]</strong>
+                <ul>
+                    @foreach (var error in FormErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="admin-form-grid">
+            <label class="admin-field" for="editor-client-id">
+                <span>@L["ClientId"]</span>
+                <input id="editor-client-id"
+                       type="text"
+                       @ref="_clientIdInput"
+                       value="@ClientId"
+                       @oninput="HandleClientIdInput"
+                       disabled="@IsEditing"
+                       placeholder="@L["LeaveEmptyToAutoGenerate"]" />
+            </label>
+
+            <label class="admin-field" for="editor-display-name">
+                <span>@L["DisplayName"]</span>
+                <input id="editor-display-name" type="text" @ref="_displayNameInput" value="@DisplayName" @oninput="HandleDisplayNameInput" />
+            </label>
+
+            <label class="admin-field" for="editor-profile">
+                <span>@L["Profile"]</span>
+                <select id="editor-profile" value="@((int)Profile)" @onchange="HandleProfileChange">
+                    <option value="@((int)OidcClientProfile.FirstPartyInteractive)">@L["FirstPartyInteractive"]</option>
+                    <option value="@((int)OidcClientProfile.FirstPartyMachine)">@L["FirstPartyMachine"]</option>
+                </select>
+            </label>
+
+            <label class="admin-field" for="editor-scopes">
+                <span>@L["Scopes"]</span>
+                <textarea id="editor-scopes"
+                          rows="4"
+                          value="@ScopesText"
+                          @oninput="HandleScopesInput"
+                          placeholder="@L["ScopesPlaceholder"]"></textarea>
+                <small>@L["ScopesHelp"]</small>
+            </label>
+
+            @if (Profile == OidcClientProfile.FirstPartyInteractive)
+            {
+                <label class="admin-field" for="editor-redirect-uris">
+                    <span>@L["RedirectUris"]</span>
+                    <textarea id="editor-redirect-uris"
+                              rows="4"
+                              value="@RedirectUrisText"
+                              @oninput="HandleRedirectUrisInput"
+                              placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
+                </label>
+
+                <label class="admin-field" for="editor-post-logout-uris">
+                    <span>@L["PostLogoutRedirectUris"]</span>
+                    <textarea id="editor-post-logout-uris"
+                              rows="3"
+                              value="@PostLogoutRedirectUrisText"
+                              @oninput="HandlePostLogoutRedirectUrisInput"
+                              placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
+                </label>
+
+                <div class="admin-helper-card">
+                    <strong>@L["ProfileBehavior"]</strong>
+                    <p>@L["InteractiveProfileBehavior"]</p>
+                </div>
+            }
+            else
+            {
+                <label class="admin-field" for="editor-client-secret">
+                    <span>@L["ClientSecret"]</span>
+                    <input id="editor-client-secret"
+                           type="text"
+                           value="@ClientSecret"
+                           @oninput="HandleClientSecretInput"
+                           placeholder="@L["LeaveEmptyToAutoGenerate"]" />
+                </label>
+
+                <div class="admin-helper-card">
+                    <strong>@L["ProfileBehavior"]</strong>
+                    <p>@L["MachineProfileBehavior"]</p>
+                </div>
+            }
+        </div>
+    </ChildContent>
+
+    <Actions>
+        <button type="button" class="admin-ghost-button" @onclick="OnReset" disabled="@IsBusy">
+            @L["Reset"]
+        </button>
+        <button type="button" class="admin-primary-button" @onclick="OnSave" disabled="@IsBusy">
+            @(IsBusy ? L["Saving"] : IsEditing ? L["SaveChanges"] : L["RegisterClient"])
+        </button>
+    </Actions>
+</AdminDialogShell>
+
+@code {
+    private ElementReference _clientIdInput;
+    private ElementReference _displayNameInput;
+    private bool _focusPending;
+    private bool _wasOpen;
+
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string ClientId { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ClientIdChanged { get; set; }
+    [Parameter] public string ClientSecret { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ClientSecretChanged { get; set; }
+    [Parameter] public string DisplayName { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> DisplayNameChanged { get; set; }
+    [Parameter] public OidcClientProfile Profile { get; set; }
+    [Parameter] public EventCallback<OidcClientProfile> ProfileChanged { get; set; }
+    [Parameter] public string ScopesText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ScopesTextChanged { get; set; }
+    [Parameter] public string RedirectUrisText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> RedirectUrisTextChanged { get; set; }
+    [Parameter] public string PostLogoutRedirectUrisText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> PostLogoutRedirectUrisTextChanged { get; set; }
+    [Parameter] public IReadOnlyList<string> FormErrors { get; set; } = [];
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnReset { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    private string DialogLead => IsEditing ? L["EditClientLead"] : L["RegisterClientLead"];
+    private string DialogTitle => IsEditing ? L["EditClient"] : L["RegisterClient"];
+
+    protected override void OnParametersSet()
+    {
+        if (IsOpen && !_wasOpen)
+        {
+            _focusPending = true;
+        }
+
+        _wasOpen = IsOpen;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusPending || !IsOpen)
+        {
+            return;
+        }
+
+        _focusPending = false;
+
+        if (IsEditing)
+        {
+            await _displayNameInput.FocusAsync();
+            return;
+        }
+
+        await _clientIdInput.FocusAsync();
+    }
+
+    private Task HandleClientIdInput(ChangeEventArgs args) => ClientIdChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleClientSecretInput(ChangeEventArgs args) => ClientSecretChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleDisplayNameInput(ChangeEventArgs args) => DisplayNameChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandlePostLogoutRedirectUrisInput(ChangeEventArgs args) => PostLogoutRedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleRedirectUrisInput(ChangeEventArgs args) => RedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleScopesInput(ChangeEventArgs args) => ScopesTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleProfileChange(ChangeEventArgs args)
+    {
+        if (int.TryParse(args.Value?.ToString(), out var rawProfile) && Enum.IsDefined(typeof(OidcClientProfile), rawProfile))
+        {
+            return ProfileChanged.InvokeAsync((OidcClientProfile)rawProfile);
+        }
+
+        return Task.CompletedTask;
+    }
+}

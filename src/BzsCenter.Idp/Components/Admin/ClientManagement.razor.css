@@ -242,11 +242,6 @@
     font-family: var(--font-mono);
 }
 
-.admin-content-grid {
-    display: grid;
-    gap: 1rem;
-}
-
 .admin-panel {
     padding: 1.1rem;
 }
@@ -426,8 +421,7 @@
     padding-left: 1.2rem;
 }
 
-.client-card-actions,
-.admin-editor-actions {
+.client-card-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
@@ -458,16 +452,6 @@
         grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
-    .admin-content-grid {
-        grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 0.95fr);
-        align-items: start;
-    }
-
-    .admin-editor-panel {
-        position: sticky;
-        top: 5.4rem;
-    }
-
     .client-card-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
@@ -485,7 +469,6 @@
         padding: 1rem;
     }
 
-    .admin-editor-actions,
     .admin-hero-actions {
         width: 100%;
     }

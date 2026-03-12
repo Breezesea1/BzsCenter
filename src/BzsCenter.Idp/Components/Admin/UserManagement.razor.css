@@ -216,11 +216,6 @@
     color: #991b1b;
 }
 
-.admin-content-grid {
-    display: grid;
-    gap: 1rem;
-}
-
 .admin-panel {
     padding: 1.1rem;
 }
@@ -415,11 +410,6 @@
     color: var(--sidebar-text-muted);
 }
 
-.admin-form-grid {
-    display: grid;
-    gap: 1rem;
-}
-
 .admin-toggle-field {
     display: flex;
     gap: 0.85rem;
@@ -437,26 +427,9 @@
     accent-color: var(--accent-primary);
 }
 
-.admin-editor-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1.25rem;
-}
-
 @media (min-width: 860px) {
     .admin-stats-grid {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .admin-content-grid {
-        grid-template-columns: minmax(0, 1.45fr) minmax(22rem, 0.9fr);
-        align-items: start;
-    }
-
-    .admin-editor-panel {
-        position: sticky;
-        top: 5.4rem;
     }
 }
 
@@ -476,7 +449,6 @@
         min-width: 13rem;
     }
 
-    .admin-editor-actions,
     .admin-hero-actions {
         width: 100%;
     }

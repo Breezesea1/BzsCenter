@@ -1,4 +1,9 @@
 .admin-page-shell {
+    --admin-surface-radius: 1rem;
+    --admin-card-radius: 0.875rem;
+    --admin-control-radius: 0.75rem;
+    --admin-inline-radius: 0.4rem;
+
     display: grid;
     gap: 1.25rem;
 }
@@ -24,7 +29,7 @@
 .admin-stat-card,
 .admin-panel,
 .admin-feedback {
-    border-radius: 1.35rem;
+    border-radius: var(--admin-surface-radius);
 }
 
 .admin-loading-card {
@@ -118,7 +123,7 @@
     justify-content: center;
     min-height: 2.9rem;
     padding: 0.8rem 1.1rem;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
@@ -265,7 +270,7 @@
 .admin-search-field input,
 .admin-field input {
     min-height: 2.9rem;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
     background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
     padding: 0.75rem 0.95rem;
@@ -289,7 +294,7 @@
 .admin-table-shell {
     overflow-x: auto;
     border: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
-    border-radius: 1.15rem;
+    border-radius: var(--admin-card-radius);
 }
 
 .admin-table {
@@ -343,7 +348,7 @@
 .admin-avatar {
     width: 2.7rem;
     height: 2.7rem;
-    border-radius: 0.95rem;
+    border-radius: var(--admin-control-radius);
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -392,7 +397,7 @@
 
 .admin-inline-code {
     padding: 0.1rem 0.35rem;
-    border-radius: 0.45rem;
+    border-radius: var(--admin-inline-radius);
     background: color-mix(in srgb, var(--sidebar-bg) 70%, transparent);
 }
 
@@ -420,7 +425,7 @@
     gap: 0.85rem;
     align-items: flex-start;
     padding: 1rem;
-    border-radius: 1rem;
+    border-radius: var(--admin-card-radius);
     border: 1px solid color-mix(in srgb, var(--border-default) 82%, transparent);
     background: color-mix(in srgb, var(--sidebar-bg) 55%, transparent);
 }

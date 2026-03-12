@@ -40,7 +40,7 @@ else
                 <button type="button" class="admin-ghost-button" @onclick="LoadUsersAsync" disabled="@_isBusy">
                     @L["Refresh"]
                 </button>
-                <button type="button" class="admin-primary-button" @onclick="BeginCreate">
+                <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
                     @L["NewUser"]
                 </button>
             </div>
@@ -71,142 +71,99 @@ else
             <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">@_statusMessage</div>
         }
 
-        <div class="admin-content-grid">
-            <section class="admin-panel admin-list-panel">
-                <div class="admin-panel-header">
-                    <div>
-                        <h2>@L["Accounts"]</h2>
-                        <p>@L["AccountsLead"]</p>
-                    </div>
-
-                    <label class="admin-search-field" for="user-search">
-                        <span>@L["Search"]</span>
-                        <input id="user-search"
-                               type="search"
-                               placeholder="@L["SearchPlaceholder"]"
-                               value="@_searchTerm"
-                               @oninput="HandleSearchInput" />
-                    </label>
+        <section class="admin-panel admin-list-panel">
+            <div class="admin-panel-header">
+                <div>
+                    <h2>@L["Accounts"]</h2>
+                    <p>@L["AccountsLead"]</p>
                 </div>
 
-                <div class="admin-table-shell">
-                    <table class="admin-table">
-                        <thead>
+                <label class="admin-search-field" for="user-search">
+                    <span>@L["Search"]</span>
+                    <input id="user-search"
+                           type="search"
+                           placeholder="@L["SearchPlaceholder"]"
+                           value="@_searchTerm"
+                           @oninput="HandleSearchInput" />
+                </label>
+            </div>
+
+            <div class="admin-table-shell">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@L["User"]</th>
+                            <th>@L["Role"]</th>
+                            <th>@L["Email"]</th>
+                            <th>@L["Identifier"]</th>
+                            <th class="admin-actions-column">@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_filteredUsers.Count == 0)
+                        {
                             <tr>
-                                <th>@L["User"]</th>
-                                <th>@L["Role"]</th>
-                                <th>@L["Email"]</th>
-                                <th>@L["Identifier"]</th>
-                                <th class="admin-actions-column">@L["Actions"]</th>
+                                <td colspan="5">
+                                    <div class="admin-empty-state">
+                                        <strong>@L["NoMatchingUsers"]</strong>
+                                        <p>@L["NoMatchingUsersLead"]</p>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @if (_filteredUsers.Count == 0)
+                        }
+                        else
+                        {
+                            @foreach (var user in _filteredUsers)
                             {
                                 <tr>
-                                    <td colspan="5">
-                                        <div class="admin-empty-state">
-                                            <strong>@L["NoMatchingUsers"]</strong>
-                                            <p>@L["NoMatchingUsersLead"]</p>
+                                    <td>
+                                        <div class="admin-user-cell">
+                                            <span class="admin-avatar" aria-hidden="true">@GetInitial(user.UserName)</span>
+                                            <div>
+                                                <strong>@user.UserName</strong>
+                                                <span>@(user.Id == _currentUserId ? L["CurrentSession"] : L["ManagedAccount"])</span>
+                                            </div>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <span class="admin-badge @(user.IsAdmin ? "is-admin" : "is-standard")">
+                                            @(user.IsAdmin ? L["Admin"] : L["User"])
+                                        </span>
+                                    </td>
+                                    <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
+                                    <td class="admin-mono">@user.Id</td>
+                                    <td class="admin-actions-column">
+                                        <button type="button" class="admin-row-button" @onclick="() => BeginEdit(user)">@L["Edit"]</button>
+                                        <button type="button"
+                                                class="admin-row-button danger"
+                                                @onclick="() => DeleteUserAsync(user)"
+                                                disabled="@(user.Id == _currentUserId || _isBusy)">
+                                            @L["Delete"]
+                                        </button>
                                     </td>
                                 </tr>
                             }
-                            else
-                            {
-                                @foreach (var user in _filteredUsers)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="admin-user-cell">
-                                                <span class="admin-avatar" aria-hidden="true">@GetInitial(user.UserName)</span>
-                                                <div>
-                                                    <strong>@user.UserName</strong>
-                                                    <span>@(user.Id == _currentUserId ? L["CurrentSession"] : L["ManagedAccount"])</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <span class="admin-badge @(user.IsAdmin ? "is-admin" : "is-standard")">
-                                                @(user.IsAdmin ? L["Admin"] : L["User"])
-                                            </span>
-                                        </td>
-                                        <td>@(string.IsNullOrWhiteSpace(user.Email) ? "-" : user.Email)</td>
-                                        <td class="admin-mono">@user.Id</td>
-                                        <td class="admin-actions-column">
-                                            <button type="button" class="admin-row-button" @onclick="() => BeginEdit(user)">@L["Edit"]</button>
-                                            <button type="button"
-                                                    class="admin-row-button danger"
-                                                    @onclick="() => DeleteUserAsync(user)"
-                                                    disabled="@(user.Id == _currentUserId || _isBusy)">
-                                                @L["Delete"]
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </section>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <aside class="admin-panel admin-editor-panel">
-                <div class="admin-panel-header compact">
-                    <div>
-                        <h2>@(_isEditing ? L["EditUser"] : L["CreateUser"])</h2>
-                        <p>@(_isEditing ? L["EditUserLead"] : L["CreateUserLead"])</p>
-                    </div>
-                </div>
-
-                @if (_formErrors.Count > 0)
-                {
-                    <div class="admin-feedback is-error">
-                        <strong>@L["CouldNotSaveUser"]</strong>
-                        <ul>
-                            @foreach (var error in _formErrors)
-                            {
-                                <li>@error</li>
-                            }
-                        </ul>
-                    </div>
-                }
-
-                <div class="admin-form-grid">
-                    <label class="admin-field" for="editor-user-name">
-                        <span>@L["UserName"]</span>
-                        <input id="editor-user-name" type="text" @bind="_editor.UserName" @bind:event="oninput" />
-                    </label>
-
-                    <label class="admin-field" for="editor-email">
-                        <span>@L["Email"]</span>
-                        <input id="editor-email" type="email" @bind="_editor.Email" @bind:event="oninput" />
-                    </label>
-
-                    <label class="admin-field" for="editor-password">
-                        <span>@(_isEditing ? L["NewPassword"] : L["Password"])</span>
-                        <input id="editor-password" type="password" @bind="_editor.Password" @bind:event="oninput" />
-                        <small>@(_isEditing ? L["LeavePasswordBlankHelp"] : L["PasswordPolicyHelp"])</small>
-                    </label>
-
-                    <label class="admin-toggle-field" for="editor-admin-role">
-                        <input id="editor-admin-role" type="checkbox" @bind="_editor.IsAdmin" />
-                        <div>
-                            <strong>@L["AdministratorAccess"]</strong>
-                            <span>@L["AdministratorAccessLead"]</span>
-                        </div>
-                    </label>
-                </div>
-
-                <div class="admin-editor-actions">
-                    <button type="button" class="admin-ghost-button" @onclick="ResetEditor" disabled="@_isBusy">
-                        @L["Reset"]
-                    </button>
-                    <button type="button" class="admin-primary-button" @onclick="SaveAsync" disabled="@_isBusy">
-                        @(_isBusy ? L["Saving"] : _isEditing ? L["SaveChanges"] : L["CreateUser"])
-                    </button>
-                </div>
-            </aside>
-        </div>
+        <UserManagementDialog IsOpen="@_isEditorOpen"
+                              IsEditing="@_isEditing"
+                              IsBusy="@_isBusy"
+                              UserName="@_editor.UserName"
+                              UserNameChanged="HandleUserNameChanged"
+                              Email="@_editor.Email"
+                              EmailChanged="HandleEmailChanged"
+                              Password="@_editor.Password"
+                              PasswordChanged="HandlePasswordChanged"
+                              IsAdmin="@_editor.IsAdmin"
+                              IsAdminChanged="HandleIsAdminChanged"
+                              FormErrors="@_formErrors"
+                              OnClose="CloseEditor"
+                              OnReset="ResetEditor"
+                              OnSave="SaveAsync" />
     </section>
 }
 
@@ -220,6 +177,7 @@ else
     private bool _hasAccess;
     private bool _isBusy;
     private bool _isEditing;
+    private bool _isEditorOpen;
     private string _searchTerm = string.Empty;
     private string? _statusMessage;
     private bool _statusIsError;
@@ -313,15 +271,15 @@ else
 
     private void BeginCreate()
     {
-        _isEditing = false;
-        _editor = new UserEditor();
-        _formErrors.Clear();
+        ResetEditorState();
+        _isEditorOpen = true;
         ClearStatus();
     }
 
     private void BeginEdit(UserRow user)
     {
         _isEditing = true;
+        _isEditorOpen = true;
         _editor = new UserEditor
         {
             Id = user.Id,
@@ -346,6 +304,17 @@ else
         }
 
         BeginCreate();
+    }
+
+    private void CloseEditor()
+    {
+        if (_isBusy)
+        {
+            return;
+        }
+
+        _isEditorOpen = false;
+        ResetEditorState();
     }
 
     private async Task SaveAsync()
@@ -409,6 +378,7 @@ else
                 ? L["UpdatedUserStatus", _editor.UserName.Trim()].Value
                 : L["CreatedUserStatus", _editor.UserName.Trim()].Value;
             _statusIsError = false;
+            _isEditorOpen = false;
             _isEditing = false;
             _editor = new UserEditor();
             _formErrors.Clear();
@@ -448,7 +418,8 @@ else
 
             if (_editor.Id == user.Id)
             {
-                BeginCreate();
+                _isEditorOpen = false;
+                ResetEditorState();
             }
         }
         finally
@@ -563,6 +534,13 @@ else
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
+    private void ResetEditorState()
+    {
+        _isEditing = false;
+        _editor = new UserEditor();
+        _formErrors.Clear();
+    }
+
     private void ClearStatus()
     {
         _statusMessage = null;
@@ -590,5 +568,29 @@ else
     {
         _searchTerm = args.Value?.ToString() ?? string.Empty;
         ApplyFilter();
+    }
+
+    private Task HandleUserNameChanged(string value)
+    {
+        _editor.UserName = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleEmailChanged(string? value)
+    {
+        _editor.Email = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandlePasswordChanged(string value)
+    {
+        _editor.Password = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleIsAdminChanged(bool value)
+    {
+        _editor.IsAdmin = value;
+        return Task.CompletedTask;
     }
 }

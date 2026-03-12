@@ -138,7 +138,6 @@
     .layout-main {
         border-top-left-radius: 1rem;
         overflow: hidden;
-        box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
     }
 
     .layout-topbar {

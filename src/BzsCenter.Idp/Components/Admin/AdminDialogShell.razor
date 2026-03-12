@@ -1,0 +1,71 @@
+@using Microsoft.AspNetCore.Components.Web
+
+@if (IsOpen)
+{
+    <div class="admin-dialog-backdrop" @onclick="HandleBackdropClick">
+        <div class="admin-dialog-shell"
+             role="dialog"
+             aria-modal="true"
+             aria-labelledby="@TitleId"
+             tabindex="-1"
+             @onclick:stopPropagation="true"
+             @onkeydown="HandleKeyDown">
+            <div class="admin-dialog-header">
+                <div class="admin-panel-header compact admin-dialog-heading">
+                    <div>
+                        <h2 id="@TitleId">@Title</h2>
+                        <p>@Lead</p>
+                    </div>
+                </div>
+
+                <button type="button" class="admin-dialog-close" @onclick="OnClose" disabled="@IsBusy" aria-label="@CloseLabel">
+                    x
+                </button>
+            </div>
+
+            <div class="admin-dialog-body">
+                @ChildContent
+            </div>
+
+            @if (Actions is not null)
+            {
+                <div class="admin-editor-actions admin-dialog-actions">
+                    @Actions
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    private readonly string TitleId = $"admin-dialog-title-{Guid.NewGuid():N}";
+
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string Title { get; set; } = string.Empty;
+    [Parameter] public string Lead { get; set; } = string.Empty;
+    [Parameter] public string CloseLabel { get; set; } = "Close dialog";
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    private Task HandleKeyDown(KeyboardEventArgs args)
+    {
+        if (!IsBusy && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        {
+            return OnClose.InvokeAsync();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private Task HandleBackdropClick()
+    {
+        if (IsBusy)
+        {
+            return Task.CompletedTask;
+        }
+
+        return OnClose.InvokeAsync();
+    }
+}

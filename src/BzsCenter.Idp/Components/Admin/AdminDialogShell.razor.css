@@ -1,0 +1,281 @@
+.admin-dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 1.5rem;
+    background: rgba(15, 23, 42, 0.56);
+    backdrop-filter: blur(10px);
+}
+
+.admin-dialog-shell {
+    width: min(100%, 46rem);
+    max-height: calc(100dvh - 3rem);
+    overflow: auto;
+    border: 1px solid color-mix(in srgb, var(--border-default) 84%, transparent);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface-elevated) 97%, transparent);
+    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
+    outline: none;
+}
+
+.admin-dialog-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.2rem 1.2rem 0;
+}
+
+.admin-dialog-heading,
+.admin-dialog-heading.compact {
+    margin-bottom: 0;
+}
+
+.admin-dialog-close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    min-width: 2.75rem;
+    height: 2.75rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
+    border-radius: 0.75rem;
+    background: transparent;
+    color: var(--app-text);
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.admin-dialog-close:hover {
+    background: color-mix(in srgb, var(--sidebar-bg) 46%, transparent);
+}
+
+.admin-dialog-close:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.admin-dialog-body {
+    padding: 1.2rem;
+}
+
+::deep .admin-feedback {
+    margin: 0 0 1rem;
+    padding: 1rem 1.15rem;
+    border: 1px solid transparent;
+    border-radius: 1rem;
+    font-size: 0.92rem;
+    line-height: 1.65;
+}
+
+::deep .admin-feedback ul {
+    margin: 0.75rem 0 0;
+    padding-left: 1.2rem;
+}
+
+::deep .admin-feedback.is-error {
+    background: color-mix(in srgb, #fee2e2 82%, transparent);
+    border-color: color-mix(in srgb, #ef4444 24%, transparent);
+    color: #991b1b;
+}
+
+::deep .admin-panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+::deep .admin-panel-header.compact {
+    margin-bottom: 1.2rem;
+}
+
+::deep .admin-panel-header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--app-text);
+}
+
+::deep .admin-panel-header p {
+    margin: 0.45rem 0 0;
+    max-width: 32rem;
+    color: color-mix(in srgb, var(--app-text) 66%, transparent);
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+::deep .admin-form-grid {
+    display: grid;
+    gap: 1rem;
+}
+
+::deep .admin-field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+::deep .admin-field span {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--sidebar-text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+::deep .admin-field input,
+::deep .admin-field select,
+::deep .admin-field textarea {
+    min-height: 2.9rem;
+    border-radius: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
+    background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+    padding: 0.75rem 0.95rem;
+    color: var(--app-text);
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    resize: vertical;
+}
+
+::deep .admin-field input:focus,
+::deep .admin-field select:focus,
+::deep .admin-field textarea:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+}
+
+::deep .admin-field small {
+    color: var(--sidebar-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+::deep .admin-helper-card {
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
+    border-radius: 0.875rem;
+    background: color-mix(in srgb, var(--sidebar-bg) 56%, transparent);
+}
+
+::deep .admin-helper-card strong,
+::deep .admin-toggle-field strong {
+    display: block;
+    color: var(--app-text);
+}
+
+::deep .admin-helper-card p {
+    margin: 0.4rem 0 0;
+    color: color-mix(in srgb, var(--app-text) 72%, transparent);
+    line-height: 1.6;
+}
+
+::deep .admin-toggle-field {
+    display: flex;
+    gap: 0.85rem;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 0.875rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 82%, transparent);
+    background: color-mix(in srgb, var(--sidebar-bg) 55%, transparent);
+}
+
+::deep .admin-toggle-field input {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
+    accent-color: var(--accent-primary);
+}
+
+::deep .admin-toggle-field span {
+    color: var(--sidebar-text-muted);
+    font-size: 0.84rem;
+}
+
+.admin-editor-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.admin-dialog-actions {
+    justify-content: flex-end;
+    padding: 0 1.2rem 1.2rem;
+}
+
+::deep .admin-primary-button,
+::deep .admin-ghost-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.9rem;
+    padding: 0.8rem 1.1rem;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+}
+
+::deep .admin-primary-button {
+    border: 1px solid var(--sidebar-text);
+    background: var(--sidebar-text);
+    color: var(--sidebar-bg);
+}
+
+::deep .admin-ghost-button {
+    border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
+    background: transparent;
+    color: var(--app-text);
+}
+
+::deep .admin-primary-button:hover,
+::deep .admin-ghost-button:hover {
+    transform: translateY(-1px);
+}
+
+::deep .admin-primary-button:disabled,
+::deep .admin-ghost-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 640.98px) {
+    .admin-dialog-backdrop {
+        padding: 0.75rem;
+    }
+
+    .admin-dialog-shell {
+        max-height: calc(100dvh - 1.5rem);
+    }
+
+    .admin-dialog-header,
+    .admin-dialog-body,
+    .admin-dialog-actions {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .admin-dialog-actions {
+        width: 100%;
+    }
+
+    ::deep .admin-primary-button,
+    ::deep .admin-ghost-button {
+        flex: 1 1 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .admin-dialog-close,
+    ::deep .admin-primary-button,
+    ::deep .admin-ghost-button,
+    ::deep .admin-field input,
+    ::deep .admin-field select,
+    ::deep .admin-field textarea {
+        transition: none;
+    }
+}

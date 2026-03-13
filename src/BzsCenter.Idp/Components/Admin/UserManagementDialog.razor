@@ -7,6 +7,7 @@
                   Title="@DialogTitle"
                   Lead="@DialogLead"
                   CloseLabel="@L["Close"]"
+                  InitialFocusSelector="@InitialFocusSelector"
                   OnClose="OnClose">
     <ChildContent>
         @if (FormErrors.Count > 0)
@@ -25,17 +26,38 @@
         <div class="admin-form-grid">
             <label class="admin-field" for="editor-user-name">
                 <span>@L["UserName"]</span>
-                <input id="editor-user-name" type="text" @ref="_userNameInput" value="@UserName" @oninput="HandleUserNameInput" />
+                <input id="editor-user-name"
+                       type="text"
+                       value="@UserName"
+                       @oninput="HandleUserNameInput"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
             </label>
 
             <label class="admin-field" for="editor-email">
                 <span>@L["Email"]</span>
-                <input id="editor-email" type="email" value="@Email" @oninput="HandleEmailInput" />
+                <input id="editor-email"
+                       type="email"
+                       value="@Email"
+                       @oninput="HandleEmailInput"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
             </label>
 
             <label class="admin-field" for="editor-password">
                 <span>@(IsEditing ? L["NewPassword"] : L["Password"])</span>
-                <input id="editor-password" type="password" value="@Password" @oninput="HandlePasswordInput" />
+                <input id="editor-password"
+                       type="password"
+                       value="@Password"
+                       @oninput="HandlePasswordInput"
+                       autocomplete="new-password"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
                 <small>@(IsEditing ? L["LeavePasswordBlankHelp"] : L["PasswordPolicyHelp"])</small>
             </label>
 
@@ -60,10 +82,6 @@
 </AdminDialogShell>
 
 @code {
-    private ElementReference _userNameInput;
-    private bool _focusPending;
-    private bool _wasOpen;
-
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public bool IsEditing { get; set; }
     [Parameter] public bool IsBusy { get; set; }
@@ -81,28 +99,8 @@
     [Parameter] public EventCallback OnSave { get; set; }
 
     private string DialogLead => IsEditing ? L["EditUserLead"] : L["CreateUserLead"];
+    private string InitialFocusSelector => "#editor-user-name";
     private string DialogTitle => IsEditing ? L["EditUser"] : L["CreateUser"];
-
-    protected override void OnParametersSet()
-    {
-        if (IsOpen && !_wasOpen)
-        {
-            _focusPending = true;
-        }
-
-        _wasOpen = IsOpen;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!_focusPending || !IsOpen)
-        {
-            return;
-        }
-
-        _focusPending = false;
-        await _userNameInput.FocusAsync();
-    }
 
     private Task HandleEmailInput(ChangeEventArgs args) => EmailChanged.InvokeAsync(args.Value?.ToString());
 

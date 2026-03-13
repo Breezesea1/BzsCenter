@@ -8,6 +8,7 @@
                   Title="@DialogTitle"
                   Lead="@DialogLead"
                   CloseLabel="@L["Close"]"
+                  InitialFocusSelector="@InitialFocusSelector"
                   OnClose="OnClose">
     <ChildContent>
         @if (FormErrors.Count > 0)
@@ -28,21 +29,34 @@
                 <span>@L["ClientId"]</span>
                 <input id="editor-client-id"
                        type="text"
-                       @ref="_clientIdInput"
                        value="@ClientId"
                        @oninput="HandleClientIdInput"
                        disabled="@IsEditing"
-                       placeholder="@L["LeaveEmptyToAutoGenerate"]" />
+                       placeholder="@L["LeaveEmptyToAutoGenerate"]"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
             </label>
 
             <label class="admin-field" for="editor-display-name">
                 <span>@L["DisplayName"]</span>
-                <input id="editor-display-name" type="text" @ref="_displayNameInput" value="@DisplayName" @oninput="HandleDisplayNameInput" />
+                <input id="editor-display-name"
+                       type="text"
+                       value="@DisplayName"
+                       @oninput="HandleDisplayNameInput"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
             </label>
 
             <label class="admin-field" for="editor-profile">
                 <span>@L["Profile"]</span>
-                <select id="editor-profile" value="@((int)Profile)" @onchange="HandleProfileChange">
+                <select id="editor-profile"
+                        value="@((int)Profile)"
+                        @onchange="HandleProfileChange"
+                        autocomplete="off">
                     <option value="@((int)OidcClientProfile.FirstPartyInteractive)">@L["FirstPartyInteractive"]</option>
                     <option value="@((int)OidcClientProfile.FirstPartyMachine)">@L["FirstPartyMachine"]</option>
                 </select>
@@ -54,7 +68,11 @@
                           rows="4"
                           value="@ScopesText"
                           @oninput="HandleScopesInput"
-                          placeholder="@L["ScopesPlaceholder"]"></textarea>
+                          placeholder="@L["ScopesPlaceholder"]"
+                          autocomplete="off"
+                          autocapitalize="off"
+                          autocorrect="off"
+                          spellcheck="false"></textarea>
                 <small>@L["ScopesHelp"]</small>
             </label>
 
@@ -66,7 +84,11 @@
                               rows="4"
                               value="@RedirectUrisText"
                               @oninput="HandleRedirectUrisInput"
-                              placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
+                              placeholder="@L["RedirectUrisPlaceholder"]"
+                              autocomplete="off"
+                              autocapitalize="off"
+                              autocorrect="off"
+                              spellcheck="false"></textarea>
                 </label>
 
                 <label class="admin-field" for="editor-post-logout-uris">
@@ -75,7 +97,11 @@
                               rows="3"
                               value="@PostLogoutRedirectUrisText"
                               @oninput="HandlePostLogoutRedirectUrisInput"
-                              placeholder="@L["RedirectUrisPlaceholder"]"></textarea>
+                              placeholder="@L["RedirectUrisPlaceholder"]"
+                              autocomplete="off"
+                              autocapitalize="off"
+                              autocorrect="off"
+                              spellcheck="false"></textarea>
                 </label>
 
                 <div class="admin-helper-card">
@@ -91,7 +117,11 @@
                            type="text"
                            value="@ClientSecret"
                            @oninput="HandleClientSecretInput"
-                           placeholder="@L["LeaveEmptyToAutoGenerate"]" />
+                           placeholder="@L["LeaveEmptyToAutoGenerate"]"
+                           autocomplete="new-password"
+                           autocapitalize="off"
+                           autocorrect="off"
+                           spellcheck="false" />
                 </label>
 
                 <div class="admin-helper-card">
@@ -113,11 +143,6 @@
 </AdminDialogShell>
 
 @code {
-    private ElementReference _clientIdInput;
-    private ElementReference _displayNameInput;
-    private bool _focusPending;
-    private bool _wasOpen;
-
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public bool IsEditing { get; set; }
     [Parameter] public bool IsBusy { get; set; }
@@ -141,35 +166,8 @@
     [Parameter] public EventCallback OnSave { get; set; }
 
     private string DialogLead => IsEditing ? L["EditClientLead"] : L["RegisterClientLead"];
+    private string InitialFocusSelector => IsEditing ? "#editor-display-name" : "#editor-client-id";
     private string DialogTitle => IsEditing ? L["EditClient"] : L["RegisterClient"];
-
-    protected override void OnParametersSet()
-    {
-        if (IsOpen && !_wasOpen)
-        {
-            _focusPending = true;
-        }
-
-        _wasOpen = IsOpen;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (!_focusPending || !IsOpen)
-        {
-            return;
-        }
-
-        _focusPending = false;
-
-        if (IsEditing)
-        {
-            await _displayNameInput.FocusAsync();
-            return;
-        }
-
-        await _clientIdInput.FocusAsync();
-    }
 
     private Task HandleClientIdInput(ChangeEventArgs args) => ClientIdChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 

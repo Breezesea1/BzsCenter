@@ -83,83 +83,104 @@ else
         }
 
         <section class="admin-panel admin-list-panel">
-            <div class="admin-panel-header">
+            <div class="admin-panel-header admin-grid-toolbar">
                 <div>
                     <h2>@L["RegisteredClients"]</h2>
                     <p>@L["RegisteredClientsLead"]</p>
                 </div>
 
-                <label class="admin-search-field" for="client-search">
-                    <span>@L["Search"]</span>
-                    <input id="client-search"
-                           type="search"
-                           placeholder="@L["SearchPlaceholder"]"
-                           value="@_searchTerm"
-                           @oninput="HandleSearchInput"
-                           autocomplete="off"
-                           autocapitalize="off"
-                           autocorrect="off"
-                           spellcheck="false" />
-                </label>
+                <div class="admin-grid-toolbar-actions">
+                    <label class="admin-search-field" for="client-search">
+                        <span>@L["Search"]</span>
+                        <input id="client-search"
+                               type="search"
+                               placeholder="@L["SearchPlaceholder"]"
+                               value="@_searchTerm"
+                               @oninput="HandleSearchInput"
+                               autocomplete="off"
+                               autocapitalize="off"
+                               autocorrect="off"
+                               spellcheck="false" />
+                    </label>
+
+                    <label class="admin-page-size-field" for="client-page-size">
+                        <span>@L["RowsPerPage"]</span>
+                        <select id="client-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
+                            @foreach (var option in PageSizeOptions)
+                            {
+                                <option value="@option">@option</option>
+                            }
+                        </select>
+                    </label>
+                </div>
             </div>
 
-            <div class="client-card-grid">
-                @if (_filteredClients.Count == 0)
-                {
-                    <div class="admin-empty-state panel-empty-state">
-                        <strong>@L["NoMatchingClients"]</strong>
-                        <p>@L["NoMatchingClientsLead"]</p>
-                    </div>
-                }
-                else
-                {
-                    @foreach (var client in _filteredClients)
-                    {
-                        <article class="client-card">
-                            <div class="client-card-top">
-                                <div>
-                                    <span class="admin-badge @(client.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
-                                        @FormatProfile(client.Profile)
-                                    </span>
-                                    <h3>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</h3>
+            <div class="admin-grid-meta" aria-live="polite">
+                <span>@FilteredSummary</span>
+                <span>@PageSummary</span>
+            </div>
+
+            @if (_filteredClients.Count == 0)
+            {
+                <div class="admin-empty-state panel-empty-state">
+                    <strong>@L["NoMatchingClients"]</strong>
+                    <p>@L["NoMatchingClientsLead"]</p>
+                </div>
+            }
+            else
+            {
+                <div class="admin-table-shell admin-table-region" tabindex="-1">
+                    <QuickGrid Items="@VisibleClients"
+                               Class="admin-table admin-quickgrid"
+                               ItemKey="@(client => client.ClientId)">
+                        <TemplateColumn Title="@L["Client"]">
+                            <div class="admin-client-primary-cell">
+                                <strong>@(string.IsNullOrWhiteSpace(context.DisplayName) ? context.ClientId : context.DisplayName)</strong>
+                                <div class="admin-client-secondary-line">
+                                    <span class="admin-inline-code">@context.ClientId</span>
                                 </div>
-                                <code>@client.ClientId</code>
                             </div>
+                        </TemplateColumn>
 
-                            <dl class="client-meta-grid">
-                                <div>
-                                    <dt>@L["GrantTypes"]</dt>
-                                    <dd>@string.Join(", ", client.GrantTypes)</dd>
-                                </div>
-                                <div>
-                                    <dt>@L["Scopes"]</dt>
-                                    <dd>@(client.Scopes.Length == 0 ? "-" : string.Join(", ", client.Scopes))</dd>
-                                </div>
-                            </dl>
+                        <TemplateColumn Title="@L["Profile"]">
+                            <span class="admin-badge @(context.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
+                                @FormatProfile(context.Profile)
+                            </span>
+                        </TemplateColumn>
 
-                            @if (client.RedirectUris.Length > 0)
-                            {
-                                <div class="client-uri-block">
-                                    <strong>@L["RedirectUris"]</strong>
-                                    <ul>
-                                        @foreach (var uri in client.RedirectUris)
-                                        {
-                                            <li>@uri</li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
+                        <TemplateColumn Title="@L["GrantTypes"]">
+                            <span class="admin-cell-summary">@FormatCollectionPreview(context.GrantTypes)</span>
+                        </TemplateColumn>
 
-                            <div class="client-card-actions">
-                                <button type="button" class="admin-row-button" @onclick="() => BeginEdit(client)">@L["Edit"]</button>
-                                <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(client.ClientId)" disabled="@_isBusy">
+                        <TemplateColumn Title="@L["Scopes"]">
+                            <span class="admin-cell-summary">@FormatCollectionPreview(context.Scopes)</span>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@L["RedirectUris"]">
+                            <span class="admin-cell-summary">@FormatUriPreview(context)</span>
+                        </TemplateColumn>
+
+                        <TemplateColumn Title="@L["Actions"]" Align="Align.End">
+                            <div class="admin-actions-column">
+                                <button type="button" class="admin-row-button" @onclick="() => BeginEdit(context)">@L["Edit"]</button>
+                                <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(context.ClientId)" disabled="@_isBusy">
                                     @L["Delete"]
                                 </button>
                             </div>
-                        </article>
-                    }
-                }
-            </div>
+                        </TemplateColumn>
+                    </QuickGrid>
+                </div>
+
+                <div class="admin-pagination-bar">
+                    <button type="button" class="admin-ghost-button" @onclick="GoToPreviousPage" disabled="@(!CanGoToPreviousPage)">
+                        @L["PreviousPage"]
+                    </button>
+                    <span class="admin-pagination-status">@L["PageIndicator", _currentPage, TotalPages]</span>
+                    <button type="button" class="admin-ghost-button" @onclick="GoToNextPage" disabled="@(!CanGoToNextPage)">
+                        @L["NextPage"]
+                    </button>
+                </div>
+            }
         </section>
 
         <ClientManagementDialog IsOpen="@_isEditorOpen"
@@ -189,13 +210,17 @@ else
 @code {
     private readonly List<OidcClientResponse> _clients = [];
     private readonly List<OidcClientResponse> _filteredClients = [];
+    private readonly List<OidcClientResponse> _visibleClients = [];
     private readonly List<string> _formErrors = [];
+    private static readonly int[] PageSizeOptions = [10, 20, 50];
 
     private ClientEditor _editor = CreateDefaultEditor();
     private bool _hasAccess;
     private bool _isBusy;
     private bool _isEditing;
     private bool _isEditorOpen;
+    private int _currentPage = 1;
+    private int _pageSize = 10;
     private string _searchTerm = string.Empty;
     private string? _generatedClientSecret;
     private string? _statusMessage;
@@ -203,6 +228,18 @@ else
 
     private int InteractiveCount => _clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyInteractive);
     private int MachineCount => _clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyMachine);
+    private bool CanGoToNextPage => _currentPage < TotalPages;
+    private bool CanGoToPreviousPage => _currentPage > 1;
+    private string FilteredSummary => _filteredClients.Count == 0
+        ? L["SearchResultSummaryEmpty"].Value
+        : L["SearchResultSummary", _filteredClients.Count].Value;
+    private string PageSummary => _filteredClients.Count == 0
+        ? L["PageSummaryEmpty"].Value
+        : L["PageSummary", PageStartIndex, PageEndIndex, _filteredClients.Count].Value;
+    private int PageEndIndex => Math.Min(_filteredClients.Count, ((_currentPage - 1) * _pageSize) + _visibleClients.Count);
+    private int PageStartIndex => _filteredClients.Count == 0 ? 0 : ((_currentPage - 1) * _pageSize) + 1;
+    private int TotalPages => Math.Max(1, (int)Math.Ceiling(_filteredClients.Count / (double)_pageSize));
+    private IQueryable<OidcClientResponse> VisibleClients => _visibleClients.AsQueryable();
 
     protected override async Task OnInitializedAsync()
     {
@@ -262,13 +299,42 @@ else
         if (!string.IsNullOrWhiteSpace(_searchTerm))
         {
             var searchTerm = _searchTerm.Trim();
-            query = query.Where(client =>
-                client.ClientId.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                (!string.IsNullOrWhiteSpace(client.DisplayName) &&
-                 client.DisplayName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)));
+            query = query
+                .Select(client => new
+                {
+                    Client = client,
+                    Score = AdminTableSearch.Score(
+                        searchTerm,
+                        client.ClientId,
+                        client.DisplayName,
+                        FormatProfile(client.Profile),
+                        string.Join(' ', client.GrantTypes),
+                        string.Join(' ', client.Scopes),
+                        string.Join(' ', client.RedirectUris),
+                        string.Join(' ', client.PostLogoutRedirectUris))
+                })
+                .Where(static result => result.Score.HasValue)
+                .OrderBy(static result => result.Score)
+                .ThenBy(static result => result.Client.DisplayName ?? result.Client.ClientId, StringComparer.OrdinalIgnoreCase)
+                .Select(static result => result.Client);
         }
 
         _filteredClients.AddRange(query);
+        UpdateVisibleClients(resetPage: true);
+    }
+
+    private void UpdateVisibleClients(bool resetPage = false)
+    {
+        if (resetPage)
+        {
+            _currentPage = 1;
+        }
+
+        _currentPage = Math.Clamp(_currentPage, 1, TotalPages);
+        _visibleClients.Clear();
+        _visibleClients.AddRange(_filteredClients
+            .Skip((_currentPage - 1) * _pageSize)
+            .Take(_pageSize));
     }
 
     private void BeginCreate()
@@ -538,6 +604,31 @@ else
         };
     }
 
+    private string FormatCollectionPreview(IReadOnlyList<string> values)
+    {
+        if (values.Count == 0)
+        {
+            return "-";
+        }
+
+        const int previewCount = 2;
+        var preview = string.Join(", ", values.Take(previewCount));
+        return values.Count <= previewCount
+            ? preview
+            : $"{preview} +{values.Count - previewCount}";
+    }
+
+    private string FormatUriPreview(OidcClientResponse client)
+    {
+        if (client.RedirectUris.Length == 0 && client.PostLogoutRedirectUris.Length == 0)
+        {
+            return "-";
+        }
+
+        var uris = client.RedirectUris.Length > 0 ? client.RedirectUris : client.PostLogoutRedirectUris;
+        return FormatCollectionPreview(uris);
+    }
+
     private static ClientEditor CreateDefaultEditor()
     {
         return new ClientEditor
@@ -564,6 +655,39 @@ else
     {
         _searchTerm = args.Value?.ToString() ?? string.Empty;
         ApplyFilter();
+    }
+
+    private void HandlePageSizeChange(ChangeEventArgs args)
+    {
+        if (!int.TryParse(args.Value?.ToString(), out var pageSize) || pageSize <= 0)
+        {
+            return;
+        }
+
+        _pageSize = pageSize;
+        UpdateVisibleClients(resetPage: true);
+    }
+
+    private void GoToNextPage()
+    {
+        if (!CanGoToNextPage)
+        {
+            return;
+        }
+
+        _currentPage++;
+        UpdateVisibleClients();
+    }
+
+    private void GoToPreviousPage()
+    {
+        if (!CanGoToPreviousPage)
+        {
+            return;
+        }
+
+        _currentPage--;
+        UpdateVisibleClients();
     }
 
     private Task HandleClientIdChanged(string value)

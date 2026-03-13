@@ -24,6 +24,15 @@
   <data name="RegisteredClientsLead" xml:space="preserve"><value>Review profiles, scopes, and redirect behavior before shipping integrations.</value></data>
   <data name="Search" xml:space="preserve"><value>Search</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search by client id or display name</value></data>
+  <data name="RowsPerPage" xml:space="preserve"><value>Rows per page</value></data>
+  <data name="SearchResultSummary" xml:space="preserve"><value>{0} matching clients</value></data>
+  <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>No clients match the current filters.</value></data>
+  <data name="PageSummary" xml:space="preserve"><value>Showing {0}-{1} of {2}</value></data>
+  <data name="PageSummaryEmpty" xml:space="preserve"><value>No rows to display.</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Next</value></data>
+  <data name="PageIndicator" xml:space="preserve"><value>Page {0} of {1}</value></data>
+  <data name="Client" xml:space="preserve"><value>Client</value></data>
   <data name="NoMatchingClients" xml:space="preserve"><value>No matching clients</value></data>
   <data name="NoMatchingClientsLead" xml:space="preserve"><value>Try another keyword or register a new application.</value></data>
   <data name="GrantTypes" xml:space="preserve"><value>Grant types</value></data>
@@ -52,6 +61,7 @@
   <data name="MachineProfileBehavior" xml:space="preserve"><value>This profile is always configured as a confidential client using the client_credentials grant.</value></data>
   <data name="Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
   <data name="UpdatedStatus" xml:space="preserve"><value>Updated '{0}'.</value></data>
   <data name="RegisteredStatus" xml:space="preserve"><value>Registered '{0}'.</value></data>

@@ -24,6 +24,15 @@
   <data name="RegisteredClientsLead" xml:space="preserve"><value>在发布集成前，先检查配置文件、作用域和重定向行为。</value></data>
   <data name="Search" xml:space="preserve"><value>搜索</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>按客户端 ID 或显示名称搜索</value></data>
+  <data name="RowsPerPage" xml:space="preserve"><value>每页行数</value></data>
+  <data name="SearchResultSummary" xml:space="preserve"><value>共匹配 {0} 个客户端</value></data>
+  <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>当前筛选条件下没有匹配的客户端。</value></data>
+  <data name="PageSummary" xml:space="preserve"><value>显示第 {0}-{1} 条，共 {2} 条</value></data>
+  <data name="PageSummaryEmpty" xml:space="preserve"><value>没有可显示的行。</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>上一页</value></data>
+  <data name="NextPage" xml:space="preserve"><value>下一页</value></data>
+  <data name="PageIndicator" xml:space="preserve"><value>第 {0} / {1} 页</value></data>
+  <data name="Client" xml:space="preserve"><value>客户端</value></data>
   <data name="NoMatchingClients" xml:space="preserve"><value>没有匹配的客户端</value></data>
   <data name="NoMatchingClientsLead" xml:space="preserve"><value>请尝试其他关键词，或注册一个新的应用。</value></data>
   <data name="GrantTypes" xml:space="preserve"><value>授权类型</value></data>
@@ -52,6 +61,7 @@
   <data name="MachineProfileBehavior" xml:space="preserve"><value>该配置文件始终会被配置为机密客户端，并使用 client_credentials 授权类型。</value></data>
   <data name="Reset" xml:space="preserve"><value>重置</value></data>
   <data name="Saving" xml:space="preserve"><value>正在保存...</value></data>
+  <data name="Close" xml:space="preserve"><value>关闭</value></data>
   <data name="SaveChanges" xml:space="preserve"><value>保存更改</value></data>
   <data name="UpdatedStatus" xml:space="preserve"><value>已更新“{0}”。</value></data>
   <data name="RegisteredStatus" xml:space="preserve"><value>已注册“{0}”。</value></data>

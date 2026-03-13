@@ -247,14 +247,27 @@
     line-height: 1.6;
 }
 
+.admin-grid-toolbar {
+    align-items: end;
+}
+
+.admin-grid-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.85rem;
+    align-items: end;
+}
+
 .admin-search-field,
-.admin-field {
+.admin-field,
+.admin-page-size-field {
     display: grid;
     gap: 0.45rem;
 }
 
 .admin-search-field span,
-.admin-field span {
+.admin-field span,
+.admin-page-size-field span {
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--sidebar-text-muted);
@@ -263,7 +276,8 @@
 }
 
 .admin-search-field input,
-.admin-field input {
+.admin-field input,
+.admin-page-size-field select {
     min-height: 2.9rem;
     border-radius: var(--admin-control-radius);
     border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
@@ -275,7 +289,8 @@
 }
 
 .admin-search-field input:focus,
-.admin-field input:focus {
+.admin-field input:focus,
+.admin-page-size-field select:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
 }
@@ -286,25 +301,46 @@
     line-height: 1.55;
 }
 
+.admin-grid-meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
+    color: var(--sidebar-text-muted);
+    font-size: 0.85rem;
+}
+
 .admin-table-shell {
-    overflow-x: auto;
+    overflow: auto;
     border: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
     border-radius: var(--admin-card-radius);
 }
 
-.admin-table {
-    width: 100%;
-    border-collapse: collapse;
+.admin-table-region {
+    max-height: min(60vh, 34rem);
 }
 
-.admin-table th,
-.admin-table td {
+::deep .admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+::deep .admin-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+::deep .admin-table th,
+::deep .admin-table td {
     padding: 1rem;
     text-align: left;
     vertical-align: middle;
 }
 
-.admin-table th {
+::deep .admin-table th {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.06em;
@@ -313,12 +349,12 @@
     background: color-mix(in srgb, var(--sidebar-bg) 60%, transparent);
 }
 
-.admin-table td {
+::deep .admin-table td {
     border-top: 1px solid color-mix(in srgb, var(--border-default) 76%, transparent);
     color: var(--app-text);
 }
 
-.admin-table tbody tr:hover td {
+::deep .admin-table tbody tr:hover td {
     background: color-mix(in srgb, var(--sidebar-bg) 48%, transparent);
 }
 
@@ -376,8 +412,11 @@
 }
 
 .admin-actions-column {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.65rem;
+    flex-wrap: wrap;
     white-space: nowrap;
-    text-align: right;
 }
 
 .admin-mono,
@@ -408,6 +447,26 @@
 .admin-empty-state p {
     margin: 0.55rem 0 0;
     color: var(--sidebar-text-muted);
+}
+
+.panel-empty-state {
+    border: 1px dashed color-mix(in srgb, var(--border-default) 82%, transparent);
+    border-radius: var(--admin-card-radius);
+    background: color-mix(in srgb, var(--sidebar-bg) 40%, transparent);
+}
+
+.admin-pagination-bar {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.admin-pagination-status {
+    color: var(--sidebar-text-muted);
+    font-size: 0.9rem;
 }
 
 .admin-toggle-field {
@@ -441,7 +500,9 @@
     }
 
     .admin-table th,
-    .admin-table td {
+    .admin-table td,
+    ::deep .admin-table th,
+    ::deep .admin-table td {
         padding: 0.85rem;
     }
 
@@ -454,8 +515,19 @@
     }
 
     .admin-primary-button,
+    .admin-ghost-button,
+    .admin-page-size-field,
+    .admin-search-field {
+        width: 100%;
+    }
+
+    .admin-primary-button,
     .admin-ghost-button {
         flex: 1 1 0;
+    }
+
+    .admin-pagination-bar {
+        justify-content: stretch;
     }
 }
 

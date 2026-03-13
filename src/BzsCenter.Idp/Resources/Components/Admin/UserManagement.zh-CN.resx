@@ -23,6 +23,14 @@
   <data name="AccountsLead" xml:space="preserve"><value>筛选列表、查看权限，并打开任意一行进行编辑。</value></data>
   <data name="Search" xml:space="preserve"><value>搜索</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>按用户名或邮箱搜索</value></data>
+  <data name="RowsPerPage" xml:space="preserve"><value>每页行数</value></data>
+  <data name="SearchResultSummary" xml:space="preserve"><value>共匹配 {0} 个用户</value></data>
+  <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>当前筛选条件下没有匹配的用户。</value></data>
+  <data name="PageSummary" xml:space="preserve"><value>显示第 {0}-{1} 条，共 {2} 条</value></data>
+  <data name="PageSummaryEmpty" xml:space="preserve"><value>没有可显示的行。</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>上一页</value></data>
+  <data name="NextPage" xml:space="preserve"><value>下一页</value></data>
+  <data name="PageIndicator" xml:space="preserve"><value>第 {0} / {1} 页</value></data>
   <data name="User" xml:space="preserve"><value>用户</value></data>
   <data name="Role" xml:space="preserve"><value>角色</value></data>
   <data name="Email" xml:space="preserve"><value>邮箱</value></data>
@@ -49,6 +57,7 @@
   <data name="AdministratorAccessLead" xml:space="preserve"><value>授予保留的 admin 角色。</value></data>
   <data name="Reset" xml:space="preserve"><value>重置</value></data>
   <data name="Saving" xml:space="preserve"><value>正在保存...</value></data>
+  <data name="Close" xml:space="preserve"><value>关闭</value></data>
   <data name="SaveChanges" xml:space="preserve"><value>保存更改</value></data>
   <data name="CreatedUserStatus" xml:space="preserve"><value>已成功创建“{0}”。</value></data>
   <data name="UpdatedUserStatus" xml:space="preserve"><value>已成功更新“{0}”。</value></data>

@@ -23,6 +23,14 @@
   <data name="AccountsLead" xml:space="preserve"><value>Filter the list, inspect privileges, and open any row for editing.</value></data>
   <data name="Search" xml:space="preserve"><value>Search</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search by username or email</value></data>
+  <data name="RowsPerPage" xml:space="preserve"><value>Rows per page</value></data>
+  <data name="SearchResultSummary" xml:space="preserve"><value>{0} matching users</value></data>
+  <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>No users match the current filters.</value></data>
+  <data name="PageSummary" xml:space="preserve"><value>Showing {0}-{1} of {2}</value></data>
+  <data name="PageSummaryEmpty" xml:space="preserve"><value>No rows to display.</value></data>
+  <data name="PreviousPage" xml:space="preserve"><value>Previous</value></data>
+  <data name="NextPage" xml:space="preserve"><value>Next</value></data>
+  <data name="PageIndicator" xml:space="preserve"><value>Page {0} of {1}</value></data>
   <data name="User" xml:space="preserve"><value>User</value></data>
   <data name="Role" xml:space="preserve"><value>Role</value></data>
   <data name="Email" xml:space="preserve"><value>Email</value></data>
@@ -49,6 +57,7 @@
   <data name="AdministratorAccessLead" xml:space="preserve"><value>Grant the reserved admin role.</value></data>
   <data name="Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="Close" xml:space="preserve"><value>Close</value></data>
   <data name="SaveChanges" xml:space="preserve"><value>Save Changes</value></data>
   <data name="CreatedUserStatus" xml:space="preserve"><value>Created '{0}' successfully.</value></data>
   <data name="UpdatedUserStatus" xml:space="preserve"><value>Updated '{0}' successfully.</value></data>

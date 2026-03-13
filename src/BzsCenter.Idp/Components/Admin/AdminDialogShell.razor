@@ -1,15 +1,17 @@
-@using Microsoft.AspNetCore.Components.Web
+@implements IAsyncDisposable
+@using Microsoft.JSInterop
+@inject IJSRuntime JS
 
 @if (IsOpen)
 {
-    <div class="admin-dialog-backdrop" @onclick="HandleBackdropClick">
+    <div class="admin-dialog-backdrop">
         <div class="admin-dialog-shell"
+             @ref="_dialogShell"
              role="dialog"
              aria-modal="true"
              aria-labelledby="@TitleId"
              tabindex="-1"
-             @onclick:stopPropagation="true"
-             @onkeydown="HandleKeyDown">
+             @onclick:stopPropagation="true">
             <div class="admin-dialog-header">
                 <div class="admin-panel-header compact admin-dialog-heading">
                     <div>
@@ -39,27 +41,39 @@
 
 @code {
     private readonly string TitleId = $"admin-dialog-title-{Guid.NewGuid():N}";
+    private ElementReference _dialogShell;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<AdminDialogShell>? _dotNetRef;
+    private bool _wasOpen;
 
     [Parameter] public bool IsOpen { get; set; }
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public string Title { get; set; } = string.Empty;
     [Parameter] public string Lead { get; set; } = string.Empty;
     [Parameter] public string CloseLabel { get; set; } = "Close dialog";
+    [Parameter] public string? InitialFocusSelector { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public RenderFragment? Actions { get; set; }
 
-    private Task HandleKeyDown(KeyboardEventArgs args)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!IsBusy && string.Equals(args.Key, "Escape", StringComparison.Ordinal))
+        if (firstRender)
         {
-            return OnClose.InvokeAsync();
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Admin/AdminDialogShell.razor.js");
         }
 
-        return Task.CompletedTask;
+        if (_module is not null && IsOpen && !_wasOpen)
+        {
+            await _module.InvokeVoidAsync("activate", _dialogShell, _dotNetRef, InitialFocusSelector);
+        }
+
+        _wasOpen = IsOpen;
     }
 
-    private Task HandleBackdropClick()
+    [JSInvokable]
+    public Task CloseFromJs()
     {
         if (IsBusy)
         {
@@ -67,5 +81,26 @@
         }
 
         return OnClose.InvokeAsync();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (JSDisconnectedException)
+        {
+        }
     }
 }

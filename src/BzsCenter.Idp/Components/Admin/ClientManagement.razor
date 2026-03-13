@@ -95,7 +95,11 @@ else
                            type="search"
                            placeholder="@L["SearchPlaceholder"]"
                            value="@_searchTerm"
-                           @oninput="HandleSearchInput" />
+                           @oninput="HandleSearchInput"
+                           autocomplete="off"
+                           autocapitalize="off"
+                           autocorrect="off"
+                           spellcheck="false" />
                 </label>
             </div>
 

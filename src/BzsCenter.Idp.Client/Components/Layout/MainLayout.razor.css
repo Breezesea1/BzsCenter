@@ -2,7 +2,6 @@
     position: relative;
     min-height: 100vh;
     display: flex;
-    /* Shell background = sidebar color, so main content "floats" on top */
     background: var(--sidebar-bg);
     color: var(--app-text);
 }
@@ -46,7 +45,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    background: var(--app-bg);
+    background: color-mix(in srgb, var(--app-bg) 98%, transparent);
     position: relative;
     z-index: 1;
 }
@@ -60,16 +59,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid var(--border-default);
-    background: color-mix(in srgb, var(--surface-elevated) 85%, transparent);
+    gap: 0.75rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
+    background: color-mix(in srgb, var(--surface-elevated) 95%, transparent);
     backdrop-filter: blur(12px);
 }
 
 .topbar-left {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
+    gap: 0.5rem;
     min-width: 0;
+    flex: 1;
 }
 
 .topbar-icon-btn {
@@ -97,10 +98,75 @@
 
 .topbar-title {
     color: var(--app-text);
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 0.94rem;
+    font-weight: 700;
     white-space: nowrap;
-    padding-left: 0.25rem;
+    padding-right: 0.2rem;
+}
+
+.topbar-search {
+    display: none;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 2.5rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
+    border-radius: 0.68rem;
+    background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
+    color: color-mix(in srgb, var(--app-text) 72%, transparent);
+    padding: 0.45rem 0.7rem;
+    font-size: 0.82rem;
+    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-search svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.topbar-search span {
+    white-space: nowrap;
+}
+
+.topbar-search kbd {
+    margin-left: 0.1rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 92%, transparent);
+    border-radius: 0.4rem;
+    padding: 0.1rem 0.35rem;
+    font-size: 0.68rem;
+    color: color-mix(in srgb, var(--app-text) 62%, transparent);
+    background: color-mix(in srgb, var(--sidebar-bg) 26%, transparent);
+}
+
+.topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+.topbar-action-chip {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+    padding: 0.45rem 0.72rem;
+    border-radius: 0.64rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
+    background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+    color: color-mix(in srgb, var(--app-text) 84%, transparent);
+    text-decoration: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.topbar-action-chip:hover,
+.topbar-search:hover {
+    background: color-mix(in srgb, var(--sidebar-bg) 32%, transparent);
+    border-color: color-mix(in srgb, var(--border-default) 100%, transparent);
+}
+
+.topbar-action-chip:hover {
+    transform: translateY(-1px);
 }
 
 .desktop-only {
@@ -117,7 +183,6 @@
         display: none;
     }
 
-    /* Desktop sidebar: sticky, collapsed to 60px, expands on hover to 300px */
     .sidebar-panel {
         position: sticky;
         top: 0;
@@ -138,6 +203,7 @@
     .layout-main {
         border-top-left-radius: 1rem;
         overflow: hidden;
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-default) 70%, transparent);
     }
 
     .layout-topbar {
@@ -147,6 +213,14 @@
 
     .layout-content {
         padding: 1.25rem 1.5rem 1.6rem;
+    }
+
+    .topbar-search {
+        display: inline-flex;
+    }
+
+    .topbar-action-chip {
+        display: inline-flex;
     }
 
     .mobile-only {
@@ -163,8 +237,21 @@
         padding: 0 1.5rem;
     }
 
+    .topbar-search {
+        min-width: 20rem;
+        justify-content: flex-start;
+    }
+
     .layout-content {
         padding: 1.5rem 2rem 2rem;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .topbar-icon-btn,
+    .topbar-search,
+    .topbar-action-chip {
+        transition: none;
     }
 }
 

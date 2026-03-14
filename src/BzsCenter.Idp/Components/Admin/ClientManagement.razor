@@ -29,32 +29,18 @@ else
     <section class="admin-page-shell">
         <header class="admin-hero">
             <div>
-                <span class="admin-kicker">OpenID Connect</span>
+                <p class="admin-breadcrumb">Overview > App access</p>
                 <h1>@L["PageTitle"]</h1>
                 <p>@L["HeroLead"]</p>
             </div>
 
             <div class="admin-hero-actions">
-                <button type="button" class="admin-ghost-button" @onclick="LoadClientsAsync" disabled="@_isBusy">
-                    @L["Refresh"]
-                </button>
                 <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     @L["NewClient"]
                 </button>
             </div>
         </header>
-
-        <div class="admin-filter-tabs" role="tablist" aria-label="Filter by profile">
-            <button type="button" role="tab" class="admin-filter-tab @(_profileFilter == null ? "is-active" : "")" @onclick='() => SetProfileFilter(null)'>
-                All <span class="admin-tab-count">@_clients.Count</span>
-            </button>
-            <button type="button" role="tab" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyInteractive ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyInteractive)'>
-                Interactive <span class="admin-tab-count">@InteractiveCount</span>
-            </button>
-            <button type="button" role="tab" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyMachine ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyMachine)'>
-                Machine <span class="admin-tab-count">@MachineCount</span>
-            </button>
-        </div>
 
         @if (!string.IsNullOrWhiteSpace(_statusMessage))
         {
@@ -74,173 +60,197 @@ else
             </div>
         }
 
-        <section class="admin-panel admin-list-panel">
-            <div class="admin-panel-header admin-grid-toolbar">
-                <div>
-                    <h2>@L["RegisteredClients"]</h2>
-                    <p>@L["RegisteredClientsLead"]</p>
-                    <div class="admin-toolbar-summary" aria-label="@L["ClientOverview"]">
-                        <span class="admin-summary-chip">
-                            <strong>@_filteredClients.Count</strong>
-                            @L["TotalClients"]
-                        </span>
-                        <span class="admin-summary-chip">
-                            <strong>@FilteredInteractiveCount</strong>
-                            @L["Interactive"]
-                        </span>
-                        <span class="admin-summary-chip">
-                            <strong>@FilteredMachineCount</strong>
-                            @L["Machine"]
-                        </span>
-                    </div>
-                </div>
+        <div class="admin-filter-tabs" role="tablist" aria-label="Filter by profile">
+            <button type="button" role="tab" aria-selected="@(_profileFilter == null)" class="admin-filter-tab @(_profileFilter == null ? "is-active" : "")" @onclick='() => SetProfileFilter(null)'>
+                All <span class="admin-tab-count">@_clients.Count</span>
+            </button>
+            <button type="button" role="tab" aria-selected="@(_profileFilter == OidcClientProfile.FirstPartyInteractive)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyInteractive ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyInteractive)'>
+                Interactive <span class="admin-tab-count">@InteractiveCount</span>
+            </button>
+            <button type="button" role="tab" aria-selected="@(_profileFilter == OidcClientProfile.FirstPartyMachine)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyMachine ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyMachine)'>
+                Machine <span class="admin-tab-count">@MachineCount</span>
+            </button>
+        </div>
 
-                <div class="admin-grid-toolbar-actions">
-                    <div class="admin-search-icon-field admin-search-field-wide">
-                        <svg class="admin-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <circle cx="11" cy="11" r="8"/>
-                            <path d="m21 21-4.35-4.35"/>
-                        </svg>
-                        <input id="client-search"
-                               type="search"
-                               placeholder="@L["SearchPlaceholder"]"
-                               value="@_searchTerm"
-                               @oninput="HandleSearchInput"
-                               autocomplete="off"
-                               autocapitalize="off"
-                               autocorrect="off"
-                               spellcheck="false"
-                               aria-label="@L["Search"]" />
-                    </div>
-
-                    <label class="admin-page-size-field" for="client-page-size">
-                        <span>@L["RowsPerPage"]</span>
-                        <select id="client-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
-                            @foreach (var option in PageSizeOptions)
-                            {
-                                <option value="@option">@option</option>
-                            }
-                        </select>
-                    </label>
+        <div class="admin-grid-toolbar">
+            <div class="admin-search-stack">
+                <div class="admin-search-icon-field">
+                    <svg class="admin-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input id="client-search"
+                            type="search"
+                            placeholder="@L["SearchPlaceholder"]"
+                            value="@_searchTerm"
+                            @oninput="HandleSearchInput"
+                            autocomplete="off"
+                            autocapitalize="off"
+                            autocorrect="off"
+                            spellcheck="false"
+                            aria-label="@L["Search"]" />
                 </div>
+                <span class="admin-grid-summary">@FilteredSummary</span>
             </div>
 
+            <div class="admin-grid-toolbar-actions">
+                <button type="button" class="admin-ghost-button admin-toolbar-button" @onclick="LoadClientsAsync" disabled="@_isBusy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <path d="M7 10l5 5 5-5" />
+                        <path d="M12 15V3" />
+                    </svg>
+                    @L["Refresh"]
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-table-shell">
             @if (_filteredClients.Count == 0)
             {
-                <div class="admin-empty-state panel-empty-state">
+                <div class="admin-empty-state">
                     <strong>@L["NoMatchingClients"]</strong>
                     <p>@L["NoMatchingClientsLead"]</p>
                 </div>
             }
             else
             {
-                <div class="admin-table-shell admin-table-region" tabindex="-1">
-                    <QuickGrid Items="@VisibleClients"
-                               Class="admin-table admin-quickgrid admin-clients-table"
-                               ItemKey="@(client => client.ClientId)">
-                        <TemplateColumn Title="@L["Client"]">
-                            <div class="admin-client-row">
-                                <span class="admin-avatar" style="background: @GetClientAvatarColor(context)" aria-hidden="true">@GetClientInitial(context)</span>
-                                <div class="admin-client-primary-cell">
-                                    <strong>@(string.IsNullOrWhiteSpace(context.DisplayName) ? context.ClientId : context.DisplayName)</strong>
-                                    <div class="admin-client-secondary-line">
-                                        <span class="admin-inline-code">@context.ClientId</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </TemplateColumn>
-
-                        <TemplateColumn Title="@L["Profile"]">
-                            <span class="admin-badge @(context.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
-                                @FormatProfile(context.Profile)
-                            </span>
-                        </TemplateColumn>
-
-                        <TemplateColumn Title="@L["GrantTypes"]">
-                            <div class="admin-token-list" title="@string.Join(", ", context.GrantTypes)">
-                                @foreach (var item in GetPreviewItems(context.GrantTypes))
-                                {
-                                    <span class="admin-token">@item</span>
-                                }
-                                @if (context.GrantTypes.Length == 0)
-                                {
-                                    <span class="admin-token admin-token-empty">-</span>
-                                }
-                                else if (GetOverflowCount(context.GrantTypes) > 0)
-                                {
-                                    <span class="admin-token admin-token-overflow">+@GetOverflowCount(context.GrantTypes)</span>
-                                }
-                            </div>
-                        </TemplateColumn>
-
-                        <TemplateColumn Title="@L["Scopes"]">
-                            <div class="admin-token-list" title="@string.Join(", ", context.Scopes)">
-                                @foreach (var item in GetPreviewItems(context.Scopes))
-                                {
-                                    <span class="admin-token">@item</span>
-                                }
-                                @if (context.Scopes.Length == 0)
-                                {
-                                    <span class="admin-token admin-token-empty">-</span>
-                                }
-                                else if (GetOverflowCount(context.Scopes) > 0)
-                                {
-                                    <span class="admin-token admin-token-overflow">+@GetOverflowCount(context.Scopes)</span>
-                                }
-                            </div>
-                        </TemplateColumn>
-
-                        <TemplateColumn Title="@L["RedirectUris"]">
-                            @{
-                                var uriPreview = GetUriPreviewSource(context);
-                            }
-                            <div class="admin-token-list" title="@string.Join(", ", uriPreview)">
-                                @foreach (var item in GetPreviewItems(uriPreview))
-                                {
-                                    <span class="admin-token admin-token-uri">@item</span>
-                                }
-                                @if (uriPreview.Count == 0)
-                                {
-                                    <span class="admin-token admin-token-empty">-</span>
-                                }
-                                else if (GetOverflowCount(uriPreview) > 0)
-                                {
-                                    <span class="admin-token admin-token-overflow">+@GetOverflowCount(uriPreview)</span>
-                                }
-                            </div>
-                        </TemplateColumn>
-
-                        <TemplateColumn Title="@L["Actions"]" Align="Align.End">
-                            <div class="admin-actions-column">
-                                <button type="button" class="admin-row-button" @onclick="() => BeginEdit(context)">@L["Edit"]</button>
-                                <button type="button" class="admin-row-button danger" @onclick="() => DeleteClientAsync(context.ClientId)" disabled="@_isBusy">
-                                    @L["Delete"]
-                                </button>
-                            </div>
-                        </TemplateColumn>
-                    </QuickGrid>
-                </div>
-
-                <div class="admin-pagination-bar">
-                    <span class="admin-pagination-showing">@PageSummary</span>
-                    <div class="admin-pagination-controls">
-                        <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToPreviousPage" disabled="@(!CanGoToPreviousPage)">
-                            @L["PreviousPage"]
-                        </button>
-                        @for (var p = Math.Max(1, _currentPage - 2); p <= Math.Min(TotalPages, _currentPage + 2); p++)
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>@L["Client"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
+                            <th>@L["Profile"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
+                            <th>@L["GrantTypes"]</th>
+                            <th>@L["Scopes"]</th>
+                            <th>Redirects</th>
+                            <th class="admin-actions-header">@L["Actions"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var client in _visibleClients)
                         {
-                            var pageNum = p;
-                            <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" @onclick="() => GoToPage(pageNum)">
-                                @pageNum
-                            </button>
+                            <tr @key="client.ClientId">
+                                <td class="admin-cell-primary">
+                                    <div class="admin-client-row">
+                                        <span class="admin-avatar" style="background: @GetClientAvatarColor(client)" aria-hidden="true">@GetClientInitial(client)</span>
+                                        <div class="admin-client-primary-cell">
+                                            <strong>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</strong>
+                                            <span class="admin-inline-code">@client.ClientId</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label='@L["Profile"].Value'>
+                                    <span class="admin-badge @(client.Profile == OidcClientProfile.FirstPartyInteractive ? "is-admin" : "is-standard")">
+                                        @FormatProfile(client.Profile)
+                                    </span>
+                                </td>
+                                <td data-label='@L["GrantTypes"].Value'>
+                                    <div class="admin-token-list">
+                                        @foreach (var item in GetPreviewItems(client.GrantTypes))
+                                        {
+                                            <span class="admin-token">@item</span>
+                                        }
+                                        @if (GetOverflowCount(client.GrantTypes) > 0)
+                                        {
+                                            <span class="admin-token admin-token-overflow">+@GetOverflowCount(client.GrantTypes)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td data-label='@L["Scopes"].Value'>
+                                    <div class="admin-token-list">
+                                        @foreach (var item in GetPreviewItems(client.Scopes))
+                                        {
+                                            <span class="admin-token">@item</span>
+                                        }
+                                        @if (GetOverflowCount(client.Scopes) > 0)
+                                        {
+                                            <span class="admin-token admin-token-overflow">+@GetOverflowCount(client.Scopes)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td data-label="Redirects">
+                                    <div class="admin-client-text-stack">
+                                        @if (GetUriPreviewSource(client).Count == 0)
+                                        {
+                                            <span class="admin-user-meta">—</span>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var uri in GetPreviewItems(GetUriPreviewSource(client)))
+                                            {
+                                                <span class="admin-user-meta admin-uri-preview">@uri</span>
+                                            }
+                                            @if (GetOverflowCount(GetUriPreviewSource(client)) > 0)
+                                            {
+                                                <span class="admin-user-meta">+@GetOverflowCount(GetUriPreviewSource(client)) more</span>
+                                            }
+                                        }
+                                    </div>
+                                </td>
+                                <td data-label='@L["Actions"].Value'>
+                                    <div class="admin-actions-column">
+                                        <button type="button"
+                                                class="admin-icon-button"
+                                                title="@L["Edit"]"
+                                                aria-label="@L["Edit"]"
+                                                @onclick="() => BeginEdit(client)">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
+                                        </button>
+                                        <button type="button"
+                                                class="admin-icon-button danger"
+                                                title="@L["Delete"]"
+                                                aria-label="@L["Delete"]"
+                                                @onclick="() => DeleteClientAsync(client.ClientId)"
+                                                disabled="@_isBusy">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M3 6h18" />
+                                                <path d="M8 6V4h8v2" />
+                                                <path d="M19 6l-1 14H6L5 6" />
+                                                <path d="M10 11v6" />
+                                                <path d="M14 11v6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
                         }
-                        <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToNextPage" disabled="@(!CanGoToNextPage)">
-                            @L["NextPage"]
-                        </button>
-                    </div>
-                </div>
+                    </tbody>
+                </table>
             }
-        </section>
+        </div>
+
+        <div class="admin-pagination-bar">
+            <span class="admin-pagination-showing">@PageSummary</span>
+            
+            <div class="admin-pagination-controls">
+                <label class="admin-page-size-field" for="client-page-size">
+                    <span>Rows</span>
+                    <select id="client-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
+                        @foreach (var option in PageSizeOptions)
+                        {
+                            <option value="@option">@option</option>
+                        }
+                    </select>
+                </label>
+
+                <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToPreviousPage" disabled="@(!CanGoToPreviousPage)">
+                    @L["PreviousPage"]
+                </button>
+                @for (var p = Math.Max(1, _currentPage - 2); p <= Math.Min(TotalPages, _currentPage + 2); p++)
+                {
+                    var pageNum = p;
+                    <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" @onclick="() => GoToPage(pageNum)">
+                        @pageNum
+                    </button>
+                }
+                <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToNextPage" disabled="@(!CanGoToNextPage)">
+                    @L["NextPage"]
+                </button>
+            </div>
+        </div>
 
         <ClientManagementDialog IsOpen="@_isEditorOpen"
                                 IsEditing="@_isEditing"

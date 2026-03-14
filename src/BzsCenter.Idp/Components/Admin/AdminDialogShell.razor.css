@@ -4,20 +4,27 @@
     z-index: 60;
     display: grid;
     place-items: center;
-    padding: 1.5rem;
+    padding: clamp(0.9rem, 2vw, 1.5rem);
     background: rgba(15, 23, 42, 0.56);
     backdrop-filter: blur(10px);
 }
 
 .admin-dialog-shell {
-    width: min(100%, 46rem);
-    max-height: calc(100dvh - 3rem);
-    overflow: auto;
+    width: min(100%, clamp(22rem, 48vw, 44rem));
+    max-height: min(calc(100dvh - 3rem), 52rem);
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--border-default) 84%, transparent);
     border-radius: 1rem;
     background: color-mix(in srgb, var(--surface-elevated) 97%, transparent);
     box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
     outline: none;
+}
+
+.admin-dialog-shell:focus-visible {
+    border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border-default));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 18%, transparent), 0 28px 80px rgba(15, 23, 42, 0.22);
 }
 
 .admin-dialog-header {
@@ -34,31 +41,69 @@
 }
 
 .admin-dialog-close {
+    position: relative;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.75rem;
-    min-width: 2.75rem;
-    height: 2.75rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
-    border-radius: 0.75rem;
-    background: transparent;
-    color: var(--app-text);
+    width: 2.5rem;
+    min-width: 2.5rem;
+    height: 2.5rem;
+    margin-top: 0.1rem;
+    border: 1px solid color-mix(in srgb, var(--border-default) 76%, transparent);
+    border-radius: 0.85rem;
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
+    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.55);
     cursor: pointer;
-    transition: background-color 0.2s ease, border-color 0.2s ease;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: transform 0.18s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
+}
+
+.admin-dialog-close svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.admin-dialog-close svg path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.15;
+    stroke-linecap: round;
 }
 
 .admin-dialog-close:hover {
-    background: color-mix(in srgb, var(--sidebar-bg) 46%, transparent);
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--accent-primary) 28%, var(--border-default));
+    background: color-mix(in srgb, var(--accent-primary) 12%, var(--surface-elevated));
+    color: color-mix(in srgb, var(--app-text) 92%, transparent);
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.admin-dialog-close:focus-visible {
+    outline: none;
+    border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border-default));
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 20%, transparent), 0 10px 26px rgba(15, 23, 42, 0.1);
+    color: var(--app-text);
 }
 
 .admin-dialog-close:disabled {
     opacity: 0.55;
     cursor: not-allowed;
+    box-shadow: none;
+}
+
+.admin-dialog-close:disabled:hover {
+    transform: none;
+    border-color: color-mix(in srgb, var(--border-default) 76%, transparent);
+    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    color: color-mix(in srgb, var(--app-text) 78%, transparent);
 }
 
 .admin-dialog-body {
     padding: 1.2rem;
+    overflow: auto;
+    overscroll-behavior: contain;
 }
 
 ::deep .admin-feedback {

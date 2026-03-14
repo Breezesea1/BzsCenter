@@ -8,20 +8,20 @@
   <data name="AdminArea" xml:space="preserve"><value>管理区域</value></data>
   <data name="CheckingAccess" xml:space="preserve"><value>正在检查访问权限</value></data>
   <data name="CheckingAccessLead" xml:space="preserve"><value>正在验证你的会话，然后加载客户端管理页面。</value></data>
-  <data name="HeroLead" xml:space="preserve"><value>注册第一方应用、更新重定向 URI，并管理机密的机器客户端。</value></data>
+  <data name="HeroLead" xml:space="preserve"><value>注册内部应用，维护 Redirect URI，并管理需要 Client Secret 的服务客户端。</value></data>
   <data name="Refresh" xml:space="preserve"><value>刷新</value></data>
   <data name="NewClient" xml:space="preserve"><value>新建客户端</value></data>
   <data name="ClientOverview" xml:space="preserve"><value>客户端概览</value></data>
   <data name="TotalClients" xml:space="preserve"><value>客户端总数</value></data>
-  <data name="TotalClientsLead" xml:space="preserve"><value>由 IDP 管理的交互式应用和机器到机器调用方。</value></data>
-  <data name="Interactive" xml:space="preserve"><value>交互式</value></data>
-  <data name="InteractiveLead" xml:space="preserve"><value>使用授权码和刷新令牌授权类型的公共 PKCE 客户端。</value></data>
-  <data name="Machine" xml:space="preserve"><value>机器</value></data>
-  <data name="MachineLead" xml:space="preserve"><value>使用客户端凭证授权类型的机密客户端。</value></data>
+  <data name="TotalClientsLead" xml:space="preserve"><value>由 IDP 管理的登录类应用和 service-to-service 调用方。</value></data>
+  <data name="Interactive" xml:space="preserve"><value>登录类应用</value></data>
+  <data name="InteractiveLead" xml:space="preserve"><value>给 Web、SPA 或桌面端使用，采用 authorization_code + refresh_token + PKCE。</value></data>
+  <data name="Machine" xml:space="preserve"><value>服务调用</value></data>
+  <data name="MachineLead" xml:space="preserve"><value>给后台服务或定时任务使用，采用 client_credentials。</value></data>
   <data name="ClientSecretGenerated" xml:space="preserve"><value>已生成客户端密钥</value></data>
   <data name="ClientSecretGeneratedLead" xml:space="preserve"><value>请立即复制。此次响应之后，OpenIddict 不会再次显示明文客户端密钥。</value></data>
   <data name="RegisteredClients" xml:space="preserve"><value>已注册客户端</value></data>
-  <data name="RegisteredClientsLead" xml:space="preserve"><value>在发布集成前，先检查配置文件、作用域和重定向行为。</value></data>
+  <data name="RegisteredClientsLead" xml:space="preserve"><value>在接入前，先检查客户端类型、Scopes 和 Redirect URI。</value></data>
   <data name="Search" xml:space="preserve"><value>搜索</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>按客户端 ID 或显示名称搜索</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>每页行数</value></data>
@@ -35,30 +35,31 @@
   <data name="Client" xml:space="preserve"><value>客户端</value></data>
   <data name="NoMatchingClients" xml:space="preserve"><value>没有匹配的客户端</value></data>
   <data name="NoMatchingClientsLead" xml:space="preserve"><value>请尝试其他关键词，或注册一个新的应用。</value></data>
-  <data name="GrantTypes" xml:space="preserve"><value>授权类型</value></data>
-  <data name="Scopes" xml:space="preserve"><value>作用域</value></data>
-  <data name="RedirectUris" xml:space="preserve"><value>重定向 URI</value></data>
+  <data name="GrantTypes" xml:space="preserve"><value>Grant Types</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
+  <data name="RedirectUris" xml:space="preserve"><value>Redirect URIs</value></data>
   <data name="Edit" xml:space="preserve"><value>编辑</value></data>
   <data name="Delete" xml:space="preserve"><value>删除</value></data>
   <data name="EditClient" xml:space="preserve"><value>编辑客户端</value></data>
   <data name="RegisterClient" xml:space="preserve"><value>注册客户端</value></data>
-  <data name="EditClientLead" xml:space="preserve"><value>这里只展示受支持的第一方客户端配置文件。</value></data>
-  <data name="RegisterClientLead" xml:space="preserve"><value>先选择配置文件，表单会自动适配为有效的 OpenIddict 设置。</value></data>
+  <data name="EditClientLead" xml:space="preserve"><value>这里只展示当前系统支持的内部客户端类型。</value></data>
+  <data name="RegisterClientLead" xml:space="preserve"><value>先选择客户端类型，表单会自动套用对应的 OIDC 设置。</value></data>
   <data name="CouldNotSaveClient" xml:space="preserve"><value>无法保存该客户端。</value></data>
   <data name="ClientId" xml:space="preserve"><value>客户端 ID</value></data>
   <data name="LeaveEmptyToAutoGenerate" xml:space="preserve"><value>留空则自动生成</value></data>
   <data name="DisplayName" xml:space="preserve"><value>显示名称</value></data>
-  <data name="Profile" xml:space="preserve"><value>配置文件</value></data>
-  <data name="FirstPartyInteractive" xml:space="preserve"><value>第一方交互式</value></data>
-  <data name="FirstPartyMachine" xml:space="preserve"><value>第一方机器</value></data>
-  <data name="ScopesPlaceholder" xml:space="preserve"><value>每行一个作用域，或使用逗号分隔</value></data>
-  <data name="ScopesHelp" xml:space="preserve"><value>新客户端会预填默认 API 作用域。</value></data>
+  <data name="Profile" xml:space="preserve"><value>客户端类型</value></data>
+  <data name="ProfileHelp" xml:space="preserve"><value>选择这是“有用户登录”的应用，还是“服务调服务”的后台客户端。</value></data>
+  <data name="FirstPartyInteractive" xml:space="preserve"><value>Web / SPA（用户登录）</value></data>
+  <data name="FirstPartyMachine" xml:space="preserve"><value>Service / Daemon（机器调用）</value></data>
+  <data name="ScopesPlaceholder" xml:space="preserve"><value>每行一个 scope，或使用逗号分隔</value></data>
+  <data name="ScopesHelp" xml:space="preserve"><value>新客户端会预填默认 API scope。</value></data>
   <data name="RedirectUrisPlaceholder" xml:space="preserve"><value>每行一个绝对 URI</value></data>
-  <data name="PostLogoutRedirectUris" xml:space="preserve"><value>退出登录后的重定向 URI</value></data>
-  <data name="ProfileBehavior" xml:space="preserve"><value>配置行为</value></data>
-  <data name="InteractiveProfileBehavior" xml:space="preserve"><value>该配置文件始终会被配置为公共 PKCE 客户端，并使用 authorization_code 与 refresh_token 授权类型。</value></data>
+  <data name="PostLogoutRedirectUris" xml:space="preserve"><value>Sign-out Redirect URIs</value></data>
+  <data name="ProfileBehavior" xml:space="preserve"><value>系统会自动应用</value></data>
+  <data name="InteractiveProfileBehavior" xml:space="preserve"><value>适用于 Web、SPA、桌面端等“有用户登录”的内部应用。系统会自动使用 public client + authorization_code + refresh_token + PKCE，并要求配置 Redirect URI。</value></data>
   <data name="ClientSecret" xml:space="preserve"><value>客户端密钥</value></data>
-  <data name="MachineProfileBehavior" xml:space="preserve"><value>该配置文件始终会被配置为机密客户端，并使用 client_credentials 授权类型。</value></data>
+  <data name="MachineProfileBehavior" xml:space="preserve"><value>适用于后台服务、作业或守护进程这类“没有用户交互”的内部调用。系统会自动使用 confidential client + client_credentials，需要 Client Secret，不使用 Redirect URI。</value></data>
   <data name="Reset" xml:space="preserve"><value>重置</value></data>
   <data name="Saving" xml:space="preserve"><value>正在保存...</value></data>
   <data name="Close" xml:space="preserve"><value>关闭</value></data>
@@ -71,20 +72,20 @@
   <data name="PublicClientsMustNotSpecifyClientSecret" xml:space="preserve"><value>公共客户端不能指定客户端密钥。</value></data>
   <data name="AtLeastOneGrantTypeRequired" xml:space="preserve"><value>至少需要提供一种授权类型。</value></data>
   <data name="AuthorizationCodeRedirectRequired" xml:space="preserve"><value>授权码客户端至少需要提供一个重定向 URI。</value></data>
-  <data name="InteractiveClientsMustBePublic" xml:space="preserve"><value>第一方交互式客户端必须是公共客户端。</value></data>
-  <data name="InteractiveClientsGrantTypesInvalid" xml:space="preserve"><value>第一方交互式客户端只支持 authorization_code 和 refresh_token 授权类型。</value></data>
-  <data name="InteractiveClientsMustRequirePkce" xml:space="preserve"><value>第一方交互式客户端必须启用 PKCE。</value></data>
-  <data name="MachineClientsMustBeConfidential" xml:space="preserve"><value>第一方机器客户端必须是机密客户端。</value></data>
-  <data name="MachineClientsGrantTypesInvalid" xml:space="preserve"><value>第一方机器客户端只支持 client_credentials 授权类型。</value></data>
-  <data name="MachineClientsMustNotConfigureRedirectUris" xml:space="preserve"><value>第一方机器客户端不能配置重定向 URI。</value></data>
-  <data name="MachineClientsMustNotConfigurePostLogoutRedirectUris" xml:space="preserve"><value>第一方机器客户端不能配置退出登录后的重定向 URI。</value></data>
-  <data name="UnsupportedOnboardingProfile" xml:space="preserve"><value>当前仅支持第一方交互式客户端（public + auth code/refresh token + PKCE）和第一方机器客户端（confidential + client_credentials）。</value></data>
+  <data name="InteractiveClientsMustBePublic" xml:space="preserve"><value>Web / SPA（用户登录）客户端必须是 public client。</value></data>
+  <data name="InteractiveClientsGrantTypesInvalid" xml:space="preserve"><value>Web / SPA（用户登录）客户端只支持 authorization_code 和 refresh_token。</value></data>
+  <data name="InteractiveClientsMustRequirePkce" xml:space="preserve"><value>Web / SPA（用户登录）客户端必须启用 PKCE。</value></data>
+  <data name="MachineClientsMustBeConfidential" xml:space="preserve"><value>Service / Daemon（机器调用）客户端必须是 confidential client。</value></data>
+  <data name="MachineClientsGrantTypesInvalid" xml:space="preserve"><value>Service / Daemon（机器调用）客户端只支持 client_credentials。</value></data>
+  <data name="MachineClientsMustNotConfigureRedirectUris" xml:space="preserve"><value>Service / Daemon（机器调用）客户端不能配置 Redirect URIs。</value></data>
+  <data name="MachineClientsMustNotConfigurePostLogoutRedirectUris" xml:space="preserve"><value>Service / Daemon（机器调用）客户端不能配置 Sign-out Redirect URIs。</value></data>
+  <data name="UnsupportedOnboardingProfile" xml:space="preserve"><value>当前仅支持两类内部客户端：Web / SPA（public + auth code/refresh token + PKCE）和 Service / Daemon（confidential + client_credentials）。</value></data>
   <data name="ClientAlreadyExists" xml:space="preserve"><value>该客户端已存在。</value></data>
   <data name="ClientAlreadyExistsForId" xml:space="preserve"><value>客户端“{0}”已存在。</value></data>
   <data name="ClientNotFound" xml:space="preserve"><value>找不到该客户端。</value></data>
   <data name="InvalidUri" xml:space="preserve"><value>无效的 URI：“{0}”。</value></data>
-  <data name="AtLeastOneScopeRequired" xml:space="preserve"><value>至少需要一个作用域。</value></data>
-  <data name="InteractiveClientRedirectRequired" xml:space="preserve"><value>交互式客户端至少需要一个重定向 URI。</value></data>
+  <data name="AtLeastOneScopeRequired" xml:space="preserve"><value>至少需要一个 scope。</value></data>
+  <data name="InteractiveClientRedirectRequired" xml:space="preserve"><value>Web / SPA（用户登录）客户端至少需要一个 Redirect URI。</value></data>
   <data name="UnknownClientError" xml:space="preserve"><value>发生了未知的客户端错误。</value></data>
   <data name="RequestFailedWithStatus" xml:space="preserve"><value>请求失败，状态为“{0}”。</value></data>
 </root>

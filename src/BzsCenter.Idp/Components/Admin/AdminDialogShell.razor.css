@@ -140,11 +140,40 @@
     resize: vertical;
 }
 
+::deep .admin-field select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    padding-right: 3rem;
+    background-image:
+        linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--sidebar-text-muted) 86%, transparent) 50%),
+        linear-gradient(135deg, color-mix(in srgb, var(--sidebar-text-muted) 86%, transparent) 50%, transparent 50%),
+        linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg) 72%, transparent), color-mix(in srgb, var(--sidebar-bg) 72%, transparent));
+    background-position:
+        calc(100% - 1.15rem) calc(50% - 0.14rem),
+        calc(100% - 0.8rem) calc(50% - 0.14rem),
+        calc(100% - 2.45rem) 50%;
+    background-size:
+        0.42rem 0.42rem,
+        0.42rem 0.42rem,
+        1px 1.5rem;
+    background-repeat: no-repeat;
+}
+
+::deep .admin-field select:hover {
+    background-color: color-mix(in srgb, var(--sidebar-bg) 28%, var(--surface-elevated));
+}
+
 ::deep .admin-field input:focus,
 ::deep .admin-field select:focus,
 ::deep .admin-field textarea:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+}
+
+::deep .admin-field select::-ms-expand {
+    display: none;
 }
 
 ::deep .admin-field small {

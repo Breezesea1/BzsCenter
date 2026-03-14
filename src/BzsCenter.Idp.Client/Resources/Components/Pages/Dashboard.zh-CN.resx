@@ -4,44 +4,44 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
-  <data name="Kicker" xml:space="preserve"><value>Identity Control Center</value></data>
-  <data name="Title" xml:space="preserve"><value>把身份系统的关键状态集中放到首页看板。</value></data>
-  <data name="Lead" xml:space="preserve"><value>在进入具体管理页之前，先快速了解用户、内部客户端和 scope 配置的整体情况。</value></data>
+  <data name="Kicker" xml:space="preserve"><value>身份总览</value></data>
+  <data name="Title" xml:space="preserve"><value>先用一个首页看清身份系统的整体状态。</value></data>
+  <data name="Lead" xml:space="preserve"><value>把人员、已连接应用和关键访问状态集中到一个看板里，进入详情页前先看全局会更高效。</value></data>
   <data name="ManageUsers" xml:space="preserve"><value>管理用户</value></data>
   <data name="ManageClients" xml:space="preserve"><value>管理客户端</value></data>
-  <data name="Overview" xml:space="preserve"><value>Dashboard 概览</value></data>
-  <data name="TotalUsers" xml:space="preserve"><value>TotalUsers</value></data>
-  <data name="TotalUsersLead" xml:space="preserve"><value>当前由 IDP 管理的账号总数。</value></data>
-  <data name="AdminCoverage" xml:space="preserve"><value>AdminCoverage</value></data>
-  <data name="AdminCoverageLead" xml:space="preserve"><value>{0} / {1} 个账号当前拥有管理员权限。</value></data>
-  <data name="TotalClients" xml:space="preserve"><value>TotalClients</value></data>
-  <data name="TotalClientsLead" xml:space="preserve"><value>当前已注册的内部应用和服务客户端总数。</value></data>
-  <data name="ConfiguredScopes" xml:space="preserve"><value>ConfiguredScopes</value></data>
-  <data name="ConfiguredScopesLead" xml:space="preserve"><value>当前共有 {0} 条权限映射配置了访问 scopes。</value></data>
+  <data name="Overview" xml:space="preserve"><value>工作区概览</value></data>
+  <data name="TotalUsers" xml:space="preserve"><value>用户总数</value></data>
+  <data name="TotalUsersLead" xml:space="preserve"><value>当前可登录此工作区的全部人员数量。</value></data>
+  <data name="AdminCoverage" xml:space="preserve"><value>管理员覆盖率</value></data>
+  <data name="AdminCoverageLead" xml:space="preserve"><value>{0} / {1} 人当前拥有较高权限。</value></data>
+  <data name="TotalClients" xml:space="preserve"><value>客户端总数</value></data>
+  <data name="TotalClientsLead" xml:space="preserve"><value>当前接入这套登录平台的应用与服务总数。</value></data>
+  <data name="ConfiguredScopes" xml:space="preserve"><value>访问规则</value></data>
+  <data name="ConfiguredScopesLead" xml:space="preserve"><value>当前共有 {0} 条访问规则在决定应用可申请的权限范围。</value></data>
   <data name="ClientMix" xml:space="preserve"><value>客户端构成</value></data>
   <data name="ClientMixTitle" xml:space="preserve"><value>当前客户端分布</value></data>
-  <data name="ClientMixLead" xml:space="preserve"><value>把登录类应用、服务客户端和 scope 映射放在一起看，便于快速判断接入结构是否健康。</value></data>
+  <data name="ClientMixLead" xml:space="preserve"><value>把登录应用、后台服务和访问规则放在一起看，更容易判断整体接入结构是否均衡。</value></data>
   <data name="Clients" xml:space="preserve"><value>客户端</value></data>
   <data name="LoginApps" xml:space="preserve"><value>登录类应用</value></data>
   <data name="ServiceClients" xml:space="preserve"><value>服务客户端</value></data>
-  <data name="ScopeMappings" xml:space="preserve"><value>Scope 映射</value></data>
+  <data name="ScopeMappings" xml:space="preserve"><value>访问映射</value></data>
   <data name="RoleBalance" xml:space="preserve"><value>角色分布</value></data>
   <data name="RoleBalanceTitle" xml:space="preserve"><value>用户角色构成</value></data>
   <data name="Users" xml:space="preserve"><value>用户</value></data>
   <data name="Admins" xml:space="preserve"><value>管理员</value></data>
   <data name="StandardUsers" xml:space="preserve"><value>普通用户</value></data>
   <data name="QuickActions" xml:space="preserve"><value>快捷操作</value></data>
-  <data name="QuickActionsTitle" xml:space="preserve"><value>快速进入管理流程</value></data>
-  <data name="ManageUsersLead" xml:space="preserve"><value>查看账号、角色分配和管理员覆盖情况。</value></data>
-  <data name="ManageClientsLead" xml:space="preserve"><value>检查客户端类型、Redirect URIs、Scopes 和 Client Secret。</value></data>
+  <data name="QuickActionsTitle" xml:space="preserve"><value>打开最常用的页面</value></data>
+  <data name="ManageUsersLead" xml:space="preserve"><value>查看成员、访问级别，以及哪些人可以执行敏感操作。</value></data>
+  <data name="ManageClientsLead" xml:space="preserve"><value>查看已连接应用、登录设置，以及它们依赖的权限配置。</value></data>
   <data name="RegisterClient" xml:space="preserve"><value>新建客户端</value></data>
-  <data name="RegisterClientLead" xml:space="preserve"><value>创建新的 Web / SPA（用户登录）或 Service / Daemon（机器调用）客户端。</value></data>
-  <data name="Guidance" xml:space="preserve"><value>使用提示</value></data>
-  <data name="GuidanceTitle" xml:space="preserve"><value>建议关注</value></data>
-  <data name="GuidanceOne" xml:space="preserve"><value>Web / SPA 适合有用户登录的流程，使用 authorization_code、refresh_token 和 PKCE。</value></data>
-  <data name="GuidanceTwo" xml:space="preserve"><value>Service / Daemon 适合机器到机器调用，使用 client_credentials 和 Client Secret。</value></data>
-  <data name="GuidanceThree" xml:space="preserve"><value>Scopes 和 Redirect URIs 是接入前最值得优先检查的两个字段。</value></data>
-  <data name="AccessLimitedTitle" xml:space="preserve"><value>当前会话无法查看 Dashboard 数据。</value></data>
-  <data name="AccessLimitedLead" xml:space="preserve"><value>请使用具备管理员能力的账号登录后查看首页看板。</value></data>
+  <data name="RegisterClientLead" xml:space="preserve"><value>为新的内部接入添加应用或服务连接。</value></data>
+  <data name="Guidance" xml:space="preserve"><value>上线前检查</value></data>
+  <data name="GuidanceTitle" xml:space="preserve"><value>上线前最值得再确认一次的内容</value></data>
+  <data name="GuidanceOne" xml:space="preserve"><value>先确认登录体验和产品形态一致，让使用者从第一次点击开始就感到顺畅。</value></data>
+  <data name="GuidanceTwo" xml:space="preserve"><value>每个服务连接都尽量只保留真正需要的访问权限，后续维护会更简单也更安全。</value></data>
+  <data name="GuidanceThree" xml:space="preserve"><value>上线前再检查回调地址和权限设置，确保每个接入都按预期工作。</value></data>
+  <data name="AccessLimitedTitle" xml:space="preserve"><value>当前暂时无法查看首页数据。</value></data>
+  <data name="AccessLimitedLead" xml:space="preserve"><value>请使用可查看这份工作区总览的账号登录后，再查看最新摘要。</value></data>
   <data name="GoToLogin" xml:space="preserve"><value>前往登录</value></data>
 </root>

@@ -13,6 +13,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
   </resheader>
   <data name="PageTitle" xml:space="preserve"><value>首页</value></data>
-  <data name="Heading" xml:space="preserve"><value>欢迎来到 BzsCenter</value></data>
-  <data name="Lead" xml:space="preserve"><value>你的身份与访问工作区已就绪，可通过导航登录、管理访问权限，或继续之前的操作。</value></data>
+  <data name="Heading" xml:space="preserve"><value>把身份管理集中到一个首页</value></data>
+  <data name="Lead" xml:space="preserve"><value>在一个清晰的看板里查看团队访问、已连接应用和关键安全设置，日常处理会更顺手。</value></data>
 </root>

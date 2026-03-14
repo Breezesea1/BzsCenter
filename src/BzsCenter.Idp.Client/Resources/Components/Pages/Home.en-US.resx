@@ -13,6 +13,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
   </resheader>
   <data name="PageTitle" xml:space="preserve"><value>Home</value></data>
-  <data name="Heading" xml:space="preserve"><value>Welcome to BzsCenter</value></data>
-  <data name="Lead" xml:space="preserve"><value>Your identity workspace is ready. Use the navigation to sign in, manage access, and continue where you left off.</value></data>
+  <data name="Heading" xml:space="preserve"><value>Identity operations, in one place</value></data>
+  <data name="Lead" xml:space="preserve"><value>Check team access, connected applications, and key security settings from one clear overview.</value></data>
 </root>

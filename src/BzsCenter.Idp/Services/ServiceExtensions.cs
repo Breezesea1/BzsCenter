@@ -1,5 +1,6 @@
 using BzsCenter.Idp.Infra;
 using BzsCenter.Idp.Infra.Oidc;
+using BzsCenter.Idp.Services.Admin;
 using BzsCenter.Idp.Services.Authorization;
 using BzsCenter.Idp.Services.Identity;
 using BzsCenter.Idp.Services.Oidc;
@@ -48,6 +49,7 @@ internal static class ServiceExtensions
         sc.AddScoped<IRolePermissionService, RolePermissionService>();
         sc.AddScoped<IPermissionScopeService, PermissionScopeService>();
         sc.AddScoped<IOidcClientService, OidcClientService>();
+        sc.AddScoped<IAdminDashboardService, AdminDashboardService>();
         sc.AddScoped<IdentitySeeder>();
 
         return sc;

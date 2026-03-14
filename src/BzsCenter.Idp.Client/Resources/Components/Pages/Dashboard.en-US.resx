@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
+  <data name="Kicker" xml:space="preserve"><value>Identity Control Center</value></data>
+  <data name="Title" xml:space="preserve"><value>Keep your identity surface healthy at a glance.</value></data>
+  <data name="Lead" xml:space="preserve"><value>Monitor users, internal clients, and scope coverage from one place before drilling into the management screens.</value></data>
+  <data name="ManageUsers" xml:space="preserve"><value>Manage Users</value></data>
+  <data name="ManageClients" xml:space="preserve"><value>Manage Clients</value></data>
+  <data name="Overview" xml:space="preserve"><value>Dashboard overview</value></data>
+  <data name="TotalUsers" xml:space="preserve"><value>TotalUsers</value></data>
+  <data name="TotalUsersLead" xml:space="preserve"><value>Accounts currently managed by the IDP.</value></data>
+  <data name="AdminCoverage" xml:space="preserve"><value>AdminCoverage</value></data>
+  <data name="AdminCoverageLead" xml:space="preserve"><value>{0} of {1} users currently hold admin access.</value></data>
+  <data name="TotalClients" xml:space="preserve"><value>TotalClients</value></data>
+  <data name="TotalClientsLead" xml:space="preserve"><value>Internal applications and service clients registered in OIDC.</value></data>
+  <data name="ConfiguredScopes" xml:space="preserve"><value>ConfiguredScopes</value></data>
+  <data name="ConfiguredScopesLead" xml:space="preserve"><value>{0} permission mappings currently define access scopes.</value></data>
+  <data name="ClientMix" xml:space="preserve"><value>Client mix</value></data>
+  <data name="ClientMixTitle" xml:space="preserve"><value>Current client footprint</value></data>
+  <data name="ClientMixLead" xml:space="preserve"><value>Balance login-based apps, service clients, and mapped permissions without leaving the homepage.</value></data>
+  <data name="Clients" xml:space="preserve"><value>Clients</value></data>
+  <data name="LoginApps" xml:space="preserve"><value>Login apps</value></data>
+  <data name="ServiceClients" xml:space="preserve"><value>Service clients</value></data>
+  <data name="ScopeMappings" xml:space="preserve"><value>Scope mappings</value></data>
+  <data name="RoleBalance" xml:space="preserve"><value>Role balance</value></data>
+  <data name="RoleBalanceTitle" xml:space="preserve"><value>User role composition</value></data>
+  <data name="Users" xml:space="preserve"><value>Users</value></data>
+  <data name="Admins" xml:space="preserve"><value>Admins</value></data>
+  <data name="StandardUsers" xml:space="preserve"><value>Standard users</value></data>
+  <data name="QuickActions" xml:space="preserve"><value>Quick actions</value></data>
+  <data name="QuickActionsTitle" xml:space="preserve"><value>Jump back into operations</value></data>
+  <data name="ManageUsersLead" xml:space="preserve"><value>Review accounts, role assignments, and current admin coverage.</value></data>
+  <data name="ManageClientsLead" xml:space="preserve"><value>Inspect client types, redirect URIs, scopes, and secrets.</value></data>
+  <data name="RegisterClient" xml:space="preserve"><value>Register client</value></data>
+  <data name="RegisterClientLead" xml:space="preserve"><value>Create a new internal Web / SPA or Service / Daemon client.</value></data>
+  <data name="Guidance" xml:space="preserve"><value>Guidance</value></data>
+  <data name="GuidanceTitle" xml:space="preserve"><value>Keep in mind</value></data>
+  <data name="GuidanceOne" xml:space="preserve"><value>Use Web / SPA for user sign-in flows with authorization_code, refresh_token, and PKCE.</value></data>
+  <data name="GuidanceTwo" xml:space="preserve"><value>Use Service / Daemon for machine-to-machine workloads with client_credentials and a client secret.</value></data>
+  <data name="GuidanceThree" xml:space="preserve"><value>Scopes and redirect URIs are the two most important fields to validate before releasing an integration.</value></data>
+  <data name="AccessLimitedTitle" xml:space="preserve"><value>Dashboard data isn't available for this session.</value></data>
+  <data name="AccessLimitedLead" xml:space="preserve"><value>Sign in with an admin-capable account to view the identity dashboard summary.</value></data>
+  <data name="GoToLogin" xml:space="preserve"><value>Go to Login</value></data>
+</root>

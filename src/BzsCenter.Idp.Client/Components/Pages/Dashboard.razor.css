@@ -1,12 +1,15 @@
 .dashboard-shell {
-    --dashboard-surface-radius: 0.9rem;
-    --dashboard-border: color-mix(in srgb, var(--border-default) 86%, transparent);
-    --dashboard-muted: color-mix(in srgb, var(--app-text) 62%, transparent);
-    --dashboard-soft: color-mix(in srgb, var(--sidebar-bg) 42%, transparent);
+    --dashboard-surface-radius: 0.85rem;
+    --dashboard-border: color-mix(in srgb, var(--border-default) 78%, transparent);
+    --dashboard-muted: color-mix(in srgb, var(--app-text) 56%, transparent);
+    --dashboard-soft: color-mix(in srgb, var(--sidebar-bg) 26%, var(--surface-elevated));
+    --dashboard-shadow: 0 1px 1px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.05);
 
     display: grid;
-    gap: 1.25rem;
-    animation: dashboard-fade-in 260ms cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 1.2rem;
+    max-width: 1320px;
+    margin: 0 auto;
+    animation: dashboard-fade-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dashboard-hero,
@@ -15,15 +18,16 @@
     border: 1px solid var(--dashboard-border);
     border-radius: var(--dashboard-surface-radius);
     background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 28px rgba(15, 23, 42, 0.06);
+    box-shadow: var(--dashboard-shadow);
 }
 
 .dashboard-hero {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 1.35rem;
-    padding: 1.35rem;
+    align-items: flex-start;
+    gap: 1.25rem;
+    padding: 1.15rem 1.2rem;
 }
 
 .dashboard-kicker,
@@ -40,19 +44,19 @@
 }
 
 .dashboard-hero h1 {
-    margin: 0.6rem 0 0;
-    font-size: clamp(2rem, 3.5vw, 2.9rem);
-    line-height: 1.02;
-    letter-spacing: -0.04em;
+    margin: 0.35rem 0 0;
+    font-size: clamp(1.7rem, 2.6vw, 2.05rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
     color: var(--app-text);
 }
 
 .dashboard-hero p {
-    margin: 0.75rem 0 0;
-    max-width: 54rem;
+    margin: 0.4rem 0 0;
+    max-width: 52rem;
     color: var(--dashboard-muted);
-    font-size: 0.95rem;
-    line-height: 1.7;
+    font-size: 0.9rem;
+    line-height: 1.58;
 }
 
 .dashboard-hero-actions {
@@ -67,19 +71,19 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.65rem;
-    padding: 0.68rem 1rem;
-    border-radius: 0.68rem;
+    min-height: 2.3rem;
+    padding: 0.55rem 0.86rem;
+    border-radius: 0.62rem;
     border: 1px solid var(--dashboard-border);
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.82rem;
+    font-weight: 650;
     text-decoration: none;
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dashboard-primary-action {
-    border-color: color-mix(in srgb, var(--app-text) 90%, transparent);
-    background: color-mix(in srgb, var(--app-text) 90%, transparent);
+    border-color: color-mix(in srgb, #111827 92%, transparent);
+    background: color-mix(in srgb, #111827 92%, transparent);
     color: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
 }
 
@@ -106,51 +110,75 @@
 .dashboard-analytics-grid,
 .dashboard-detail-grid {
     display: grid;
-    gap: 1rem;
+    gap: 0.95rem;
 }
 
 .dashboard-kpi-card {
-    padding: 1.1rem;
+    position: relative;
+    overflow: hidden;
+    padding: 0.9rem 0.95rem 1rem;
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dashboard-kpi-card:hover {
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(15, 23, 42, 0.08), 0 16px 34px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.06), 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.dashboard-kpi-card::after {
+    content: "";
+    position: absolute;
+    left: 0.95rem;
+    right: 0.95rem;
+    bottom: 0.72rem;
+    height: 0.22rem;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, #f97316 88%, transparent) 18%, color-mix(in srgb, #f97316 55%, transparent) 56%, transparent 100%);
+    opacity: 0.72;
+}
+
+.dashboard-kpi-card:nth-child(2)::after {
+    background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, #0f766e 88%, transparent) 18%, color-mix(in srgb, #0f766e 55%, transparent) 56%, transparent 100%);
+}
+
+.dashboard-kpi-card:nth-child(3)::after {
+    background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, #155e75 88%, transparent) 18%, color-mix(in srgb, #155e75 52%, transparent) 56%, transparent 100%);
+}
+
+.dashboard-kpi-card:nth-child(4)::after {
+    background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, #d97706 88%, transparent) 18%, color-mix(in srgb, #d97706 52%, transparent) 56%, transparent 100%);
 }
 
 .dashboard-kpi-card strong {
     display: block;
-    margin-top: 0.75rem;
-    font-size: clamp(1.65rem, 3vw, 2.2rem);
-    line-height: 1;
-    letter-spacing: -0.03em;
+    margin-top: 0.52rem;
+    font-size: clamp(1.48rem, 2vw, 1.92rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     color: var(--app-text);
 }
 
 .dashboard-kpi-card p {
-    margin: 0.72rem 0 0;
+    margin: 0.42rem 0 0.75rem;
     color: var(--dashboard-muted);
-    line-height: 1.6;
-    font-size: 0.86rem;
+    line-height: 1.5;
+    font-size: 0.78rem;
 }
 
 .dashboard-kpi-card-primary {
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 99%, transparent), color-mix(in srgb, #eff6ff 84%, transparent));
+    background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
 }
 
 .dashboard-kpi-card-accent {
-    background:
-        linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 99%, transparent), color-mix(in srgb, #f0f9ff 85%, transparent));
+    background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
 }
 
 .dashboard-panel {
-    padding: 1.12rem;
+    padding: 1rem;
 }
 
 .dashboard-panel-featured {
-    min-height: 24rem;
+    min-height: 23.5rem;
 }
 
 .dashboard-panel-header {
@@ -166,8 +194,8 @@
 }
 
 .dashboard-panel-header h2 {
-    margin: 0.25rem 0 0;
-    font-size: 1.02rem;
+    margin: 0.22rem 0 0;
+    font-size: 1.03rem;
     color: var(--app-text);
 }
 
@@ -176,7 +204,7 @@
     max-width: 20rem;
     color: var(--dashboard-muted);
     line-height: 1.55;
-    font-size: 0.84rem;
+    font-size: 0.8rem;
 }
 
 .dashboard-action-list {
@@ -187,8 +215,8 @@
 .dashboard-action-card {
     display: grid;
     gap: 0.3rem;
-    padding: 0.9rem;
-    border-radius: 0.7rem;
+    padding: 0.78rem;
+    border-radius: 0.66rem;
     border: 1px solid var(--dashboard-border);
     background: color-mix(in srgb, var(--surface-elevated) 98%, var(--dashboard-soft));
     text-decoration: none;
@@ -197,19 +225,19 @@
 
 .dashboard-action-card strong {
     color: var(--app-text);
-    font-size: 0.93rem;
+    font-size: 0.87rem;
 }
 
 .dashboard-action-card span,
 .dashboard-note-list {
     color: var(--dashboard-muted);
-    line-height: 1.6;
-    font-size: 0.84rem;
+    line-height: 1.52;
+    font-size: 0.78rem;
 }
 
 .dashboard-note-list {
     display: grid;
-    gap: 0.7rem;
+    gap: 0.62rem;
     margin: 0;
     padding-left: 1.15rem;
 }
@@ -238,6 +266,154 @@
 
 .dashboard-skeleton-line.short {
     width: 7rem;
+}
+
+/* KPI Cards Enhancements */
+.dashboard-kpi-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.dashboard-kpi-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.6rem;
+    height: 2.6rem;
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--dashboard-muted) 15%, transparent);
+    color: var(--app-text);
+}
+
+.dashboard-kpi-trend {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.dashboard-kpi-trend svg {
+    width: 1rem;
+    height: 1rem;
+}
+
+.dashboard-kpi-trend-text {
+    color: var(--dashboard-muted);
+    font-weight: 400;
+}
+
+.dashboard-trend-up {
+    color: #22c55e;
+}
+
+.dashboard-trend-down {
+    color: #ef4444;
+}
+
+.dashboard-trend-neutral {
+    color: var(--dashboard-muted);
+}
+
+/* Activity Panel Enhancements */
+.dashboard-activity-panel {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    margin-top: 0.5rem;
+}
+
+.dashboard-activity-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    position: relative;
+}
+
+.dashboard-activity-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    left: 0.25rem;
+    top: 1.2rem;
+    bottom: -1rem;
+    width: 2px;
+    background: var(--dashboard-border);
+    z-index: 1;
+}
+
+.dashboard-activity-dot {
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    margin-top: 0.35rem;
+    position: relative;
+    z-index: 2;
+    outline: 3px solid color-mix(in srgb, var(--surface-elevated) 99%, transparent);
+}
+
+.dashboard-activity-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dashboard-activity-content strong {
+    font-size: 0.85rem;
+    color: var(--app-text);
+    line-height: 1.3;
+}
+
+.dashboard-activity-content span {
+    font-size: 0.75rem;
+    color: var(--dashboard-muted);
+}
+
+/* Monthly Goals Enhancements */
+.dashboard-goals-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--dashboard-border);
+}
+
+.dashboard-goal-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.8rem;
+}
+
+.dashboard-goal-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.dashboard-goal-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--app-text);
+}
+
+.dashboard-goal-bar {
+    height: 0.4rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--dashboard-border) 60%, transparent);
+    overflow: hidden;
+}
+
+.dashboard-goal-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1s ease-out;
 }
 
 a.dashboard-primary-action:focus-visible,
@@ -285,7 +461,7 @@ a.dashboard-action-card:focus-visible {
     }
 
     .dashboard-analytics-grid {
-        grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.75fr);
+        grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 0.7fr) minmax(17rem, 0.8fr);
     }
 }
 

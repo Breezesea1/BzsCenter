@@ -1,15 +1,18 @@
 .admin-page-shell {
-    --admin-surface-radius: 0.9rem;
-    --admin-control-radius: 0.72rem;
-    --admin-chip-radius: 0.5rem;
+    --admin-surface-radius: 0.85rem;
+    --admin-control-radius: 0.62rem;
+    --admin-chip-radius: 0.44rem;
     --admin-inline-radius: 0.42rem;
-    --admin-border: color-mix(in srgb, var(--border-default) 86%, transparent);
-    --admin-muted: color-mix(in srgb, var(--app-text) 62%, transparent);
-    --admin-soft: color-mix(in srgb, var(--sidebar-bg) 42%, transparent);
+    --admin-border: color-mix(in srgb, var(--border-default) 78%, transparent);
+    --admin-muted: color-mix(in srgb, var(--app-text) 56%, transparent);
+    --admin-soft: color-mix(in srgb, var(--sidebar-bg) 24%, var(--surface-elevated));
+    --admin-shadow: 0 1px 1px rgba(15, 23, 42, 0.03), 0 8px 24px rgba(15, 23, 42, 0.05);
 
     display: grid;
-    gap: 1.05rem;
-    animation: admin-fade-in 240ms cubic-bezier(0.4, 0, 0.2, 1);
+    gap: 1.15rem;
+    max-width: 1320px;
+    margin: 0 auto;
+    animation: admin-fade-in 220ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-loading-shell {
@@ -26,7 +29,7 @@
     border: 1px solid var(--admin-border);
     border-radius: var(--admin-surface-radius);
     background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 30px rgba(15, 23, 42, 0.06);
+    box-shadow: var(--admin-shadow);
 }
 
 .admin-loading-card {
@@ -64,23 +67,23 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    gap: 1rem;
-    padding: 1.2rem;
+    gap: 0.95rem;
+    padding: 1rem 1.05rem;
 }
 
 .admin-hero h1 {
-    margin: 0.55rem 0 0;
-    font-size: clamp(2rem, 4vw, 2.9rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
+    margin: 0.35rem 0 0;
+    font-size: clamp(1.7rem, 2.4vw, 2.05rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
     color: var(--app-text);
 }
 
 .admin-hero p {
-    margin: 0.8rem 0 0;
+    margin: 0.45rem 0 0;
     max-width: 45rem;
-    font-size: 0.94rem;
-    line-height: 1.65;
+    font-size: 0.88rem;
+    line-height: 1.55;
     color: var(--admin-muted);
 }
 
@@ -97,20 +100,20 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 2.65rem;
-    padding: 0.68rem 0.98rem;
+    min-height: 2.3rem;
+    padding: 0.5rem 0.82rem;
     border-radius: var(--admin-control-radius);
     border: 1px solid var(--admin-border);
-    font-size: 0.88rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 650;
     text-decoration: none;
     cursor: pointer;
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .admin-primary-button {
-    border-color: color-mix(in srgb, var(--app-text) 90%, transparent);
-    background: color-mix(in srgb, var(--app-text) 90%, transparent);
+    border-color: color-mix(in srgb, #111827 92%, transparent);
+    background: color-mix(in srgb, #111827 92%, transparent);
     color: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
 }
 
@@ -142,9 +145,9 @@
 
 .admin-feedback,
 .admin-secret-banner {
-    padding: 0.9rem 1rem;
+    padding: 0.78rem 0.9rem;
     border: 1px solid transparent;
-    font-size: 0.88rem;
+    font-size: 0.8rem;
     line-height: 1.6;
 }
 
@@ -167,7 +170,7 @@
 
 .admin-secret-banner {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.6rem;
     background: color-mix(in srgb, #dbeafe 82%, var(--surface-elevated));
     border-color: color-mix(in srgb, #3b82f6 24%, transparent);
     color: #1e3a8a;
@@ -181,7 +184,7 @@
     display: block;
     overflow-wrap: anywhere;
     border-radius: var(--admin-control-radius);
-    padding: 0.72rem 0.82rem;
+    padding: 0.6rem 0.75rem;
     background: rgba(255, 255, 255, 0.9);
     color: #0f172a;
     font-family: var(--font-mono);
@@ -201,7 +204,7 @@
 
 .admin-panel-header h2 {
     margin: 0;
-    font-size: 1.05rem;
+    font-size: 1rem;
     font-weight: 700;
     color: var(--app-text);
 }
@@ -210,7 +213,7 @@
     margin: 0.35rem 0 0;
     max-width: 34rem;
     color: var(--admin-muted);
-    font-size: 0.84rem;
+    font-size: 0.79rem;
     line-height: 1.6;
 }
 
@@ -236,13 +239,13 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    min-height: 1.85rem;
-    padding: 0.35rem 0.68rem;
+    min-height: 1.75rem;
+    padding: 0.28rem 0.62rem;
     border-radius: 999px;
     border: 1px solid var(--admin-border);
     background: color-mix(in srgb, var(--surface-elevated) 98%, var(--admin-soft));
     color: var(--admin-muted);
-    font-size: 0.76rem;
+    font-size: 0.72rem;
 }
 
 .admin-summary-chip strong {
@@ -277,11 +280,11 @@
 .admin-field input,
 .admin-field select,
 .admin-field textarea {
-    min-height: 2.55rem;
+    min-height: 2.3rem;
     border-radius: var(--admin-control-radius);
     border: 1px solid var(--admin-border);
     background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
-    padding: 0.65rem 0.82rem;
+    padding: 0.48rem 0.74rem;
     color: var(--app-text);
     outline: none;
     resize: vertical;
@@ -304,18 +307,18 @@
     gap: 0.65rem;
     margin-bottom: 0.8rem;
     color: var(--admin-muted);
-    font-size: 0.78rem;
+    font-size: 0.74rem;
 }
 
 .admin-table-shell {
     overflow: auto;
     border: 1px solid var(--admin-border);
-    border-radius: 0.75rem;
+    border-radius: 0.68rem;
     background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
 }
 
 .admin-table-region {
-    max-height: min(60vh, 34rem);
+    max-height: min(62vh, 35rem);
 }
 
 ::deep .admin-table {
@@ -336,13 +339,13 @@
 
 ::deep .admin-table th,
 ::deep .admin-table td {
-    padding: 0.85rem;
+    padding: 0.72rem;
     text-align: left;
     vertical-align: middle;
 }
 
 ::deep .admin-table th {
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.06em;
     text-transform: uppercase;
@@ -353,7 +356,7 @@
 ::deep .admin-table td {
     border-top: 1px solid var(--admin-border);
     color: var(--app-text);
-    font-size: 0.84rem;
+    font-size: 0.8rem;
 }
 
 ::deep .admin-table tbody tr {
@@ -390,12 +393,12 @@
     display: inline-flex;
     align-items: center;
     max-width: 100%;
-    min-height: 1.6rem;
-    padding: 0.2rem 0.45rem;
+    min-height: 1.45rem;
+    padding: 0.15rem 0.4rem;
     border-radius: var(--admin-chip-radius);
     background: color-mix(in srgb, var(--sidebar-bg) 62%, transparent);
     color: color-mix(in srgb, var(--app-text) 82%, transparent);
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     line-height: 1.35;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -430,10 +433,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 5rem;
-    padding: 0.3rem 0.62rem;
+    min-width: 4.5rem;
+    padding: 0.22rem 0.56rem;
     border-radius: 999px;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
     letter-spacing: 0.02em;
 }
@@ -548,7 +551,7 @@
 }
 
 .panel-empty-state {
-    padding: 1.9rem 1rem;
+    padding: 1.45rem 0.9rem;
     text-align: center;
     border: 1px dashed var(--admin-border);
     border-radius: 0.75rem;
@@ -566,7 +569,7 @@
 
 .admin-pagination-status {
     color: var(--admin-muted);
-    font-size: 0.8rem;
+    font-size: 0.74rem;
 }
 
 button:focus-visible,
@@ -592,6 +595,86 @@ textarea:focus-visible {
 @media (min-width: 860px) {
     .client-meta-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 900px) {
+    ::deep .admin-clients-table {
+        min-width: 100%;
+    }
+
+    ::deep .admin-clients-table thead {
+        display: none;
+    }
+
+    ::deep .admin-clients-table tbody {
+        display: grid;
+        gap: 0.75rem;
+    }
+
+    ::deep .admin-clients-table tbody tr {
+        display: grid;
+        gap: 0.35rem;
+        border: 1px solid var(--admin-border);
+        border-radius: 0.68rem;
+        padding: 0.65rem;
+        background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
+    }
+
+    ::deep .admin-clients-table tbody td {
+        display: grid;
+        grid-template-columns: minmax(6.8rem, 34%) minmax(0, 1fr);
+        gap: 0.55rem;
+        align-items: start;
+        border-top: none;
+        padding: 0.15rem 0;
+        min-width: 0;
+    }
+
+    ::deep .admin-clients-table tbody td::before {
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: color-mix(in srgb, var(--app-text) 52%, transparent);
+        content: "";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(1)::before {
+        content: "Client";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(2)::before {
+        content: "Profile";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(3)::before {
+        content: "Grant Types";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(4)::before {
+        content: "Scopes";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(5)::before {
+        content: "Redirect Uris";
+    }
+
+    ::deep .admin-clients-table tbody td:nth-child(6)::before {
+        content: "Actions";
+    }
+
+    .admin-actions-column {
+        justify-content: flex-start;
+    }
+
+    .admin-row-button {
+        min-height: 2rem;
+        padding: 0.38rem 0.64rem;
+    }
+
+    .admin-token-uri {
+        max-width: 100%;
     }
 }
 
@@ -642,4 +725,162 @@ textarea:focus-visible {
         animation: none;
         transition: none;
     }
+}
+
+/* Filter Tabs */
+.admin-filter-tabs {
+    display: flex;
+    gap: 0.25rem;
+    border-bottom: 1px solid var(--admin-border);
+    padding: 0 0.25rem;
+    margin-bottom: 0.1rem;
+}
+
+.admin-filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    border-radius: 0.5rem 0.5rem 0 0;
+    border: none;
+    background: transparent;
+    color: var(--admin-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-filter-tab:hover {
+    color: var(--app-text);
+    background: color-mix(in srgb, var(--sidebar-bg) 40%, transparent);
+}
+
+.admin-filter-tab.is-active {
+    color: var(--app-text);
+    border-bottom: 2px solid var(--app-text);
+    font-weight: 700;
+}
+
+.admin-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    padding: 0 0.3rem;
+    height: 1.3rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--sidebar-bg) 70%, transparent);
+    color: var(--admin-muted);
+    font-size: 0.7rem;
+    font-weight: 700;
+}
+
+.admin-filter-tab.is-active .admin-tab-count {
+    background: color-mix(in srgb, var(--app-text) 14%, transparent);
+    color: var(--app-text);
+}
+
+/* Icon Search Field */
+.admin-search-icon-field {
+    position: relative;
+    display: flex;
+    align-items: center;
+    min-width: min(100%, 20rem);
+    flex: 1 1 16rem;
+}
+
+.admin-search-icon {
+    position: absolute;
+    left: 0.65rem;
+    width: 1rem;
+    height: 1rem;
+    color: var(--admin-muted);
+    pointer-events: none;
+    flex-shrink: 0;
+}
+
+.admin-search-icon-field input {
+    width: 100%;
+    min-height: 2.3rem;
+    border-radius: var(--admin-control-radius);
+    border: 1px solid var(--admin-border);
+    background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
+    padding: 0.48rem 0.74rem 0.48rem 2.2rem;
+    color: var(--app-text);
+    font-size: 0.86rem;
+    outline: none;
+    transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-search-icon-field input:focus {
+    border-color: color-mix(in srgb, var(--app-text) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-text) 10%, transparent);
+}
+
+/* Client Avatar */
+.admin-avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: #64748b;
+    color: #ffffff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    text-transform: uppercase;
+}
+
+.admin-client-row {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+/* Pagination upgrades */
+.admin-pagination-showing {
+    color: var(--admin-muted);
+    font-size: 0.74rem;
+}
+
+.admin-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.admin-pagination-btn {
+    min-height: 2rem;
+    padding: 0.35rem 0.7rem;
+    font-size: 0.78rem;
+}
+
+.admin-pagination-page-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.44rem;
+    border: 1px solid var(--admin-border);
+    background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+    color: var(--app-text);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 150ms, border-color 150ms;
+}
+
+.admin-pagination-page-btn:hover {
+    background: color-mix(in srgb, var(--sidebar-bg) 40%, transparent);
+}
+
+.admin-pagination-page-btn.is-active {
+    background: var(--app-text);
+    color: var(--surface-elevated);
+    border-color: var(--app-text);
+    font-weight: 700;
 }

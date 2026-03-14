@@ -13,6 +13,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
   </resheader>
   <data name="PageTitle" xml:space="preserve"><value>首页</value></data>
-  <data name="Heading" xml:space="preserve"><value>把身份管理集中到一个首页</value></data>
-  <data name="Lead" xml:space="preserve"><value>在一个清晰的看板里查看团队访问、已连接应用和关键安全设置，日常处理会更顺手。</value></data>
+  <data name="Heading" xml:space="preserve"><value>身份管理首页</value></data>
+  <data name="Lead" xml:space="preserve"><value>先看用户、客户端注册和权限变化摘要，再进入具体管理流程。</value></data>
 </root>

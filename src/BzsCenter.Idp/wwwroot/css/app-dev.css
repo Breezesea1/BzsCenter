@@ -225,9 +225,9 @@ h1:focus {
     /* Hover on a menu-link inside expanded sidebar: text slides right + grows bold */
     .sidebar-panel:hover .menu-link:hover .menu-text,
     .sidebar-panel:focus-within .menu-link:hover .menu-text {
-        transform: translateX(5px);
-        font-size: 0.925rem;
-        font-weight: 700;
+        transform: none;
+        font-size: 0.82rem;
+        font-weight: 600;
     }
 }
 
@@ -235,7 +235,7 @@ h1:focus {
 
 .menu-shell {
     height: 100%;
-    padding: 1rem;
+    padding: 0.85rem;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -247,7 +247,7 @@ h1:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: 0.45rem 0.2rem;
     min-height: 2.5rem;
     flex-shrink: 0;
 }
@@ -323,11 +323,11 @@ h1:focus {
     display: flex !important;
     align-items: center;
     gap: 0.75rem;
-    padding: 0.4rem 0.5rem;
-    border-radius: 0;
+    padding: 0.46rem 0.58rem;
+    border-radius: 0.58rem;
     color: var(--sidebar-text-muted);
     text-decoration: none !important;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     font-weight: 500;
     white-space: nowrap;
     border: none;
@@ -338,7 +338,7 @@ h1:focus {
 
 .menu-link:hover {
     color: var(--sidebar-text);
-    background: transparent !important;
+    background: color-mix(in srgb, var(--sidebar-link-hover-bg) 80%, var(--surface-elevated)) !important;
 }
 
 .menu-icon {
@@ -358,21 +358,30 @@ h1:focus {
 
 .menu-text {
     white-space: nowrap;
-    font-size: 0.875rem;
+    font-size: 0.82rem;
     font-weight: 500;
     transform-origin: left center;
-    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), font-weight 0.15s ease, font-size 0.2s ease;
+    transition: color 0.15s ease;
 }
 
 .menu-link:hover .menu-text {
-    transform: translateX(5px);
-    font-size: 0.925rem;
-    font-weight: 700;
+    transform: none;
+    font-size: 0.82rem;
+    font-weight: 600;
 }
 
 .menu-link.active {
     color: var(--sidebar-text);
     font-weight: 600;
+    background: color-mix(in srgb, var(--sidebar-link-hover-bg) 94%, var(--surface-elevated)) !important;
+}
+
+.menu-link:focus-visible,
+.menu-brand:focus-visible,
+.menu-close:focus-visible,
+.menu-user:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--app-text) 66%, transparent);
+    outline-offset: 2px;
 }
 
 .menu-divider {

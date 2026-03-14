@@ -2,7 +2,7 @@
     position: relative;
     min-height: 100vh;
     display: flex;
-    background: var(--sidebar-bg);
+    background: color-mix(in srgb, var(--sidebar-bg) 94%, var(--surface-elevated));
     color: var(--app-text);
 }
 
@@ -45,7 +45,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    background: color-mix(in srgb, var(--app-bg) 98%, transparent);
+    background: color-mix(in srgb, var(--app-bg) 99%, transparent);
     position: relative;
     z-index: 1;
 }
@@ -54,14 +54,14 @@
     position: sticky;
     top: 0;
     z-index: 10;
-    height: 4rem;
+    height: 3.6rem;
     padding: 0 1rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
-    background: color-mix(in srgb, var(--surface-elevated) 95%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
+    background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
     backdrop-filter: blur(12px);
 }
 
@@ -91,6 +91,13 @@
     background: var(--sidebar-link-hover-bg);
 }
 
+.topbar-icon-btn:focus-visible,
+.topbar-search:focus-visible,
+.topbar-action-chip:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--app-text) 66%, transparent);
+    outline-offset: 2px;
+}
+
 .topbar-icon-btn svg {
     width: 1.15rem;
     height: 1.15rem;
@@ -98,7 +105,7 @@
 
 .topbar-title {
     color: var(--app-text);
-    font-size: 0.94rem;
+    font-size: 0.88rem;
     font-weight: 700;
     white-space: nowrap;
     padding-right: 0.2rem;
@@ -108,13 +115,13 @@
     display: none;
     align-items: center;
     gap: 0.55rem;
-    min-height: 2.5rem;
+    min-height: 2.25rem;
     border: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
-    border-radius: 0.68rem;
+    border-radius: 0.62rem;
     background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
     color: color-mix(in srgb, var(--app-text) 72%, transparent);
-    padding: 0.45rem 0.7rem;
-    font-size: 0.82rem;
+    padding: 0.4rem 0.65rem;
+    font-size: 0.78rem;
     transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -147,14 +154,14 @@
     display: none;
     align-items: center;
     justify-content: center;
-    min-height: 2.35rem;
-    padding: 0.45rem 0.72rem;
-    border-radius: 0.64rem;
+    min-height: 2.05rem;
+    padding: 0.38rem 0.64rem;
+    border-radius: 0.58rem;
     border: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
     background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
     color: color-mix(in srgb, var(--app-text) 84%, transparent);
     text-decoration: none;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     font-weight: 600;
     transition: transform 150ms cubic-bezier(0.4, 0, 0.2, 1), background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -174,7 +181,7 @@
 }
 
 .layout-content {
-    padding: 1.1rem 1rem 1.5rem;
+    padding: 1rem 0.95rem 1.45rem;
     flex: 1;
 }
 
@@ -187,7 +194,7 @@
         position: sticky;
         top: 0;
         transform: none;
-        width: 60px;
+        width: 72px;
         height: 100vh;
         flex-shrink: 0;
         overflow: hidden;
@@ -196,23 +203,23 @@
 
     .sidebar-panel:hover,
     .sidebar-panel:focus-within {
-        width: 300px;
+        width: 260px;
     }
 
     /* Main content floats above sidebar with rounded top-left corner + shadow */
     .layout-main {
-        border-top-left-radius: 1rem;
+        border-top-left-radius: 0.92rem;
         overflow: hidden;
         box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-default) 70%, transparent);
     }
 
     .layout-topbar {
-        padding: 0 1.25rem;
-        border-top-left-radius: 1rem;
+        padding: 0 1.15rem;
+        border-top-left-radius: 0.92rem;
     }
 
     .layout-content {
-        padding: 1.25rem 1.5rem 1.6rem;
+        padding: 1.15rem 1.35rem 1.6rem;
     }
 
     .topbar-search {
@@ -234,16 +241,16 @@
 
 @media (min-width: 1024px) {
     .layout-topbar {
-        padding: 0 1.5rem;
+        padding: 0 1.3rem;
     }
 
     .topbar-search {
-        min-width: 20rem;
+        min-width: 19rem;
         justify-content: flex-start;
     }
 
     .layout-content {
-        padding: 1.5rem 2rem 2rem;
+        padding: 1.3rem 1.65rem 1.9rem;
     }
 }
 

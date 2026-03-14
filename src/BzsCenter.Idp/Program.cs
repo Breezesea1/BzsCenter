@@ -1,8 +1,9 @@
 using BzsCenter.Idp.Components;
+using BzsCenter.Idp.Client.Services.Dashboard;
 using BzsCenter.Idp.Infra.Preferences;
 using BzsCenter.Idp.Services;
-using System.Globalization;
 using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,22 @@ builder.Services.AddIdpService(builder.Configuration, builder.Environment);
 builder.Services.AddIdpAuthorization();
 builder.EnrichFromAspire();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddAdminDashboardClient(serviceProvider =>
+{
+    var httpContextAccessor = serviceProvider.GetRequiredService<IHttpContextAccessor>();
+    var request = httpContextAccessor.HttpContext?.Request
+        ?? throw new InvalidOperationException("The current HTTP request is unavailable for dashboard client initialization.");
+
+    return new UriBuilder
+    {
+        Scheme = request.Scheme,
+        Host = request.Host.Host,
+        Port = request.Host.Port ?? -1,
+        Path = request.PathBase.HasValue
+            ? $"{request.PathBase.Value!.TrimEnd('/')}/"
+            : "/"
+    }.Uri;
+});
 builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {

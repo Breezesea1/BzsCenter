@@ -1,4 +1,6 @@
 using System.Globalization;
+using ApexCharts;
+using BzsCenter.Idp.Client.Services.Dashboard;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
 
@@ -8,6 +10,8 @@ builder.Services.AddLocalization(options =>
 {
     options.ResourcesPath = "Resources";
 });
+builder.Services.AddAdminDashboardClient(_ => new Uri(builder.HostEnvironment.BaseAddress));
+builder.Services.AddApexCharts();
 
 var host = builder.Build();
 

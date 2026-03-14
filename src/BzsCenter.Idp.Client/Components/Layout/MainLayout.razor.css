@@ -41,6 +41,9 @@
 }
 
 .layout-main {
+    --layout-topbar-height: 3.6rem;
+    --layout-content-block-offset: 2.45rem;
+
     width: 100%;
     min-width: 0;
     display: flex;
@@ -92,7 +95,6 @@
 }
 
 .topbar-icon-btn:focus-visible,
-.topbar-search:focus-visible,
 .topbar-action-chip:focus-visible {
     outline: 2px solid color-mix(in srgb, var(--app-text) 66%, transparent);
     outline-offset: 2px;
@@ -109,39 +111,6 @@
     font-weight: 700;
     white-space: nowrap;
     padding-right: 0.2rem;
-}
-
-.topbar-search {
-    display: none;
-    align-items: center;
-    gap: 0.55rem;
-    min-height: 2.25rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 86%, transparent);
-    border-radius: 0.62rem;
-    background: color-mix(in srgb, var(--surface-elevated) 99%, transparent);
-    color: color-mix(in srgb, var(--app-text) 72%, transparent);
-    padding: 0.4rem 0.65rem;
-    font-size: 0.78rem;
-    transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), border-color 150ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.topbar-search svg {
-    width: 1rem;
-    height: 1rem;
-}
-
-.topbar-search span {
-    white-space: nowrap;
-}
-
-.topbar-search kbd {
-    margin-left: 0.1rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 92%, transparent);
-    border-radius: 0.4rem;
-    padding: 0.1rem 0.35rem;
-    font-size: 0.68rem;
-    color: color-mix(in srgb, var(--app-text) 62%, transparent);
-    background: color-mix(in srgb, var(--sidebar-bg) 26%, transparent);
 }
 
 .topbar-actions {
@@ -167,12 +136,9 @@
 }
 
 .topbar-action-chip:hover,
-.topbar-search:hover {
+.topbar-action-chip:hover {
     background: color-mix(in srgb, var(--sidebar-bg) 32%, transparent);
     border-color: color-mix(in srgb, var(--border-default) 100%, transparent);
-}
-
-.topbar-action-chip:hover {
     transform: translateY(-1px);
 }
 
@@ -183,6 +149,7 @@
 .layout-content {
     padding: 1rem 0.95rem 1.45rem;
     flex: 1;
+    min-height: 0;
 }
 
 @media (min-width: 641px) {
@@ -208,6 +175,8 @@
 
     /* Main content floats above sidebar with rounded top-left corner + shadow */
     .layout-main {
+        --layout-content-block-offset: 2.75rem;
+
         border-top-left-radius: 0.92rem;
         overflow: hidden;
         box-shadow: 0 0 0 1px color-mix(in srgb, var(--border-default) 70%, transparent);
@@ -220,10 +189,6 @@
 
     .layout-content {
         padding: 1.15rem 1.35rem 1.6rem;
-    }
-
-    .topbar-search {
-        display: inline-flex;
     }
 
     .topbar-action-chip {
@@ -240,13 +205,12 @@
 }
 
 @media (min-width: 1024px) {
-    .layout-topbar {
-        padding: 0 1.3rem;
+    .layout-main {
+        --layout-content-block-offset: 3.2rem;
     }
 
-    .topbar-search {
-        min-width: 19rem;
-        justify-content: flex-start;
+    .layout-topbar {
+        padding: 0 1.3rem;
     }
 
     .layout-content {
@@ -256,7 +220,6 @@
 
 @media (prefers-reduced-motion: reduce) {
     .topbar-icon-btn,
-    .topbar-search,
     .topbar-action-chip {
         transition: none;
     }

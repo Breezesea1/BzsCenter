@@ -29,20 +29,9 @@
                 </button>
 
                 <span class="topbar-title">@CurrentPageTitle</span>
-
-                <button class="topbar-search" type="button" aria-label="Search command palette">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
-                        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2" />
-                        <path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-                    </svg>
-                    <span>Search anything...</span>
-                    <kbd>⌘K</kbd>
-                </button>
             </div>
 
             <div class="topbar-actions">
-                <a class="topbar-action-chip" href="/admin/users" data-enhance-nav="false">Users</a>
-                <a class="topbar-action-chip" href="/admin/clients" data-enhance-nav="false">Clients</a>
                 <Preferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
             </div>
         </header>
@@ -95,7 +84,7 @@
         var pageType = CurrentRouteData?.PageType ?? ResolveSpecialPageType();
         if (pageType is null)
         {
-            return "Dashboard";
+            return "Overview";
         }
 
         var localized = LocalizerFactory.Create(pageType)["PageTitle"];
@@ -123,7 +112,7 @@
     {
         if (string.IsNullOrWhiteSpace(pageName))
         {
-            return "Dashboard";
+            return "Overview";
         }
 
         var normalized = pageName.EndsWith("Page", StringComparison.Ordinal)

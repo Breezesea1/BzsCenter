@@ -46,41 +46,50 @@ else
             </div>
         </header>
 
-        <section class="admin-stats-grid" aria-label="@L["UserOverview"]">
-            <article class="admin-stat-card">
-                <span class="admin-stat-label">@L["TotalUsers"]</span>
-                <strong>@_users.Count</strong>
-                <p>@L["TotalUsersLead"]</p>
-            </article>
-
-            <article class="admin-stat-card">
-                <span class="admin-stat-label">@L["Admins"]</span>
-                <strong>@AdminCount</strong>
-                <p>@L["AdminsLead"]</p>
-            </article>
-
-            <article class="admin-stat-card accent-card">
-                <span class="admin-stat-label">@L["StandardUsers"]</span>
-                <strong>@(_users.Count - AdminCount)</strong>
-                <p>@L["StandardUsersLead"]</p>
-            </article>
-        </section>
-
         @if (!string.IsNullOrWhiteSpace(_statusMessage))
         {
             <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">@_statusMessage</div>
         }
+
+        <div class="admin-filter-tabs" role="tablist" aria-label="Filter by role">
+            <button type="button" role="tab" class="admin-filter-tab @(_roleFilter == null ? "is-active" : "")" @onclick='() => SetRoleFilter(null)'>
+                All <span class="admin-tab-count">@_users.Count</span>
+            </button>
+            <button type="button" role="tab" class="admin-filter-tab @(_roleFilter == true ? "is-active" : "")" @onclick='() => SetRoleFilter(true)'>
+                Admin <span class="admin-tab-count">@AdminCount</span>
+            </button>
+            <button type="button" role="tab" class="admin-filter-tab @(_roleFilter == false ? "is-active" : "")" @onclick='() => SetRoleFilter(false)'>
+                Standard <span class="admin-tab-count">@(_users.Count - AdminCount)</span>
+            </button>
+        </div>
 
         <section class="admin-panel admin-list-panel">
             <div class="admin-panel-header admin-grid-toolbar">
                 <div>
                     <h2>@L["Accounts"]</h2>
                     <p>@L["AccountsLead"]</p>
+                    <div class="admin-toolbar-summary" aria-label="@L["UserOverview"]">
+                        <span class="admin-summary-chip">
+                            <strong>@_filteredUsers.Count</strong>
+                            @L["TotalUsers"]
+                        </span>
+                        <span class="admin-summary-chip">
+                            <strong>@FilteredAdminCount</strong>
+                            @L["Admins"]
+                        </span>
+                        <span class="admin-summary-chip">
+                            <strong>@FilteredStandardCount</strong>
+                            @L["StandardUsers"]
+                        </span>
+                    </div>
                 </div>
 
                 <div class="admin-grid-toolbar-actions">
-                    <label class="admin-search-field" for="user-search">
-                        <span>@L["Search"]</span>
+                    <div class="admin-search-icon-field admin-search-field-wide">
+                        <svg class="admin-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.35-4.35"/>
+                        </svg>
                         <input id="user-search"
                                type="search"
                                placeholder="@L["SearchPlaceholder"]"
@@ -89,8 +98,9 @@ else
                                autocomplete="off"
                                autocapitalize="off"
                                autocorrect="off"
-                               spellcheck="false" />
-                    </label>
+                               spellcheck="false"
+                               aria-label="@L["Search"]" />
+                    </div>
 
                     <label class="admin-page-size-field" for="user-page-size">
                         <span>@L["RowsPerPage"]</span>
@@ -104,11 +114,6 @@ else
                 </div>
             </div>
 
-            <div class="admin-grid-meta" aria-live="polite">
-                <span>@FilteredSummary</span>
-                <span>@PageSummary</span>
-            </div>
-
             @if (_filteredUsers.Count == 0)
             {
                 <div class="admin-empty-state panel-empty-state">
@@ -120,14 +125,20 @@ else
             {
                 <div class="admin-table-shell admin-table-region" tabindex="-1">
                     <QuickGrid Items="@VisibleUsers"
-                               Class="admin-table admin-quickgrid"
+                               Class="admin-table admin-quickgrid admin-users-table"
                                ItemKey="@(user => user.Id)">
                         <TemplateColumn Title="@L["User"]">
                             <div class="admin-user-cell">
-                                <span class="admin-avatar" aria-hidden="true">@GetInitial(context.UserName)</span>
-                                <div>
+                                <span class="admin-avatar" style="background: @GetAvatarColor(context.UserName)" aria-hidden="true">@GetInitial(context.UserName)</span>
+                                <div class="admin-user-text">
                                     <strong>@context.UserName</strong>
-                                    <span>@(context.Id == _currentUserId ? L["CurrentSession"] : L["ManagedAccount"])</span>
+                                    <div class="admin-user-meta">
+                                        <span>@(context.Id == _currentUserId ? L["CurrentSession"] : L["ManagedAccount"])</span>
+                                        @if (context.Id == _currentUserId)
+                                        {
+                                            <span class="admin-inline-status">@L["CurrentSession"]</span>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         </TemplateColumn>
@@ -139,11 +150,14 @@ else
                         </TemplateColumn>
 
                         <TemplateColumn Title="@L["Email"]">
-                            @(string.IsNullOrWhiteSpace(context.Email) ? "-" : context.Email)
+                            <div class="admin-stack-cell">
+                                <strong title="@context.Email">@(string.IsNullOrWhiteSpace(context.Email) ? "-" : context.Email)</strong>
+                                <span>@(string.IsNullOrWhiteSpace(context.Email) ? L["ManagedAccount"] : L["Email"])</span>
+                            </div>
                         </TemplateColumn>
 
                         <TemplateColumn Title="@L["Identifier"]">
-                            <span class="admin-mono">@context.Id</span>
+                            <code class="admin-inline-code admin-inline-code-strong" title="@context.Id">@context.Id</code>
                         </TemplateColumn>
 
                         <TemplateColumn Title="@L["Actions"]" Align="Align.End">
@@ -161,13 +175,22 @@ else
                 </div>
 
                 <div class="admin-pagination-bar">
-                    <button type="button" class="admin-ghost-button" @onclick="GoToPreviousPage" disabled="@(!CanGoToPreviousPage)">
-                        @L["PreviousPage"]
-                    </button>
-                    <span class="admin-pagination-status">@L["PageIndicator", _currentPage, TotalPages]</span>
-                    <button type="button" class="admin-ghost-button" @onclick="GoToNextPage" disabled="@(!CanGoToNextPage)">
-                        @L["NextPage"]
-                    </button>
+                    <span class="admin-pagination-showing">@PageSummary</span>
+                    <div class="admin-pagination-controls">
+                        <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToPreviousPage" disabled="@(!CanGoToPreviousPage)">
+                            @L["PreviousPage"]
+                        </button>
+                        @for (var p = Math.Max(1, _currentPage - 2); p <= Math.Min(TotalPages, _currentPage + 2); p++)
+                        {
+                            var pageNum = p;
+                            <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" @onclick="() => GoToPage(pageNum)">
+                                @pageNum
+                            </button>
+                        }
+                        <button type="button" class="admin-ghost-button admin-pagination-btn" @onclick="GoToNextPage" disabled="@(!CanGoToNextPage)">
+                            @L["NextPage"]
+                        </button>
+                    </div>
                 </div>
             }
         </section>
@@ -206,10 +229,13 @@ else
     private int _currentPage = 1;
     private int _pageSize = 10;
     private string _searchTerm = string.Empty;
+    private bool? _roleFilter = null;
     private string? _statusMessage;
     private bool _statusIsError;
 
     private int AdminCount => _users.Count(static user => user.IsAdmin);
+    private int FilteredAdminCount => _filteredUsers.Count(static user => user.IsAdmin);
+    private int FilteredStandardCount => _filteredUsers.Count - FilteredAdminCount;
     private bool CanGoToNextPage => _currentPage < TotalPages;
     private bool CanGoToPreviousPage => _currentPage > 1;
     private string FilteredSummary => _filteredUsers.Count == 0
@@ -296,6 +322,12 @@ else
         _filteredUsers.Clear();
 
         IEnumerable<UserRow> query = _users;
+
+        if (_roleFilter.HasValue)
+        {
+            query = query.Where(u => u.IsAdmin == _roleFilter.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(_searchTerm))
         {
             var searchTerm = _searchTerm.Trim();
@@ -318,6 +350,12 @@ else
 
         _filteredUsers.AddRange(query);
         UpdateVisibleUsers(resetPage: true);
+    }
+
+    private void SetRoleFilter(bool? filter)
+    {
+        _roleFilter = filter;
+        ApplyFilter();
     }
 
     private void UpdateVisibleUsers(bool resetPage = false)
@@ -498,6 +536,13 @@ else
         return string.IsNullOrWhiteSpace(value) ? "?" : value.Trim()[0].ToString().ToUpperInvariant();
     }
 
+    private static string GetAvatarColor(string username)
+    {
+        if (string.IsNullOrWhiteSpace(username)) return "#64748b";
+        string[] colors = ["#16a34a", "#2563eb", "#7c3aed", "#ea580c", "#0891b2", "#db2777"];
+        return colors[Math.Abs(username[0]) % colors.Length];
+    }
+
     private void ValidateEditor()
     {
         if (string.IsNullOrWhiteSpace(_editor.UserName))
@@ -665,6 +710,12 @@ else
         }
 
         _currentPage--;
+        UpdateVisibleUsers();
+    }
+
+    private void GoToPage(int page)
+    {
+        _currentPage = Math.Clamp(page, 1, TotalPages);
         UpdateVisibleUsers();
     }
 

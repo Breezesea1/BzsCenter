@@ -1,8 +1,12 @@
 @using ApexCharts
 @using BzsCenter.Idp.Client.Services.Dashboard
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IAdminDashboardClient DashboardClient
 @inject IStringLocalizer<Dashboard> L
+@inject NavigationManager NavigationManager
 
 @if (_isLoading)
 {
@@ -291,6 +295,21 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User.Identity?.IsAuthenticated != true)
+        {
+            var loginPath = QueryHelpers.AddQueryString(
+                "/login",
+                new Dictionary<string, string?>
+                {
+                    ["returnUrl"] = "/",
+                });
+
+            NavigationManager.NavigateTo(loginPath, forceLoad: true);
+            _isLoading = false;
+            return;
+        }
+
         _summary = await DashboardClient.GetSummaryAsync();
         ConfigureCharts();
         _isLoading = false;

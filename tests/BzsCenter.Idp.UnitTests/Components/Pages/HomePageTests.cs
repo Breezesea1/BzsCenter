@@ -1,7 +1,10 @@
+using System.Security.Claims;
 using ApexCharts;
 using Bunit;
 using BzsCenter.Idp.Client.Components.Pages;
 using BzsCenter.Idp.Client.Services.Dashboard;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using NSubstitute;
@@ -32,6 +35,11 @@ public sealed class HomePageTests
             });
 
         context.Services.AddSingleton(dashboardClient);
+        context.Services.AddSingleton<AuthenticationStateProvider>(
+            new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "admin"),
+            ], "TestAuth"))));
         context.Services.AddSingleton<IStringLocalizer<Home>, TestDoubles.TestStringLocalizer<Home>>();
         context.Services.AddSingleton<IStringLocalizer<Dashboard>, TestDoubles.TestStringLocalizer<Dashboard>>();
 
@@ -44,5 +52,37 @@ public sealed class HomePageTests
             Assert.Contains("TotalUsers", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("TotalClients", cut.Markup, StringComparison.Ordinal);
         });
+    }
+
+    [Fact]
+    public void Home_WhenAnonymous_RedirectsToLogin()
+    {
+        using var context = new BunitContext();
+        context.Services.AddApexCharts();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var dashboardClient = Substitute.For<IAdminDashboardClient>();
+        context.Services.AddSingleton(dashboardClient);
+        context.Services.AddSingleton<AuthenticationStateProvider>(
+            new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity())));
+        context.Services.AddSingleton<IStringLocalizer<Home>, TestDoubles.TestStringLocalizer<Home>>();
+        context.Services.AddSingleton<IStringLocalizer<Dashboard>, TestDoubles.TestStringLocalizer<Dashboard>>();
+
+        var navigationManager = context.Services.GetRequiredService<NavigationManager>();
+
+        context.Render<Home>();
+
+        Assert.Equal("http://localhost/login?returnUrl=%2F", navigationManager.Uri);
+        dashboardClient.DidNotReceive().GetSummaryAsync(Arg.Any<CancellationToken>());
+    }
+
+    private sealed class TestAuthenticationStateProvider(ClaimsPrincipal user) : AuthenticationStateProvider
+    {
+        private readonly AuthenticationState _state = new(user);
+
+        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            return Task.FromResult(_state);
+        }
     }
 }

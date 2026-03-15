@@ -119,7 +119,7 @@
         {
             _dotNetRef = DotNetObjectReference.Create(this);
             _prefModule = await JS.InvokeAsync<IJSObjectReference>(
-                "import", "./Components/Layout/Preferences.razor.js");
+                "import", "./js/preferences-panel.js");
             await _prefModule.InvokeVoidAsync("init", _widgetRef, _dotNetRef);
 
             var cookieTheme = await _prefModule.InvokeAsync<string?>("getThemeCookie");

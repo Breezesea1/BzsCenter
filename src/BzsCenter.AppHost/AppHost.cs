@@ -36,11 +36,11 @@ var idpMigrator = builder.AddProject<Projects.BzsCenter_Idp_Migrator>("idp-migra
     .WithEnvironment("Identity__Admin__UserName", adminUserName)
     .WithEnvironment("Identity__Admin__Password", adminPassword)
     .WithReference(idpDatabase)
-    .WaitFor(idpDatabase);
+    .WaitFor(postgres);
 
 idp
     .WithEnvironment("IdpIssuer", idp.GetEndpoint("https"))
-    .WaitFor(idpDatabase)
+    .WaitFor(postgres)
     .WaitFor(redis)
     .WaitForCompletion(idpMigrator);
 

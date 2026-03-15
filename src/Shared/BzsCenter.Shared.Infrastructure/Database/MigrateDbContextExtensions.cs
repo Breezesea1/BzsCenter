@@ -1,6 +1,8 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using BzsCenter.Shared.Infrastructure.Telemetry;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -70,20 +72,27 @@ public static class MigrateDbContextExtensions
         {
             try
             {
-                var pending = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToArray();
                 var strategy = context.Database.CreateExecutionStrategy();
                 await strategy.ExecuteAsync(async () =>
                 {
-                    if (pending.Length == 0)
+                    logger.LogInformation("Starting migration pipeline for context {DbContextName}",
+                        typeof(TContext).Name);
+
+                    var historyRepository = context.GetService<IHistoryRepository>();
+                    await historyRepository.CreateIfNotExistsAsync(cancellationToken);
+
+                    await context.Database.MigrateAsync(cancellationToken);
+
+                    var remaining = (await context.Database.GetPendingMigrationsAsync(cancellationToken)).ToArray();
+                    if (remaining.Length == 0)
                     {
-                        logger.LogInformation("No pending migrations found on context {DbContextName}",
+                        logger.LogInformation("Migration pipeline completed for context {DbContextName}",
                             typeof(TContext).Name);
                     }
                     else
                     {
-                        logger.LogInformation("Applying {Count} migrations for {DbContextName}: {Migrations}",
-                            pending.Length, typeof(TContext).Name, string.Join(", ", pending));
-                        await context.Database.MigrateAsync(cancellationToken);
+                        logger.LogWarning("Migration pipeline finished with {Count} pending migrations for context {DbContextName}: {Migrations}",
+                            remaining.Length, typeof(TContext).Name, string.Join(", ", remaining));
                     }
 
                     if (seeder is not null)

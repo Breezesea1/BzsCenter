@@ -1,10 +1,14 @@
-<Router AppAssembly="typeof(App).Assembly"
-        AdditionalAssemblies="[typeof(BzsCenter.Idp.Client._Imports).Assembly]"
-        NotFoundPage="typeof(BzsCenter.Idp.Client.Components.Pages.NotFound)">
-    <Found Context="routeData">
-        <CascadingValue Value="routeData">
-            <RouteView RouteData="routeData" DefaultLayout="typeof(BzsCenter.Idp.Client.Components.Layout.MainLayout)"/>
-            <FocusOnNavigate RouteData="routeData" Selector="h1"/>
-        </CascadingValue>
-    </Found>
-</Router>
+@using Microsoft.AspNetCore.Components.Authorization
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="typeof(App).Assembly"
+            AdditionalAssemblies="[typeof(BzsCenter.Idp.Client._Imports).Assembly]"
+            NotFoundPage="typeof(BzsCenter.Idp.Client.Components.Pages.NotFound)">
+        <Found Context="routeData">
+            <CascadingValue Value="routeData">
+                <RouteView RouteData="routeData" DefaultLayout="typeof(BzsCenter.Idp.Client.Components.Layout.MainLayout)"/>
+                <FocusOnNavigate RouteData="routeData" Selector="h1"/>
+            </CascadingValue>
+        </Found>
+    </Router>
+</CascadingAuthenticationState>

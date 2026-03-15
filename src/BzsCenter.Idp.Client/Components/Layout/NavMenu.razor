@@ -1,3 +1,5 @@
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
 @inject IStringLocalizer<NavMenu> L
 
@@ -33,17 +35,21 @@
             <span class="menu-text">@L["Home"]</span>
         </NavLink>
 
-        <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false"
-           @onclick="CloseMobileAsync">
-            <span class="menu-icon" aria-hidden="true">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                    <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
-                    <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2"
-                          stroke-linecap="round"/>
-                </svg>
-            </span>
-            <span class="menu-text">@L["Login"]</span>
-        </a>
+        <AuthorizeView>
+            <NotAuthorized>
+                <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false"
+                   @onclick="CloseMobileAsync">
+                    <span class="menu-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2"
+                                  stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <span class="menu-text">@L["Login"]</span>
+                </a>
+            </NotAuthorized>
+        </AuthorizeView>
 
    
         <NavLink class="menu-link group hover:bg-transparent" href="/admin/users" Match="NavLinkMatch.All"
@@ -78,13 +84,26 @@
     <div class="menu-divider"></div>
 
     <footer class="menu-footer">
-        <div class="menu-user">
-            <span class="menu-user-avatar">A</span>
-            <div class="menu-user-info">
-                <span class="menu-user-name">Admin</span>
-                <span class="menu-user-email">admin@bzscenter.com</span>
-            </div>
-        </div>
+        <AuthorizeView Context="authContext">
+            <Authorized>
+                <div class="menu-user">
+                    <span class="menu-user-avatar">@GetUserAvatar(authContext.User)</span>
+                    <div class="menu-user-info">
+                        <span class="menu-user-name">@GetUserName(authContext.User)</span>
+                        <span class="menu-user-email">@GetUserSecondaryText(authContext.User)</span>
+                    </div>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <div class="menu-user">
+                    <span class="menu-user-avatar">G</span>
+                    <div class="menu-user-info">
+                        <span class="menu-user-name">Guest</span>
+                        <span class="menu-user-email">Sign in to continue</span>
+                    </div>
+                </div>
+            </NotAuthorized>
+        </AuthorizeView>
     </footer>
 </nav>
 
@@ -115,6 +134,36 @@
     private async Task ToggleCollapseAsync()
     {
         await OnToggleCollapse.InvokeAsync();
+    }
+
+    private static string GetUserAvatar(ClaimsPrincipal user)
+    {
+        var seed = GetUserName(user);
+        return string.IsNullOrWhiteSpace(seed)
+            ? "U"
+            : seed[..1].ToUpperInvariant();
+    }
+
+    private static string GetUserName(ClaimsPrincipal user)
+    {
+        return user.Identity?.Name
+            ?? GetClaimValue(user, ClaimTypes.Name)
+            ?? GetClaimValue(user, "name")
+            ?? GetClaimValue(user, ClaimTypes.Email)
+            ?? GetClaimValue(user, "email")
+            ?? "Authenticated user";
+    }
+
+    private static string GetUserSecondaryText(ClaimsPrincipal user)
+    {
+        return GetClaimValue(user, ClaimTypes.Email)
+            ?? GetClaimValue(user, "email")
+            ?? (user.Identity?.IsAuthenticated == true ? "Signed in" : "Not signed in");
+    }
+
+    private static string? GetClaimValue(ClaimsPrincipal user, string claimType)
+    {
+        return user.Claims.FirstOrDefault(claim => string.Equals(claim.Type, claimType, StringComparison.Ordinal))?.Value;
     }
 
 }

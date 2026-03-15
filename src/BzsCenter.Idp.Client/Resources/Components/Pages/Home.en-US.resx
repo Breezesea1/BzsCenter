@@ -12,7 +12,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
   </resheader>
-  <data name="PageTitle" xml:space="preserve"><value>Home</value></data>
-  <data name="Heading" xml:space="preserve"><value>Identity admin home</value></data>
-  <data name="Lead" xml:space="preserve"><value>Start from a clear summary of users, client registrations, and permission changes.</value></data>
+  <data name="PageTitle" xml:space="preserve"><value>Authorization Server Overview</value></data>
+  <data name="Heading" xml:space="preserve"><value>Authorization server overview</value></data>
+  <data name="Lead" xml:space="preserve"><value>Users client registrations and OIDC configuration</value></data>
 </root>

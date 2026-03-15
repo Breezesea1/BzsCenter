@@ -4,60 +4,60 @@
   <resheader name="version"><value>2.0</value></resheader>
   <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, ...</value></resheader>
   <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value></resheader>
-  <data name="Kicker" xml:space="preserve"><value>身份工作台</value></data>
-  <data name="Title" xml:space="preserve"><value>把用户、客户端和权限控制在一个首页里。</value></data>
-  <data name="Lead" xml:space="preserve"><value>先在这里快速判断访问变化、已接入应用和待处理项，再进入具体管理页处理细节。</value></data>
+  <data name="Kicker" xml:space="preserve"><value>授权服务器总览</value></data>
+  <data name="Title" xml:space="preserve"><value>用户 客户端注册 与 OIDC 配置</value></data>
+  <data name="Lead" xml:space="preserve"><value>用户增长 客户端注册 Scope 映射 与最近配置变更</value></data>
   <data name="ManageUsers" xml:space="preserve"><value>管理用户</value></data>
   <data name="ManageClients" xml:space="preserve"><value>管理客户端</value></data>
-  <data name="Overview" xml:space="preserve"><value>概览指标</value></data>
+  <data name="Overview" xml:space="preserve"><value>核心遥测</value></data>
   <data name="TotalUsers" xml:space="preserve"><value>用户总数</value></data>
-  <data name="TotalUsersLead" xml:space="preserve"><value>当前可登录这套身份工作区的账号数量。</value></data>
-  <data name="AdminCoverage" xml:space="preserve"><value>管理员覆盖率</value></data>
-  <data name="AdminCoverageLead" xml:space="preserve"><value>当前共有 {0} / {1} 个账号拥有管理员权限。</value></data>
+  <data name="TotalUsersLead" xml:space="preserve"><value>当前由该授权服务器完成认证的账号数量。</value></data>
+  <data name="AdminCoverage" xml:space="preserve"><value>管理员占比</value></data>
+  <data name="AdminCoverageLead" xml:space="preserve"><value>当前共有 {0} / {1} 个账号拥有管理权限。</value></data>
   <data name="TotalClients" xml:space="preserve"><value>客户端总数</value></data>
-  <data name="TotalClientsLead" xml:space="preserve"><value>当前注册在这套登录平台里的应用和服务集成数量。</value></data>
-  <data name="ConfiguredScopes" xml:space="preserve"><value>访问规则</value></data>
-  <data name="ConfiguredScopesLead" xml:space="preserve"><value>当前共有 {0} 条权限映射在决定应用可以申请哪些访问范围。</value></data>
-  <data name="ClientMix" xml:space="preserve"><value>客户端构成</value></data>
-  <data name="ClientMixTitle" xml:space="preserve"><value>客户端分布</value></data>
-  <data name="ClientMixLead" xml:space="preserve"><value>把交互式应用、机器客户端和权限映射放在一起看，能更快判断这套工作区的接入结构。</value></data>
+  <data name="TotalClientsLead" xml:space="preserve"><value>当前注册的交互式客户端与机器客户端数量。</value></data>
+  <data name="ConfiguredScopes" xml:space="preserve"><value>Scope 映射</value></data>
+  <data name="ConfiguredScopesLead" xml:space="preserve"><value>{0} 条权限与请求 Scope 的映射。</value></data>
+  <data name="ClientMix" xml:space="preserve"><value>注册拓扑</value></data>
+  <data name="ClientMixTitle" xml:space="preserve"><value>客户端拓扑</value></data>
+  <data name="ClientMixLead" xml:space="preserve"><value>交互式客户端、机器客户端与 Scope 映射分布。</value></data>
   <data name="Clients" xml:space="preserve"><value>客户端</value></data>
-  <data name="LoginApps" xml:space="preserve"><value>登录类应用</value></data>
-  <data name="ServiceClients" xml:space="preserve"><value>服务客户端</value></data>
-  <data name="ScopeMappings" xml:space="preserve"><value>访问映射</value></data>
+  <data name="LoginApps" xml:space="preserve"><value>交互式客户端</value></data>
+  <data name="ServiceClients" xml:space="preserve"><value>机器客户端</value></data>
+  <data name="ScopeMappings" xml:space="preserve"><value>Scope 映射</value></data>
   <data name="RoleBalance" xml:space="preserve"><value>角色分布</value></data>
-  <data name="RoleBalanceTitle" xml:space="preserve"><value>用户角色分布</value></data>
+  <data name="RoleBalanceTitle" xml:space="preserve"><value>主体角色分布</value></data>
   <data name="Users" xml:space="preserve"><value>用户</value></data>
   <data name="Admins" xml:space="preserve"><value>管理员</value></data>
   <data name="StandardUsers" xml:space="preserve"><value>普通用户</value></data>
-  <data name="QuickActions" xml:space="preserve"><value>快捷操作</value></data>
-  <data name="QuickActionsTitle" xml:space="preserve"><value>直接进入最核心的管理页</value></data>
-  <data name="ManageUsersLead" xml:space="preserve"><value>查看账号、调整管理员权限，并清理不再需要的用户记录。</value></data>
-  <data name="ManageClientsLead" xml:space="preserve"><value>检查应用注册、回调地址、密钥和已授予的 scopes。</value></data>
+  <data name="QuickActions" xml:space="preserve"><value>快捷入口</value></data>
+  <data name="QuickActionsTitle" xml:space="preserve"><value>管理端点</value></data>
+  <data name="ManageUsersLead" xml:space="preserve"><value>用户记录、角色与管理标记。</value></data>
+  <data name="ManageClientsLead" xml:space="preserve"><value>客户端注册、回调地址、密钥与 Scope。</value></data>
   <data name="RegisterClient" xml:space="preserve"><value>新建客户端</value></data>
-  <data name="RegisterClientLead" xml:space="preserve"><value>为新的内部应用或服务集成创建客户端记录。</value></data>
-  <data name="Guidance" xml:space="preserve"><value>检查清单</value></data>
-  <data name="GuidanceTitle" xml:space="preserve"><value>发布或调整接入前，先确认这三件事</value></data>
-  <data name="GuidanceOne" xml:space="preserve"><value>先确认客户端类型和真实登录流程一致，否则登录和续期行为很容易在产品里跑偏。</value></data>
-  <data name="GuidanceTwo" xml:space="preserve"><value>只授予集成真正需要的 scopes，后续审计和故障排查都会轻松很多。</value></data>
-  <data name="GuidanceThree" xml:space="preserve"><value>发布前把回调地址、权限配置和环境差异再核对一次，避免测试能跑、生产翻车。</value></data>
-  <data name="AccessLimitedTitle" xml:space="preserve"><value>你当前没有查看这份总览的权限。</value></data>
-  <data name="AccessLimitedLead" xml:space="preserve"><value>请使用可进入后台工作区的账号登录后，再查看最新摘要。</value></data>
+  <data name="RegisterClientLead" xml:space="preserve"><value>注册交互式客户端或机器客户端。</value></data>
+  <data name="Guidance" xml:space="preserve"><value>校验清单</value></data>
+  <data name="GuidanceTitle" xml:space="preserve"><value>OIDC 客户端校验</value></data>
+  <data name="GuidanceOne" xml:space="preserve"><value>校验客户端类型、Grant Type 与授权流程。</value></data>
+  <data name="GuidanceTwo" xml:space="preserve"><value>将请求 Scope 限制在必要权限内。</value></data>
+  <data name="GuidanceThree" xml:space="preserve"><value>核对回调地址、客户端密钥与环境绑定。</value></data>
+  <data name="AccessLimitedTitle" xml:space="preserve"><value>你当前没有查看该授权服务器总览的权限。</value></data>
+  <data name="AccessLimitedLead" xml:space="preserve"><value>请使用具备管理权限的主体登录。</value></data>
   <data name="GoToLogin" xml:space="preserve"><value>前往登录</value></data>
   <data name="VsLastMonth" xml:space="preserve"><value>较上月</value></data>
   <data name="MonthlyGoals" xml:space="preserve"><value>月度目标</value></data>
-  <data name="GoalsProgress" xml:space="preserve"><value>完成进度</value></data>
+  <data name="GoalsProgress" xml:space="preserve"><value>推进进度</value></data>
   <data name="UserGrowth" xml:space="preserve"><value>用户增长</value></data>
-  <data name="ClientOnboarding" xml:space="preserve"><value>客户端接入</value></data>
-  <data name="ScopeCoverage" xml:space="preserve"><value>权限覆盖度</value></data>
-  <data name="Timeline" xml:space="preserve"><value>时间线</value></data>
-  <data name="RecentActivity" xml:space="preserve"><value>最近活动</value></data>
-  <data name="ActivityUserAdded" xml:space="preserve"><value>新增管理员账号</value></data>
+  <data name="ClientOnboarding" xml:space="preserve"><value>客户端预配</value></data>
+  <data name="ScopeCoverage" xml:space="preserve"><value>Scope 映射覆盖率</value></data>
+  <data name="Timeline" xml:space="preserve"><value>事件时间线</value></data>
+  <data name="RecentActivity" xml:space="preserve"><value>最近动态</value></data>
+  <data name="ActivityUserAdded" xml:space="preserve"><value>新增管理主体</value></data>
   <data name="TimeJustNow" xml:space="preserve"><value>刚刚</value></data>
-  <data name="ActivityClientUpdated" xml:space="preserve"><value>客户端配置已更新</value></data>
+  <data name="ActivityClientUpdated" xml:space="preserve"><value>客户端元数据已更新</value></data>
   <data name="TimeTwoHoursAgo" xml:space="preserve"><value>2 小时前</value></data>
-  <data name="ActivityScopeAdded" xml:space="preserve"><value>新增权限映射</value></data>
+  <data name="ActivityScopeAdded" xml:space="preserve"><value>新增权限 Scope 映射</value></data>
   <data name="TimeYesterday" xml:space="preserve"><value>昨天</value></data>
-  <data name="ActivitySystemBackup" xml:space="preserve"><value>身份配置备份已完成</value></data>
+  <data name="ActivitySystemBackup" xml:space="preserve"><value>授权服务器配置备份已完成</value></data>
   <data name="TimeTwoDaysAgo" xml:space="preserve"><value>2 天前</value></data>
 </root>

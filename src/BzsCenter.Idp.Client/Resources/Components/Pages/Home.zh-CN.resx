@@ -12,7 +12,7 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, ...</value>
   </resheader>
-  <data name="PageTitle" xml:space="preserve"><value>首页</value></data>
-  <data name="Heading" xml:space="preserve"><value>身份管理首页</value></data>
-  <data name="Lead" xml:space="preserve"><value>先看用户、客户端注册和权限变化摘要，再进入具体管理流程。</value></data>
+  <data name="PageTitle" xml:space="preserve"><value>授权服务器总览</value></data>
+  <data name="Heading" xml:space="preserve"><value>授权服务器总览</value></data>
+  <data name="Lead" xml:space="preserve"><value>用户 客户端注册 与 OIDC 配置总览</value></data>
 </root>

@@ -1,6 +1,7 @@
 using System.Globalization;
 using ApexCharts;
 using BzsCenter.Idp.Client.Services.Dashboard;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.JSInterop;
 
@@ -10,6 +11,8 @@ builder.Services.AddLocalization(options =>
 {
     options.ResourcesPath = "Resources";
 });
+builder.Services.AddAuthorizationCore();
+builder.Services.AddAuthenticationStateDeserialization();
 builder.Services.AddAdminDashboardClient(_ => new Uri(builder.HostEnvironment.BaseAddress));
 builder.Services.AddApexCharts();
 

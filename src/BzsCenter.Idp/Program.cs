@@ -29,6 +29,7 @@ builder.Services.AddAdminDashboardClient(serviceProvider =>
     }.Uri;
 });
 builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
+builder.Services.AddCascadingAuthenticationState();
 builder.Services.Configure<RequestLocalizationOptions>(options =>
 {
     var supportedCultures = UiPreferences.SupportedCultureNames
@@ -48,7 +49,8 @@ builder.Services.Configure<RequestLocalizationOptions>(options =>
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
-    .AddInteractiveWebAssemblyComponents();
+    .AddInteractiveWebAssemblyComponents()
+    .AddAuthenticationStateSerialization();
 builder.Services.AddControllers();
 
 var app = builder.Build();

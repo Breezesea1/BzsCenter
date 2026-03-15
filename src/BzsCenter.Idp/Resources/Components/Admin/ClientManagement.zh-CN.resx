@@ -8,9 +8,13 @@
   <data name="AdminArea" xml:space="preserve"><value>管理区域</value></data>
   <data name="CheckingAccess" xml:space="preserve"><value>正在检查访问权限</value></data>
   <data name="CheckingAccessLead" xml:space="preserve"><value>正在验证你的会话，然后加载客户端管理页面。</value></data>
-  <data name="HeroLead" xml:space="preserve"><value>注册内部应用，维护 Redirect URI，并管理需要 Client Secret 的服务客户端。</value></data>
+  <data name="Overview" xml:space="preserve"><value>概览</value></data>
+  <data name="AppAccess" xml:space="preserve"><value>应用接入</value></data>
+  <data name="HeroLead" xml:space="preserve"><value>注册内部应用，维护重定向 URI，并管理需要客户端密钥的服务端调用方。</value></data>
+  <data name="FilterByProfile" xml:space="preserve"><value>按客户端类型筛选</value></data>
   <data name="Refresh" xml:space="preserve"><value>刷新</value></data>
   <data name="NewClient" xml:space="preserve"><value>新建客户端</value></data>
+  <data name="All" xml:space="preserve"><value>全部</value></data>
   <data name="ClientOverview" xml:space="preserve"><value>客户端概览</value></data>
   <data name="TotalClients" xml:space="preserve"><value>客户端总数</value></data>
   <data name="TotalClientsLead" xml:space="preserve"><value>由 IDP 管理的登录类应用和 service-to-service 调用方。</value></data>
@@ -21,10 +25,12 @@
   <data name="ClientSecretGenerated" xml:space="preserve"><value>已生成客户端密钥</value></data>
   <data name="ClientSecretGeneratedLead" xml:space="preserve"><value>请立即复制。此次响应之后，OpenIddict 不会再次显示明文客户端密钥。</value></data>
   <data name="RegisteredClients" xml:space="preserve"><value>已注册客户端</value></data>
-  <data name="RegisteredClientsLead" xml:space="preserve"><value>在接入前，先检查客户端类型、Scopes 和 Redirect URI。</value></data>
+  <data name="RegisteredClientsLead" xml:space="preserve"><value>在接入前，先检查客户端类型、权限范围和重定向 URI。</value></data>
   <data name="Search" xml:space="preserve"><value>搜索</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>按客户端 ID 或显示名称搜索</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>每页行数</value></data>
+  <data name="Rows" xml:space="preserve"><value>行数</value></data>
+  <data name="ResizeColumn" xml:space="preserve"><value>调整“{0}”列宽</value></data>
   <data name="SearchResultSummary" xml:space="preserve"><value>共匹配 {0} 个客户端</value></data>
   <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>当前筛选条件下没有匹配的客户端。</value></data>
   <data name="PageSummary" xml:space="preserve"><value>显示第 {0}-{1} 条，共 {2} 条</value></data>
@@ -33,11 +39,13 @@
   <data name="NextPage" xml:space="preserve"><value>下一页</value></data>
   <data name="PageIndicator" xml:space="preserve"><value>第 {0} / {1} 页</value></data>
   <data name="Client" xml:space="preserve"><value>客户端</value></data>
+  <data name="Actions" xml:space="preserve"><value>操作</value></data>
   <data name="NoMatchingClients" xml:space="preserve"><value>没有匹配的客户端</value></data>
   <data name="NoMatchingClientsLead" xml:space="preserve"><value>请尝试其他关键词，或注册一个新的应用。</value></data>
-  <data name="GrantTypes" xml:space="preserve"><value>Grant Types</value></data>
-  <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
-  <data name="RedirectUris" xml:space="preserve"><value>Redirect URIs</value></data>
+  <data name="GrantTypes" xml:space="preserve"><value>授权类型</value></data>
+  <data name="Scopes" xml:space="preserve"><value>权限范围</value></data>
+  <data name="RedirectUris" xml:space="preserve"><value>重定向 URI</value></data>
+  <data name="MoreCount" xml:space="preserve"><value>另有 {0} 项</value></data>
   <data name="Edit" xml:space="preserve"><value>编辑</value></data>
   <data name="Delete" xml:space="preserve"><value>删除</value></data>
   <data name="EditClient" xml:space="preserve"><value>编辑客户端</value></data>
@@ -50,16 +58,16 @@
   <data name="DisplayName" xml:space="preserve"><value>显示名称</value></data>
   <data name="Profile" xml:space="preserve"><value>客户端类型</value></data>
   <data name="ProfileHelp" xml:space="preserve"><value>选择这是“有用户登录”的应用，还是“服务调服务”的后台客户端。</value></data>
-  <data name="FirstPartyInteractive" xml:space="preserve"><value>Web / SPA（用户登录）</value></data>
-  <data name="FirstPartyMachine" xml:space="preserve"><value>Service / Daemon（机器调用）</value></data>
+  <data name="FirstPartyInteractive" xml:space="preserve"><value>Web / SPA（用户登录型）</value></data>
+  <data name="FirstPartyMachine" xml:space="preserve"><value>服务 / 守护进程（机器调用）</value></data>
   <data name="ScopesPlaceholder" xml:space="preserve"><value>每行一个 scope，或使用逗号分隔</value></data>
-  <data name="ScopesHelp" xml:space="preserve"><value>新客户端会预填默认 API scope。</value></data>
+  <data name="ScopesHelp" xml:space="preserve"><value>新客户端会预填默认 API 权限范围。</value></data>
   <data name="RedirectUrisPlaceholder" xml:space="preserve"><value>每行一个绝对 URI</value></data>
-  <data name="PostLogoutRedirectUris" xml:space="preserve"><value>Sign-out Redirect URIs</value></data>
+  <data name="PostLogoutRedirectUris" xml:space="preserve"><value>退出登录后重定向 URI</value></data>
   <data name="ProfileBehavior" xml:space="preserve"><value>系统会自动应用</value></data>
-  <data name="InteractiveProfileBehavior" xml:space="preserve"><value>适用于 Web、SPA、桌面端等“有用户登录”的内部应用。系统会自动使用 public client + authorization_code + refresh_token + PKCE，并要求配置 Redirect URI。</value></data>
+  <data name="InteractiveProfileBehavior" xml:space="preserve"><value>适用于 Web、SPA、桌面端等“有用户登录”的内部应用。系统会自动使用公开客户端 + authorization_code + refresh_token + PKCE，并要求配置重定向 URI。</value></data>
   <data name="ClientSecret" xml:space="preserve"><value>客户端密钥</value></data>
-  <data name="MachineProfileBehavior" xml:space="preserve"><value>适用于后台服务、作业或守护进程这类“没有用户交互”的内部调用。系统会自动使用 confidential client + client_credentials，需要 Client Secret，不使用 Redirect URI。</value></data>
+  <data name="MachineProfileBehavior" xml:space="preserve"><value>适用于后台服务、作业或守护进程这类“没有用户交互”的内部调用。系统会自动使用机密客户端 + client_credentials，需要客户端密钥，不使用重定向 URI。</value></data>
   <data name="Reset" xml:space="preserve"><value>重置</value></data>
   <data name="Saving" xml:space="preserve"><value>正在保存...</value></data>
   <data name="Close" xml:space="preserve"><value>关闭</value></data>

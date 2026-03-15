@@ -9,9 +9,15 @@
   <data name="CheckingAccess" xml:space="preserve"><value>正在检查访问权限</value></data>
   <data name="CheckingAccessLead" xml:space="preserve"><value>正在验证你的会话，然后加载用户管理页面。</value></data>
   <data name="Identity" xml:space="preserve"><value>身份</value></data>
+  <data name="Overview" xml:space="preserve"><value>概览</value></data>
   <data name="HeroLead" xml:space="preserve"><value>管理登录账号、轮换密码，并保持管理员访问权限处于受控状态。</value></data>
+  <data name="FilterByRole" xml:space="preserve"><value>按角色筛选</value></data>
   <data name="Refresh" xml:space="preserve"><value>刷新</value></data>
   <data name="NewUser" xml:space="preserve"><value>新建用户</value></data>
+  <data name="All" xml:space="preserve"><value>全部</value></data>
+  <data name="Standard" xml:space="preserve"><value>标准用户</value></data>
+  <data name="RoleSearchAdmin" xml:space="preserve"><value>管理员 admin administrator</value></data>
+  <data name="RoleSearchStandard" xml:space="preserve"><value>普通用户 标准用户 user standard</value></data>
   <data name="UserOverview" xml:space="preserve"><value>用户概览</value></data>
   <data name="TotalUsers" xml:space="preserve"><value>用户总数</value></data>
   <data name="TotalUsersLead" xml:space="preserve"><value>IDP 当前已配置的全部账号。</value></data>
@@ -24,6 +30,8 @@
   <data name="Search" xml:space="preserve"><value>搜索</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>按用户名或邮箱搜索</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>每页行数</value></data>
+  <data name="Rows" xml:space="preserve"><value>行数</value></data>
+  <data name="ResizeColumn" xml:space="preserve"><value>调整“{0}”列宽</value></data>
   <data name="SearchResultSummary" xml:space="preserve"><value>共匹配 {0} 个用户</value></data>
   <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>当前筛选条件下没有匹配的用户。</value></data>
   <data name="PageSummary" xml:space="preserve"><value>显示第 {0}-{1} 条，共 {2} 条</value></data>

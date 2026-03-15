@@ -181,7 +181,8 @@
     padding: 0.75rem 0.95rem;
     color: var(--app-text);
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.18s ease;
     resize: vertical;
 }
 
@@ -191,19 +192,27 @@
     -moz-appearance: none;
     cursor: pointer;
     padding-right: 3rem;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 18px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45);
     background-image:
-        linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--sidebar-text-muted) 86%, transparent) 50%),
-        linear-gradient(135deg, color-mix(in srgb, var(--sidebar-text-muted) 86%, transparent) 50%, transparent 50%),
-        linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg) 72%, transparent), color-mix(in srgb, var(--sidebar-bg) 72%, transparent));
+        linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 100%, transparent), color-mix(in srgb, var(--surface-elevated) 100%, transparent)),
+        linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg) 72%, transparent), color-mix(in srgb, var(--sidebar-bg) 72%, transparent)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m5 7.5 5 5 5-5' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-position:
-        calc(100% - 1.15rem) calc(50% - 0.14rem),
-        calc(100% - 0.8rem) calc(50% - 0.14rem),
-        calc(100% - 2.45rem) 50%;
+        0 0,
+        calc(100% - 2.65rem) 50%,
+        calc(100% - 1rem) 50%;
     background-size:
-        0.42rem 0.42rem,
-        0.42rem 0.42rem,
-        1px 1.5rem;
+        100% 100%,
+        1px 1.65rem,
+        0.95rem 0.95rem;
     background-repeat: no-repeat;
+}
+
+::deep .admin-field input:hover,
+::deep .admin-field select:hover,
+::deep .admin-field textarea:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 18%, var(--border-default));
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 ::deep .admin-field select:hover {
@@ -214,7 +223,7 @@
 ::deep .admin-field select:focus,
 ::deep .admin-field textarea:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent), 0 12px 24px rgba(15, 23, 42, 0.12);
 }
 
 ::deep .admin-field select::-ms-expand {
@@ -290,7 +299,8 @@
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
-    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 8px 18px rgba(15, 23, 42, 0.08);
+    transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 ::deep .admin-primary-button {
@@ -308,6 +318,7 @@
 ::deep .admin-primary-button:hover,
 ::deep .admin-ghost-button:hover {
     transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), 0 12px 28px rgba(15, 23, 42, 0.12);
 }
 
 ::deep .admin-primary-button:disabled,
@@ -315,6 +326,7 @@
     opacity: 0.55;
     cursor: not-allowed;
     transform: none;
+    box-shadow: none;
 }
 
 @media (max-width: 640.98px) {

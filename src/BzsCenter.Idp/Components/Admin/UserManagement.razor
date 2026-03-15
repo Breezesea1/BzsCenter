@@ -6,6 +6,7 @@
 @using BzsCenter.Idp.Services.Identity
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.JSInterop
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @inject IHttpContextAccessor HttpContextAccessor
@@ -13,7 +14,9 @@
 @inject IUserService UserService
 @inject UserManager<BzsUser> UserManager
 @inject IStringLocalizer<UserManagement> L
+@inject IJSRuntime JS
 @layout BzsCenter.Idp.Client.Components.Layout.MainLayout
+@implements IAsyncDisposable
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
@@ -32,14 +35,14 @@ else
     <section class="admin-page-shell">
         <header class="admin-hero">
             <div>
-                <p class="admin-breadcrumb">Overview > @L["Identity"]</p>
+                <p class="admin-breadcrumb">@L["Overview"] &gt; @L["Identity"]</p>
                 <h1>@L["PageTitle"]</h1>
                 <p>@L["HeroLead"]</p>
             </div>
 
             <div class="admin-hero-actions">
                 <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     @L["NewUser"]
                 </button>
             </div>
@@ -47,18 +50,18 @@ else
 
         @if (!string.IsNullOrWhiteSpace(_statusMessage))
         {
-            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">@_statusMessage</div>
+            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status" aria-live="polite">@_statusMessage</div>
         }
 
-        <div class="admin-filter-tabs" role="tablist" aria-label="Filter by role">
-            <button type="button" role="tab" aria-selected="@(_roleFilter == null)" class="admin-filter-tab @(_roleFilter == null ? "is-active" : "")" @onclick='() => SetRoleFilter(null)'>
-                All <span class="admin-tab-count">@_users.Count</span>
+        <div class="admin-filter-tabs" role="group" aria-label='@L["FilterByRole"]'>
+            <button type="button" aria-pressed="@(_roleFilter == null)" class="admin-filter-tab @(_roleFilter == null ? "is-active" : "")" @onclick='() => SetRoleFilter(null)'>
+                @L["All"] <span class="admin-tab-count">@_users.Count</span>
             </button>
-            <button type="button" role="tab" aria-selected="@(_roleFilter == true)" class="admin-filter-tab @(_roleFilter == true ? "is-active" : "")" @onclick='() => SetRoleFilter(true)'>
-                Admin <span class="admin-tab-count">@AdminCount</span>
+            <button type="button" aria-pressed="@(_roleFilter == true)" class="admin-filter-tab @(_roleFilter == true ? "is-active" : "")" @onclick='() => SetRoleFilter(true)'>
+                @L["Admin"] <span class="admin-tab-count">@AdminCount</span>
             </button>
-            <button type="button" role="tab" aria-selected="@(_roleFilter == false)" class="admin-filter-tab @(_roleFilter == false ? "is-active" : "")" @onclick='() => SetRoleFilter(false)'>
-                Standard <span class="admin-tab-count">@(_users.Count - AdminCount)</span>
+            <button type="button" aria-pressed="@(_roleFilter == false)" class="admin-filter-tab @(_roleFilter == false ? "is-active" : "")" @onclick='() => SetRoleFilter(false)'>
+                @L["Standard"] <span class="admin-tab-count">@(_users.Count - AdminCount)</span>
             </button>
         </div>
 
@@ -70,6 +73,7 @@ else
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                     <input id="user-search"
+                            name="user-search"
                             type="search"
                             placeholder="@L["SearchPlaceholder"]"
                             value="@_searchTerm"
@@ -95,7 +99,7 @@ else
             </div>
         </div>
 
-        <div class="admin-table-shell">
+        <div class="admin-table-shell" @ref="_tableShell">
             @if (_filteredUsers.Count == 0)
             {
                 <div class="admin-empty-state">
@@ -106,22 +110,54 @@ else
             else
             {
                 <table class="admin-table">
+                    <colgroup>
+                        <col data-column-key="user" />
+                        <col data-column-key="role" />
+                        <col data-column-key="email" />
+                        <col data-column-key="identifier" />
+                        <col data-column-key="actions" />
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th>@L["User"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
-                            <th>@L["Role"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
-                            <th>Email</th>
-                            <th>@L["Identifier"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
-                            <th class="admin-actions-header">@L["Actions"]</th>
+                            <th data-column-key="user" data-min-width="208" aria-sort="@GetAriaSort(UserSortField.UserName)">
+                                <div class="admin-column-head">
+                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.UserName)'>@L["User"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.UserName)</span></button>
+                                    <span class="admin-col-resizer" data-column-key="user" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["User"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="role" data-min-width="112" aria-sort="@GetAriaSort(UserSortField.Role)">
+                                <div class="admin-column-head">
+                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Role)'>@L["Role"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Role)</span></button>
+                                    <span class="admin-col-resizer" data-column-key="role" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Role"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="email" data-min-width="188">
+                                <div class="admin-column-head">
+                                    <span class="admin-column-label">@L["Email"]</span>
+                                    <span class="admin-col-resizer" data-column-key="email" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Email"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="identifier" data-min-width="138" aria-sort="@GetAriaSort(UserSortField.Identifier)">
+                                <div class="admin-column-head">
+                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Identifier)'>@L["Identifier"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Identifier)</span></button>
+                                    <span class="admin-col-resizer" data-column-key="identifier" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Identifier"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
+                                <div class="admin-column-head admin-column-head-actions">
+                                    <span class="admin-column-label">@L["Actions"]</span>
+                                    <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var user in _visibleUsers)
                         {
-                            <tr @key="user.Id">
+                            <tr class="admin-table-row" @key="user.Id">
                                 <td class="admin-cell-primary">
                                     <div class="admin-user-cell">
-                                        <span class="admin-avatar" style="background: @GetAvatarColor(user.UserName)" aria-hidden="true">@GetInitial(user.UserName)</span>
+                                        <span class="admin-avatar" aria-hidden="true">@GetInitial(user.UserName)</span>
                                         <div class="admin-user-text">
                                             <strong>@user.UserName</strong>
                                             <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(user.Email) ? L["ManagedAccount"] : user.Email)</span>
@@ -133,7 +169,7 @@ else
                                         @(user.IsAdmin ? L["Admin"] : L["User"])
                                     </span>
                                 </td>
-                                <td data-label="Email">
+                                <td data-label='@L["Email"].Value'>
                                     <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(user.Email) ? "—" : user.Email)</span>
                                 </td>
                                 <td data-label='@L["Identifier"].Value'>
@@ -145,6 +181,7 @@ else
                                                 class="admin-icon-button"
                                                 title="@L["Edit"]"
                                                 aria-label="@L["Edit"]"
+                                                @onclick:stopPropagation="true"
                                                 @onclick="() => BeginEdit(user)">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                 <path d="M12 20h9" />
@@ -155,6 +192,7 @@ else
                                                 class="admin-icon-button danger"
                                                 title="@L["Delete"]"
                                                 aria-label="@L["Delete"]"
+                                                @onclick:stopPropagation="true"
                                                 @onclick="() => DeleteUserAsync(user)"
                                                 disabled="@(user.Id == _currentUserId || _isBusy)">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -179,7 +217,7 @@ else
             
             <div class="admin-pagination-controls">
                 <label class="admin-page-size-field" for="user-page-size">
-                    <span>Rows</span>
+                    <span>@L["Rows"]</span>
                     <select id="user-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
                         @foreach (var option in PageSizeOptions)
                         {
@@ -194,7 +232,7 @@ else
                 @for (var p = Math.Max(1, _currentPage - 2); p <= Math.Min(TotalPages, _currentPage + 2); p++)
                 {
                     var pageNum = p;
-                    <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" @onclick="() => GoToPage(pageNum)">
+                    <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" aria-current="@(pageNum == _currentPage ? "page" : null)" @onclick="() => GoToPage(pageNum)">
                         @pageNum
                     </button>
                 }
@@ -230,6 +268,7 @@ else
     private static readonly int[] PageSizeOptions = [10, 20, 50];
 
     private UserEditor _editor = new();
+    private ElementReference _tableShell;
     private Guid _currentUserId;
     private bool _hasAccess;
     private bool _isBusy;
@@ -239,8 +278,11 @@ else
     private int _pageSize = 10;
     private string _searchTerm = string.Empty;
     private bool? _roleFilter = null;
+    private UserSortField _sortField = UserSortField.UserName;
+    private bool _sortDescending;
     private string? _statusMessage;
     private bool _statusIsError;
+    private IJSObjectReference? _tableModule;
 
     private int AdminCount => _users.Count(static user => user.IsAdmin);
     private int FilteredAdminCount => _filteredUsers.Count(static user => user.IsAdmin);
@@ -266,6 +308,19 @@ else
         }
 
         await LoadUsersAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _tableModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/admin-resizable-table.js");
+        }
+
+        if (_tableModule is not null && _filteredUsers.Count > 0)
+        {
+            await _tableModule.InvokeVoidAsync("activate", _tableShell, "admin-users-table");
+        }
     }
 
     private bool EnsureAdminAccess()
@@ -349,13 +404,14 @@ else
                         user.UserName,
                         user.Email,
                         user.Id.ToString(),
-                        user.IsAdmin ? "admin administrator" : "user standard")
+                        user.IsAdmin ? L["RoleSearchAdmin"].Value : L["RoleSearchStandard"].Value)
                 })
                 .Where(static result => result.Score.HasValue)
                 .OrderBy(static result => result.Score)
-                .ThenBy(static result => result.User.UserName, StringComparer.OrdinalIgnoreCase)
                 .Select(static result => result.User);
         }
+
+        query = ApplySort(query);
 
         _filteredUsers.AddRange(query);
         UpdateVisibleUsers(resetPage: true);
@@ -365,6 +421,54 @@ else
     {
         _roleFilter = filter;
         ApplyFilter();
+    }
+
+    private IEnumerable<UserRow> ApplySort(IEnumerable<UserRow> query)
+    {
+        return (_sortField, _sortDescending) switch
+        {
+            (UserSortField.Role, false) => query.OrderBy(static user => user.IsAdmin).ThenBy(static user => user.UserName, StringComparer.OrdinalIgnoreCase),
+            (UserSortField.Role, true) => query.OrderByDescending(static user => user.IsAdmin).ThenBy(static user => user.UserName, StringComparer.OrdinalIgnoreCase),
+            (UserSortField.Identifier, false) => query.OrderBy(static user => user.Id),
+            (UserSortField.Identifier, true) => query.OrderByDescending(static user => user.Id),
+            (_, true) => query.OrderByDescending(static user => user.UserName, StringComparer.OrdinalIgnoreCase),
+            _ => query.OrderBy(static user => user.UserName, StringComparer.OrdinalIgnoreCase),
+        };
+    }
+
+    private void ToggleSort(UserSortField field)
+    {
+        if (_sortField == field)
+        {
+            _sortDescending = !_sortDescending;
+        }
+        else
+        {
+            _sortField = field;
+            _sortDescending = false;
+        }
+
+        ApplyFilter();
+    }
+
+    private string GetAriaSort(UserSortField field)
+    {
+        if (_sortField != field)
+        {
+            return "none";
+        }
+
+        return _sortDescending ? "descending" : "ascending";
+    }
+
+    private string GetSortIndicator(UserSortField field)
+    {
+        if (_sortField != field)
+        {
+            return "↕";
+        }
+
+        return _sortDescending ? "↓" : "↑";
     }
 
     private void UpdateVisibleUsers(bool resetPage = false)
@@ -755,5 +859,32 @@ else
     {
         _editor.IsAdmin = value;
         return Task.CompletedTask;
+    }
+
+    private enum UserSortField
+    {
+        UserName,
+        Role,
+        Identifier,
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_tableModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _tableModule.InvokeVoidAsync("dispose", _tableShell);
+            await _tableModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 }

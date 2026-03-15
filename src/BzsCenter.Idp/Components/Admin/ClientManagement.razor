@@ -5,12 +5,15 @@
 @using BzsCenter.Shared.Infrastructure.Authorization
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
+@using Microsoft.JSInterop
 @using OpenIddict.Abstractions
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOidcClientService ClientService
 @inject IStringLocalizer<ClientManagement> L
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JS
 @layout BzsCenter.Idp.Client.Components.Layout.MainLayout
+@implements IAsyncDisposable
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
@@ -29,14 +32,14 @@ else
     <section class="admin-page-shell">
         <header class="admin-hero">
             <div>
-                <p class="admin-breadcrumb">Overview > App access</p>
+                <p class="admin-breadcrumb">@L["Overview"] &gt; @L["AppAccess"]</p>
                 <h1>@L["PageTitle"]</h1>
                 <p>@L["HeroLead"]</p>
             </div>
 
             <div class="admin-hero-actions">
                 <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     @L["NewClient"]
                 </button>
             </div>
@@ -44,7 +47,7 @@ else
 
         @if (!string.IsNullOrWhiteSpace(_statusMessage))
         {
-            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status">
+            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status" aria-live="polite">
                 @_statusMessage
             </div>
         }
@@ -60,15 +63,15 @@ else
             </div>
         }
 
-        <div class="admin-filter-tabs" role="tablist" aria-label="Filter by profile">
-            <button type="button" role="tab" aria-selected="@(_profileFilter == null)" class="admin-filter-tab @(_profileFilter == null ? "is-active" : "")" @onclick='() => SetProfileFilter(null)'>
-                All <span class="admin-tab-count">@_clients.Count</span>
+        <div class="admin-filter-tabs" role="group" aria-label='@L["FilterByProfile"]'>
+            <button type="button" aria-pressed="@(_profileFilter == null)" class="admin-filter-tab @(_profileFilter == null ? "is-active" : "")" @onclick='() => SetProfileFilter(null)'>
+                @L["All"] <span class="admin-tab-count">@_clients.Count</span>
             </button>
-            <button type="button" role="tab" aria-selected="@(_profileFilter == OidcClientProfile.FirstPartyInteractive)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyInteractive ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyInteractive)'>
-                Interactive <span class="admin-tab-count">@InteractiveCount</span>
+            <button type="button" aria-pressed="@(_profileFilter == OidcClientProfile.FirstPartyInteractive)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyInteractive ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyInteractive)'>
+                @L["Interactive"] <span class="admin-tab-count">@InteractiveCount</span>
             </button>
-            <button type="button" role="tab" aria-selected="@(_profileFilter == OidcClientProfile.FirstPartyMachine)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyMachine ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyMachine)'>
-                Machine <span class="admin-tab-count">@MachineCount</span>
+            <button type="button" aria-pressed="@(_profileFilter == OidcClientProfile.FirstPartyMachine)" class="admin-filter-tab @(_profileFilter == OidcClientProfile.FirstPartyMachine ? "is-active" : "")" @onclick='() => SetProfileFilter(OidcClientProfile.FirstPartyMachine)'>
+                @L["Machine"] <span class="admin-tab-count">@MachineCount</span>
             </button>
         </div>
 
@@ -80,6 +83,7 @@ else
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                     <input id="client-search"
+                            name="client-search"
                             type="search"
                             placeholder="@L["SearchPlaceholder"]"
                             value="@_searchTerm"
@@ -105,7 +109,7 @@ else
             </div>
         </div>
 
-        <div class="admin-table-shell">
+        <div class="admin-table-shell" @ref="_tableShell">
             @if (_filteredClients.Count == 0)
             {
                 <div class="admin-empty-state">
@@ -116,23 +120,61 @@ else
             else
             {
                 <table class="admin-table">
+                    <colgroup>
+                        <col data-column-key="client" />
+                        <col data-column-key="profile" />
+                        <col data-column-key="grantTypes" />
+                        <col data-column-key="scopes" />
+                        <col data-column-key="redirectUris" />
+                        <col data-column-key="actions" />
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th>@L["Client"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
-                            <th>@L["Profile"] <span class="admin-sort-indicator" aria-hidden="true">↕</span></th>
-                            <th>@L["GrantTypes"]</th>
-                            <th>@L["Scopes"]</th>
-                            <th>Redirects</th>
-                            <th class="admin-actions-header">@L["Actions"]</th>
+                            <th data-column-key="client" data-min-width="236" aria-sort="@GetAriaSort(ClientSortField.Client)">
+                                <div class="admin-column-head">
+                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Client)'>@L["Client"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Client)</span></button>
+                                    <span class="admin-col-resizer" data-column-key="client" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Client"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="profile" data-min-width="132" aria-sort="@GetAriaSort(ClientSortField.Profile)">
+                                <div class="admin-column-head">
+                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Profile)'>@L["Profile"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Profile)</span></button>
+                                    <span class="admin-col-resizer" data-column-key="profile" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Profile"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="grantTypes" data-min-width="176">
+                                <div class="admin-column-head">
+                                    <span class="admin-column-label">@L["GrantTypes"]</span>
+                                    <span class="admin-col-resizer" data-column-key="grantTypes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["GrantTypes"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="scopes" data-min-width="176">
+                                <div class="admin-column-head">
+                                    <span class="admin-column-label">@L["Scopes"]</span>
+                                    <span class="admin-col-resizer" data-column-key="scopes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Scopes"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="redirectUris" data-min-width="188">
+                                <div class="admin-column-head">
+                                    <span class="admin-column-label">@L["RedirectUris"]</span>
+                                    <span class="admin-col-resizer" data-column-key="redirectUris" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["RedirectUris"]]'></span>
+                                </div>
+                            </th>
+                            <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
+                                <div class="admin-column-head admin-column-head-actions">
+                                    <span class="admin-column-label">@L["Actions"]</span>
+                                    <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var client in _visibleClients)
                         {
-                            <tr @key="client.ClientId">
+                                <tr class="admin-table-row" @key="client.ClientId">
                                 <td class="admin-cell-primary">
                                     <div class="admin-client-row">
-                                        <span class="admin-avatar" style="background: @GetClientAvatarColor(client)" aria-hidden="true">@GetClientInitial(client)</span>
+                                        <span class="admin-avatar" aria-hidden="true">@GetClientInitial(client)</span>
                                         <div class="admin-client-primary-cell">
                                             <strong>@(string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)</strong>
                                             <span class="admin-inline-code">@client.ClientId</span>
@@ -168,7 +210,7 @@ else
                                         }
                                     </div>
                                 </td>
-                                <td data-label="Redirects">
+                                <td data-label='@L["RedirectUris"].Value'>
                                     <div class="admin-client-text-stack">
                                         @if (GetUriPreviewSource(client).Count == 0)
                                         {
@@ -182,7 +224,7 @@ else
                                             }
                                             @if (GetOverflowCount(GetUriPreviewSource(client)) > 0)
                                             {
-                                                <span class="admin-user-meta">+@GetOverflowCount(GetUriPreviewSource(client)) more</span>
+                                                <span class="admin-user-meta">@L["MoreCount", GetOverflowCount(GetUriPreviewSource(client))]</span>
                                             }
                                         }
                                     </div>
@@ -193,6 +235,7 @@ else
                                                 class="admin-icon-button"
                                                 title="@L["Edit"]"
                                                 aria-label="@L["Edit"]"
+                                                @onclick:stopPropagation="true"
                                                 @onclick="() => BeginEdit(client)">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                                 <path d="M12 20h9" />
@@ -203,6 +246,7 @@ else
                                                 class="admin-icon-button danger"
                                                 title="@L["Delete"]"
                                                 aria-label="@L["Delete"]"
+                                                @onclick:stopPropagation="true"
                                                 @onclick="() => DeleteClientAsync(client.ClientId)"
                                                 disabled="@_isBusy">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -227,7 +271,7 @@ else
             
             <div class="admin-pagination-controls">
                 <label class="admin-page-size-field" for="client-page-size">
-                    <span>Rows</span>
+                    <span>@L["Rows"]</span>
                     <select id="client-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
                         @foreach (var option in PageSizeOptions)
                         {
@@ -242,7 +286,7 @@ else
                 @for (var p = Math.Max(1, _currentPage - 2); p <= Math.Min(TotalPages, _currentPage + 2); p++)
                 {
                     var pageNum = p;
-                    <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" @onclick="() => GoToPage(pageNum)">
+                    <button type="button" class="admin-pagination-page-btn @(pageNum == _currentPage ? "is-active" : "")" aria-current="@(pageNum == _currentPage ? "page" : null)" @onclick="() => GoToPage(pageNum)">
                         @pageNum
                     </button>
                 }
@@ -284,6 +328,7 @@ else
     private static readonly int[] PageSizeOptions = [10, 20, 50];
 
     private ClientEditor _editor = CreateDefaultEditor();
+    private ElementReference _tableShell;
     private bool _hasAccess;
     private bool _isBusy;
     private bool _isEditing;
@@ -292,9 +337,12 @@ else
     private int _pageSize = 10;
     private string _searchTerm = string.Empty;
     private OidcClientProfile? _profileFilter = null;
+    private ClientSortField _sortField = ClientSortField.Client;
+    private bool _sortDescending;
     private string? _generatedClientSecret;
     private string? _statusMessage;
     private bool _statusIsError;
+    private IJSObjectReference? _tableModule;
 
     private int InteractiveCount => _clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyInteractive);
     private int FilteredInteractiveCount => _filteredClients.Count(static client => client.Profile == OidcClientProfile.FirstPartyInteractive);
@@ -321,6 +369,19 @@ else
         }
 
         await LoadClientsAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _tableModule = await JS.InvokeAsync<IJSObjectReference>("import", "./js/admin-resizable-table.js");
+        }
+
+        if (_tableModule is not null && _filteredClients.Count > 0)
+        {
+            await _tableModule.InvokeVoidAsync("activate", _tableShell, "admin-clients-table");
+        }
     }
 
     private bool EnsureAdminAccess()
@@ -393,9 +454,10 @@ else
                 })
                 .Where(static result => result.Score.HasValue)
                 .OrderBy(static result => result.Score)
-                .ThenBy(static result => result.Client.DisplayName ?? result.Client.ClientId, StringComparer.OrdinalIgnoreCase)
                 .Select(static result => result.Client);
         }
+
+        query = ApplySort(query);
 
         _filteredClients.AddRange(query);
         UpdateVisibleClients(resetPage: true);
@@ -654,7 +716,7 @@ else
             "First-party machine clients must not configure redirect URIs." => L["MachineClientsMustNotConfigureRedirectUris"].Value,
             "First-party machine clients must not configure post logout redirect URIs." => L["MachineClientsMustNotConfigurePostLogoutRedirectUris"].Value,
             "Current onboarding only supports first-party interactive (public + auth code/refresh token + PKCE) and first-party machine (confidential + client_credentials) clients." => L["UnsupportedOnboardingProfile"].Value,
-            _ => error,
+            _ => L["UnknownClientError"].Value,
         };
     }
 
@@ -811,6 +873,52 @@ else
         ApplyFilter();
     }
 
+    private IEnumerable<OidcClientResponse> ApplySort(IEnumerable<OidcClientResponse> query)
+    {
+        return (_sortField, _sortDescending) switch
+        {
+            (ClientSortField.Profile, false) => query.OrderBy(static client => client.Profile).ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+            (ClientSortField.Profile, true) => query.OrderByDescending(static client => client.Profile).ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+            (_, true) => query.OrderByDescending(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+            _ => query.OrderBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+        };
+    }
+
+    private void ToggleSort(ClientSortField field)
+    {
+        if (_sortField == field)
+        {
+            _sortDescending = !_sortDescending;
+        }
+        else
+        {
+            _sortField = field;
+            _sortDescending = false;
+        }
+
+        ApplyFilter();
+    }
+
+    private string GetAriaSort(ClientSortField field)
+    {
+        if (_sortField != field)
+        {
+            return "none";
+        }
+
+        return _sortDescending ? "descending" : "ascending";
+    }
+
+    private string GetSortIndicator(ClientSortField field)
+    {
+        if (_sortField != field)
+        {
+            return "↕";
+        }
+
+        return _sortDescending ? "↓" : "↑";
+    }
+
     private static string GetClientInitial(OidcClientResponse client)
     {
         var name = string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName;
@@ -840,5 +948,31 @@ else
         public string ScopesText { get; set; } = string.Empty;
         public string RedirectUrisText { get; set; } = string.Empty;
         public string PostLogoutRedirectUrisText { get; set; } = string.Empty;
+    }
+
+    private enum ClientSortField
+    {
+        Client,
+        Profile,
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_tableModule is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _tableModule.InvokeVoidAsync("dispose", _tableShell);
+            await _tableModule.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+        catch (ObjectDisposedException)
+        {
+        }
     }
 }

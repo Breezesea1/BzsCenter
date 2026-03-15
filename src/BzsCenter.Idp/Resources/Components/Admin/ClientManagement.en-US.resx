@@ -8,9 +8,13 @@
   <data name="AdminArea" xml:space="preserve"><value>Admin Area</value></data>
   <data name="CheckingAccess" xml:space="preserve"><value>Checking access</value></data>
   <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session before loading client management.</value></data>
+  <data name="Overview" xml:space="preserve"><value>Overview</value></data>
+  <data name="AppAccess" xml:space="preserve"><value>App Access</value></data>
   <data name="HeroLead" xml:space="preserve"><value>Register internal apps, maintain redirect URIs, and manage service clients that need a client secret.</value></data>
+  <data name="FilterByProfile" xml:space="preserve"><value>Filter by profile</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="NewClient" xml:space="preserve"><value>New Client</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
   <data name="ClientOverview" xml:space="preserve"><value>Client overview</value></data>
   <data name="TotalClients" xml:space="preserve"><value>Total clients</value></data>
   <data name="TotalClientsLead" xml:space="preserve"><value>Login-based apps and service-to-service callers managed by the IDP.</value></data>
@@ -25,6 +29,8 @@
   <data name="Search" xml:space="preserve"><value>Search</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search by client id or display name</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>Rows per page</value></data>
+  <data name="Rows" xml:space="preserve"><value>Rows</value></data>
+  <data name="ResizeColumn" xml:space="preserve"><value>Resize {0} column</value></data>
   <data name="SearchResultSummary" xml:space="preserve"><value>{0} matching clients</value></data>
   <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>No clients match the current filters.</value></data>
   <data name="PageSummary" xml:space="preserve"><value>Showing {0}-{1} of {2}</value></data>
@@ -33,11 +39,13 @@
   <data name="NextPage" xml:space="preserve"><value>Next</value></data>
   <data name="PageIndicator" xml:space="preserve"><value>Page {0} of {1}</value></data>
   <data name="Client" xml:space="preserve"><value>Client</value></data>
+  <data name="Actions" xml:space="preserve"><value>Actions</value></data>
   <data name="NoMatchingClients" xml:space="preserve"><value>No matching clients</value></data>
   <data name="NoMatchingClientsLead" xml:space="preserve"><value>Try another keyword or register a new application.</value></data>
   <data name="GrantTypes" xml:space="preserve"><value>Grant types</value></data>
   <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
   <data name="RedirectUris" xml:space="preserve"><value>Redirect URIs</value></data>
+  <data name="MoreCount" xml:space="preserve"><value>+{0} more</value></data>
   <data name="Edit" xml:space="preserve"><value>Edit</value></data>
   <data name="Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="EditClient" xml:space="preserve"><value>Edit client</value></data>

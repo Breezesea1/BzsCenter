@@ -9,9 +9,15 @@
   <data name="CheckingAccess" xml:space="preserve"><value>Checking access</value></data>
   <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session before loading user management.</value></data>
   <data name="Identity" xml:space="preserve"><value>Identity</value></data>
+  <data name="Overview" xml:space="preserve"><value>Overview</value></data>
   <data name="HeroLead" xml:space="preserve"><value>Manage sign-in accounts, rotate passwords, and keep administrator access under control.</value></data>
+  <data name="FilterByRole" xml:space="preserve"><value>Filter by role</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="NewUser" xml:space="preserve"><value>New User</value></data>
+  <data name="All" xml:space="preserve"><value>All</value></data>
+  <data name="Standard" xml:space="preserve"><value>Standard</value></data>
+  <data name="RoleSearchAdmin" xml:space="preserve"><value>admin administrator</value></data>
+  <data name="RoleSearchStandard" xml:space="preserve"><value>user standard</value></data>
   <data name="UserOverview" xml:space="preserve"><value>User overview</value></data>
   <data name="TotalUsers" xml:space="preserve"><value>Total users</value></data>
   <data name="TotalUsersLead" xml:space="preserve"><value>All accounts currently provisioned in the IDP.</value></data>
@@ -24,6 +30,8 @@
   <data name="Search" xml:space="preserve"><value>Search</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search by username or email</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>Rows per page</value></data>
+  <data name="Rows" xml:space="preserve"><value>Rows</value></data>
+  <data name="ResizeColumn" xml:space="preserve"><value>Resize {0} column</value></data>
   <data name="SearchResultSummary" xml:space="preserve"><value>{0} matching users</value></data>
   <data name="SearchResultSummaryEmpty" xml:space="preserve"><value>No users match the current filters.</value></data>
   <data name="PageSummary" xml:space="preserve"><value>Showing {0}-{1} of {2}</value></data>

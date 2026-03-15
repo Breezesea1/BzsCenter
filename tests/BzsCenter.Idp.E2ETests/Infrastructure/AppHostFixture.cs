@@ -1,18 +1,19 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
 
 namespace BzsCenter.Idp.E2ETests.Infrastructure;
 
 public sealed class AppHostFixture : IAsyncLifetime
 {
-    private static readonly Uri IdpUri = new("https://localhost:7076");
+    private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(5);
     private readonly StringBuilder _aspireLogs = new();
     private Process? _aspireProcess;
     private bool _startedAspire;
 
     public HttpClient IdpClient { get; private set; } = null!;
 
-    public Uri IdpBaseUri => IdpUri;
+    public Uri IdpBaseUri { get; private set; } = ResolveIdpBaseUri();
 
     public string BuildUrl(string relativePath)
     {
@@ -21,7 +22,7 @@ public sealed class AppHostFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        IdpClient = CreateClient();
+        IdpClient = CreateClient(IdpBaseUri);
 
         await StartAspireAsync();
         await WaitForIdpAsync();
@@ -41,7 +42,7 @@ public sealed class AppHostFixture : IAsyncLifetime
         return Task.CompletedTask;
     }
 
-    private static HttpClient CreateClient()
+    private static HttpClient CreateClient(Uri idpBaseUri)
     {
         var handler = new HttpClientHandler
         {
@@ -50,7 +51,7 @@ public sealed class AppHostFixture : IAsyncLifetime
 
         return new HttpClient(handler)
         {
-            BaseAddress = IdpUri,
+            BaseAddress = idpBaseUri,
         };
     }
 
@@ -108,7 +109,7 @@ public sealed class AppHostFixture : IAsyncLifetime
 
     private async Task WaitForIdpAsync()
     {
-        var timeoutAt = DateTimeOffset.UtcNow.AddMinutes(2);
+        var timeoutAt = DateTimeOffset.UtcNow.Add(StartupTimeout);
 
         while (DateTimeOffset.UtcNow < timeoutAt)
         {
@@ -125,7 +126,50 @@ public sealed class AppHostFixture : IAsyncLifetime
             await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        throw new TimeoutException($"The IDP did not become ready within the allotted time.{Environment.NewLine}{_aspireLogs}");
+        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout}.{Environment.NewLine}{_aspireLogs}");
+    }
+
+    private static Uri ResolveIdpBaseUri()
+    {
+        var launchSettingsPath = Path.Combine(
+            GetRepositoryRoot(),
+            "src",
+            "BzsCenter.Idp",
+            "Properties",
+            "launchSettings.json");
+
+        using var stream = File.OpenRead(launchSettingsPath);
+        using var document = JsonDocument.Parse(stream);
+
+        if (!document.RootElement.TryGetProperty("profiles", out var profiles))
+        {
+            throw new InvalidOperationException("Unable to locate launch profiles for BzsCenter.Idp.");
+        }
+
+        foreach (var profile in profiles.EnumerateObject())
+        {
+            if (!profile.Value.TryGetProperty("applicationUrl", out var applicationUrlProperty))
+            {
+                continue;
+            }
+
+            var applicationUrls = applicationUrlProperty.GetString();
+            if (string.IsNullOrWhiteSpace(applicationUrls))
+            {
+                continue;
+            }
+
+            var httpsUrl = applicationUrls
+                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .FirstOrDefault(static url => url.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
+
+            if (!string.IsNullOrWhiteSpace(httpsUrl))
+            {
+                return new Uri(httpsUrl, UriKind.Absolute);
+            }
+        }
+
+        throw new InvalidOperationException("Unable to resolve the HTTPS application URL for BzsCenter.Idp from launchSettings.json.");
     }
 
     private static string GetRepositoryRoot()

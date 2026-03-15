@@ -20,7 +20,13 @@ public sealed class E2ETestController(
             return NotFound();
         }
 
-        var user = await userManager.FindByNameAsync("admin");
+        var adminUserName = configuration["Identity:Admin:UserName"]?.Trim();
+        if (string.IsNullOrWhiteSpace(adminUserName))
+        {
+            return NotFound();
+        }
+
+        var user = await userManager.FindByNameAsync(adminUserName);
         if (user is null)
         {
             return NotFound();

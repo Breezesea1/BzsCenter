@@ -5,6 +5,7 @@ var builder = DistributedApplication.CreateBuilder(args);
 var environmentName = builder.Environment.EnvironmentName;
 var adminUserName = builder.Configuration["Identity:Admin:UserName"];
 var adminPassword = builder.Configuration["Identity:Admin:Password"];
+var e2eTestingEnabled = builder.Configuration["Testing:E2E:Enabled"];
 
 if (string.IsNullOrWhiteSpace(adminUserName) && builder.Environment.IsDevelopment())
 {
@@ -29,6 +30,11 @@ var idp = builder.AddProject<Projects.BzsCenter_Idp>("idp")
     .WithEnvironment("CacheOptions__CacheType", "Redis")
     .WithReference(idpDatabase)
     .WithReference(redis);
+
+if (!string.IsNullOrWhiteSpace(e2eTestingEnabled))
+{
+    idp = idp.WithEnvironment("Testing__E2E__Enabled", e2eTestingEnabled);
+}
 
 var idpMigrator = builder.AddProject<Projects.BzsCenter_Idp_Migrator>("idp-migrator")
     .WithEnvironment("DOTNET_ENVIRONMENT", environmentName)

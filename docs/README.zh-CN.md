@@ -1,8 +1,8 @@
 # BzsCenter
 
-[English](./README.en.md)
+[English](./README.en.md) | [仓库根目录 README](../README.md)
 
-BzsCenter 是一个基于 `.NET 10` 的身份平台解决方案，核心应用为 `BzsCenter.Idp`。它使用 ASP.NET Core、Blazor、OpenIddict、EF Core，并通过 .NET Aspire 编排本地开发环境。
+BzsCenter 是一个基于 `.NET 10` 的身份平台解决方案，核心应用为 `BzsCenter.Idp`。它使用 ASP.NET Core、Blazor、OpenIddict、EF Core、Redis、PostgreSQL，并通过 .NET Aspire 编排本地开发环境。
 
 ## 仓库结构
 
@@ -132,8 +132,8 @@ dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter 
 
 ## 文档
 
-- 面向代码代理的仓库说明：[AGENTS.md](./AGENTS.md)
-- GitHub CI/CD 与 Ubuntu Docker 部署方案：[docs/github-cicd-ubuntu-docker-plan.md](./docs/github-cicd-ubuntu-docker-plan.md)
+- 面向代码代理的仓库说明：[AGENTS.md](../AGENTS.md)
+- GitHub CI/CD 与 Ubuntu Docker 部署方案：[github-cicd-ubuntu-docker-plan.md](./github-cicd-ubuntu-docker-plan.md)
 
 ## 部署说明
 

@@ -1,6 +1,6 @@
 # BzsCenter
 
-[简体中文](./README.zh-CN.md)
+[简体中文](./README.zh-CN.md) | [Repository README](../README.md)
 
 BzsCenter is a `.NET 10` solution for an identity platform centered on `BzsCenter.Idp`, an ASP.NET Core + Blazor application that uses OpenIddict, EF Core, Redis, PostgreSQL, and .NET Aspire for local orchestration.
 
@@ -132,8 +132,8 @@ Local E2E execution depends on the `aspire` CLI being installed and available on
 
 ## Documentation
 
-- Agent-focused repo guidance: [AGENTS.md](./AGENTS.md)
-- Deployment planning note: [docs/github-cicd-ubuntu-docker-plan.md](./docs/github-cicd-ubuntu-docker-plan.md)
+- Agent-focused repo guidance: [AGENTS.md](../AGENTS.md)
+- Deployment planning note: [github-cicd-ubuntu-docker-plan.md](./github-cicd-ubuntu-docker-plan.md)
 
 ## Notes for deployment
 

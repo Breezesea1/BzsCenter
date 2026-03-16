@@ -193,12 +193,12 @@
 .admin-filter-tabs {
     display: inline-flex;
     flex-wrap: wrap;
-    gap: 4px;
-    margin: 0 0.5rem;
-    padding: 2px;
+    gap: 6px;
+    margin: 0 0.35rem;
+    padding: 4px;
     width: fit-content;
     max-width: 100%;
-    border-radius: 10px;
+    border-radius: 14px;
     background: var(--z-surface-muted);
 }
 
@@ -206,13 +206,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-height: 28px;
+    min-height: 32px;
     max-width: 100%;
     border: none;
     background: transparent;
     color: var(--z-muted-fg);
-    border-radius: 8px;
-    padding: 0 12px;
+    border-radius: 10px;
+    padding: 0 13px;
     font-size: 0.75rem;
     font-weight: 500;
     cursor: pointer;
@@ -242,22 +242,22 @@
 .admin-grid-toolbar {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 1rem;
-    padding: 0 0.5rem;
+    align-items: end;
+    gap: 1.1rem;
+    padding: 0 0.35rem;
 }
 
 .admin-search-stack {
     display: flex;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.65rem;
     flex: 1;
 }
 
 .admin-search-icon-field {
     position: relative;
     width: 100%;
-    max-width: 340px;
+    max-width: 360px;
 }
 
 .admin-search-icon {
@@ -272,10 +272,10 @@
 
 .admin-search-icon-field input {
     width: 100%;
-    height: 36px;
-    padding: 0.5rem 0.9rem 0.5rem 2.5rem;
+    height: 40px;
+    padding: 0.55rem 0.95rem 0.55rem 2.6rem;
     border: 1px solid var(--z-border);
-    border-radius: 8px;
+    border-radius: 10px;
     background: var(--z-surface-subtle);
     color: var(--z-primary);
     font-size: 0.875rem;
@@ -302,7 +302,7 @@
 .admin-grid-toolbar-actions {
     display: flex;
     align-items: center;
-    gap: 0.625rem;
+    gap: 0.75rem;
 }
 
 .admin-toolbar-button svg,
@@ -316,7 +316,7 @@
 .admin-table-shell {
     flex: 1 1 auto;
     min-height: 0;
-    margin: 0 0.5rem;
+    margin: 0 0.35rem;
     border: 1px solid var(--z-border);
     border-radius: 12px;
     background: var(--z-surface);
@@ -342,14 +342,15 @@
     position: sticky;
     top: 0;
     z-index: 1;
-    height: 44px;
-    padding: 0 8px;
+    height: 48px;
+    padding: 0 10px;
     border-bottom: 1px solid var(--z-border);
     background: var(--z-surface);
     text-align: left;
     white-space: nowrap;
     font-size: 0.875rem;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: 0.01em;
     color: var(--z-muted-fg);
 }
 
@@ -369,7 +370,7 @@
     display: inline-flex;
     align-items: center;
     min-width: 0;
-    padding: 4px 8px;
+    padding: 6px 10px;
 }
 
 .admin-col-resizer {
@@ -409,7 +410,7 @@
     gap: 4px;
     max-width: 100%;
     padding: 4px 8px;
-    border-radius: 8px;
+    border-radius: 10px;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -421,10 +422,11 @@
 .admin-sort-btn:hover {
     background: var(--z-surface-muted);
     color: var(--z-primary);
+    box-shadow: var(--z-shadow-xs);
 }
 
 .admin-table td {
-    padding: 8px;
+    padding: 10px;
     vertical-align: middle;
     font-size: 0.875rem;
     color: var(--z-primary);
@@ -516,6 +518,7 @@
 .admin-user-meta {
     display: block;
     color: var(--z-muted-fg);
+    line-height: 1.45;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -525,22 +528,22 @@
     display: inline-flex; align-items: center;
     border-radius: 8px;
     border: 1px solid;
-    padding: 2px 8px;
-    font-size: 11px; font-weight: 500;
+    padding: 3px 9px;
+    font-size: 11px; font-weight: 600;
     text-transform: capitalize;
     line-height: 1.4;
 }
 
 .admin-badge.is-admin {
-    background: rgba(74, 222, 128, 0.15);
-    border-color: rgba(74, 222, 128, 0.4);
-    color: #15803d;
+    background: var(--status-success-bg);
+    border-color: var(--status-success-border);
+    color: var(--status-success-text);
 }
 
 .admin-badge.is-standard {
-    background: var(--z-surface-muted);
-    border-color: var(--z-border);
-    color: var(--z-muted-fg);
+    background: var(--status-muted-bg);
+    border-color: var(--status-muted-border);
+    color: var(--status-muted-text);
 }
 
 .admin-token-list {
@@ -552,10 +555,10 @@
 .admin-token {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--z-border);
+    border: 1px solid var(--chip-border);
     border-radius: 8px;
-    background: var(--z-surface-muted);
-    color: var(--z-muted-fg);
+    background: var(--chip-bg);
+    color: var(--chip-text);
     padding: 2px 6px;
     font-size: 11px;
     font-weight: 500;
@@ -563,22 +566,22 @@
 }
 
 .admin-token-overflow {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.28);
-    color: #1d4ed8;
+    background: var(--status-info-bg);
+    border-color: var(--status-info-border);
+    color: var(--status-info-text);
     font-weight: 600;
 }
 
 .admin-inline-code {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--z-border);
+    border: 1px solid var(--code-border);
     border-radius: 8px;
-    background: var(--z-surface-muted);
+    background: var(--code-bg);
     padding: 2px 6px;
     font-family: var(--z-font-mono);
     font-size: 11px;
-    color: var(--z-muted-fg);
+    color: var(--code-text);
     font-variant-numeric: tabular-nums;
 }
 
@@ -618,17 +621,18 @@
 }
 
 .admin-icon-button.danger:hover:not(:disabled) {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #b91c1c;
+    background: var(--destructive-hover-bg);
+    border-color: var(--destructive-hover-border);
+    color: var(--destructive-hover-text);
 }
 
 .admin-pagination-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 1rem;
-    padding: 0.25rem 0.5rem 2rem;
+    gap: 1.15rem;
+    padding: 0.85rem 0.35rem 1.8rem;
+    border-top: 1px solid color-mix(in srgb, var(--z-border) 72%, transparent);
 }
 
 .admin-pagination-showing {
@@ -640,7 +644,7 @@
 .admin-pagination-controls {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.45rem;
     flex-wrap: wrap;
     justify-content: flex-end;
 }
@@ -648,8 +652,8 @@
 .admin-page-size-field {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-right: 1rem;
+    gap: 0.6rem;
+    margin-right: 0.8rem;
     color: var(--z-muted-fg);
     font-size: 0.875rem;
     white-space: nowrap;
@@ -657,19 +661,19 @@
 
 .admin-page-size-field select {
     border: 1px solid var(--z-border);
-    border-radius: 8px;
-    min-height: 32px;
+    border-radius: 10px;
+    min-height: 36px;
     background: var(--z-surface-subtle);
     color: var(--z-primary);
-    padding: 0 0.65rem;
+    padding: 0 0.75rem;
     font-size: 0.8125rem;
     outline: none;
     box-shadow: var(--z-shadow-xs);
 }
 
 .admin-pagination-btn {
-    min-height: 32px;
-    padding: 0 0.85rem;
+    min-height: 36px;
+    padding: 0 0.9rem;
     font-size: 0.8125rem;
 }
 
@@ -677,9 +681,9 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 32px; 
-    height: 32px; 
-    border-radius: 8px;
+    width: 36px; 
+    height: 36px; 
+    border-radius: 10px;
     border: 1px solid var(--z-border);
     background: var(--z-surface-subtle);
     color: var(--z-muted-fg);
@@ -728,28 +732,28 @@
 }
 
 .admin-feedback.is-success {
-    background: #f0fdf4;
-    border-color: #bbf7d0;
-    color: #166534;
+    background: var(--feedback-success-bg);
+    border-color: var(--feedback-success-border);
+    color: var(--feedback-success-text);
 }
 
 .admin-feedback.is-error {
-    background: #fef2f2;
-    border-color: #fecaca;
-    color: #991b1b;
+    background: var(--feedback-error-bg);
+    border-color: var(--feedback-error-border);
+    color: var(--feedback-error-text);
 }
 
 .admin-secret-banner {
-    background: rgba(59, 130, 246, 0.08);
-    border-color: rgba(59, 130, 246, 0.22);
-    color: #1d4ed8;
+    background: var(--status-info-bg);
+    border-color: var(--status-info-border);
+    color: var(--status-info-text);
 }
 
 .admin-secret-banner code {
     display: block;
     margin-top: 0.75rem;
     padding: 0.85rem 0.95rem;
-    border: 1px solid rgba(59, 130, 246, 0.18);
+    border: 1px solid color-mix(in srgb, var(--status-info-border) 84%, transparent);
     border-radius: 0.85rem;
     background: var(--z-surface);
     color: var(--z-primary);
@@ -809,33 +813,33 @@
 }
 
 :root[data-theme="dark"] .admin-feedback.is-success {
-    background: rgba(34, 197, 94, 0.14);
-    border-color: rgba(34, 197, 94, 0.32);
-    color: #bbf7d0;
+    background: var(--feedback-success-bg);
+    border-color: var(--feedback-success-border);
+    color: var(--feedback-success-text);
 }
 
 :root[data-theme="dark"] .admin-feedback.is-error {
-    background: rgba(220, 38, 38, 0.16);
-    border-color: rgba(239, 68, 68, 0.28);
-    color: #fecaca;
+    background: var(--feedback-error-bg);
+    border-color: var(--feedback-error-border);
+    color: var(--feedback-error-text);
 }
 
 :root[data-theme="dark"] .admin-token-overflow {
-    background: rgba(59, 130, 246, 0.16);
-    border-color: rgba(96, 165, 250, 0.28);
-    color: #bfdbfe;
+    background: var(--status-info-bg);
+    border-color: var(--status-info-border);
+    color: var(--status-info-text);
 }
 
 :root[data-theme="dark"] .admin-secret-banner {
-    background: rgba(59, 130, 246, 0.12);
-    border-color: rgba(59, 130, 246, 0.26);
-    color: #bfdbfe;
+    background: var(--status-info-bg);
+    border-color: var(--status-info-border);
+    color: var(--status-info-text);
 }
 
 :root[data-theme="dark"] .admin-icon-button.danger:hover:not(:disabled) {
-    background: rgba(127, 29, 29, 0.35);
-    border-color: rgba(248, 113, 113, 0.35);
-    color: #fca5a5;
+    background: var(--destructive-hover-bg);
+    border-color: var(--destructive-hover-border);
+    color: var(--destructive-hover-text);
 }
 
 @keyframes zen-fade-in {
@@ -962,4 +966,152 @@
         animation: none;
         transition: none;
     }
+}
+
+.admin-page-shell,
+.admin-loading-shell {
+    --z-primary: var(--app-text);
+    --z-muted-fg: var(--text-muted);
+    --z-muted-bg: var(--surface-muted);
+    --z-muted-bg-50: color-mix(in srgb, var(--surface-muted) 72%, transparent);
+    --z-border: var(--surface-stroke-dark);
+    --z-surface: var(--surface-elevated);
+    --z-surface-muted: color-mix(in srgb, var(--surface-muted) 86%, white 14%);
+    --z-surface-subtle: color-mix(in srgb, var(--surface-muted) 78%, white 22%);
+    --z-row-hover: color-mix(in srgb, var(--accent-primary) 5%, var(--surface-muted));
+    --z-ring: rgba(91, 124, 250, 0.22);
+    --z-button-primary-bg: var(--btn-primary-bg);
+    --z-button-primary-hover: var(--btn-primary-bg-hover);
+    --z-button-primary-fg: var(--btn-primary-text);
+    --z-shadow-xs: var(--surface-shadow-sm);
+    --z-shadow-sm: var(--surface-shadow-sm);
+    --z-shadow-card: var(--surface-shadow-sm);
+}
+
+.admin-loading-card,
+.admin-filter-tabs,
+.admin-table-shell,
+.admin-empty-state {
+    border: 1px solid var(--surface-stroke-light);
+    outline: 1px solid var(--surface-stroke-dark);
+    background: color-mix(in srgb, var(--app-bg) 92%, var(--z-surface));
+    box-shadow: var(--surface-shadow-md);
+}
+
+.admin-loading-card,
+.admin-table-shell,
+.admin-empty-state {
+    border-radius: 24px;
+}
+
+.admin-filter-tabs {
+    padding: 0.3rem;
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface-muted) 92%, white 8%);
+    box-shadow: var(--surface-shadow-inset);
+}
+
+.admin-primary-button {
+    border-radius: 14px;
+    border-color: rgba(68, 82, 159, 0.2);
+    background: linear-gradient(135deg, var(--z-button-primary-bg), var(--z-button-primary-hover));
+    box-shadow: var(--soft-accent-shadow);
+}
+
+.admin-ghost-button,
+.admin-icon-button,
+.admin-pagination-page-btn,
+.admin-page-size-field select {
+    border-radius: 14px;
+    border-color: var(--surface-stroke-light);
+    background: color-mix(in srgb, var(--surface-muted) 86%, white 14%);
+    box-shadow: var(--control-shadow-sm);
+}
+
+.admin-filter-tab {
+    border-radius: 16px;
+}
+
+.admin-filter-tab.is-active,
+.admin-pagination-page-btn.is-active {
+    color: var(--accent-primary);
+    border-color: rgba(68, 82, 159, 0.14);
+    background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-elevated));
+    box-shadow: var(--control-shadow-md);
+}
+
+.admin-search-icon-field input {
+    border-radius: 16px;
+    border-color: var(--surface-stroke-light);
+    background: color-mix(in srgb, var(--surface-muted) 92%, white 8%);
+    box-shadow: var(--surface-shadow-inset-strong);
+}
+
+.admin-ghost-button:hover,
+.admin-icon-button:hover,
+.admin-pagination-page-btn:hover,
+.admin-page-size-field select:hover {
+    box-shadow: var(--control-shadow-md);
+}
+
+.admin-primary-button:active,
+.admin-ghost-button:active,
+.admin-icon-button:active,
+.admin-pagination-page-btn:active,
+.admin-filter-tab:active {
+    box-shadow: var(--surface-shadow-inset);
+}
+
+.admin-search-icon-field input:focus,
+.admin-page-size-field select:focus {
+    border-color: rgba(91, 124, 250, 0.22);
+    box-shadow: var(--focus-ring), var(--surface-shadow-inset);
+}
+
+.admin-table-shell {
+    background: color-mix(in srgb, var(--z-surface) 96%, white 4%);
+}
+
+.admin-table th {
+    background: color-mix(in srgb, var(--surface-muted) 72%, white 28%);
+}
+
+.admin-table-row {
+    background: transparent;
+}
+
+.admin-table-row:hover {
+    background: var(--table-row-hover-bg);
+}
+
+.admin-empty-state {
+    margin: 0.8rem;
+    text-align: center;
+}
+
+.admin-avatar,
+.admin-token,
+.admin-inline-code {
+    box-shadow: var(--control-shadow-xs);
+}
+
+.admin-empty-row td {
+    padding: 0;
+}
+
+.admin-empty-row:hover {
+    background: transparent;
+}
+
+:root[data-theme="dark"] .admin-page-shell,
+:root[data-theme="dark"] .admin-loading-shell {
+    --z-surface-muted: color-mix(in srgb, var(--surface-muted) 92%, black 8%);
+    --z-surface-subtle: color-mix(in srgb, var(--surface-muted) 86%, black 14%);
+    --z-row-hover: color-mix(in srgb, var(--accent-primary) 7%, var(--surface-muted));
+}
+
+:root[data-theme="dark"] .admin-filter-tab.is-active,
+:root[data-theme="dark"] .admin-pagination-page-btn.is-active {
+    background: color-mix(in srgb, var(--accent-primary) 16%, var(--surface-elevated));
+    color: #dbe4ff;
 }

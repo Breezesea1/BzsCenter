@@ -5,8 +5,8 @@
     display: grid;
     place-items: center;
     padding: clamp(0.9rem, 2vw, 1.5rem);
-    background: rgba(15, 23, 42, 0.56);
-    backdrop-filter: blur(10px);
+    background: rgba(15, 23, 42, 0.44);
+    backdrop-filter: blur(8px);
 }
 
 .admin-dialog-shell {
@@ -15,16 +15,16 @@
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--border-default) 84%, transparent);
-    border-radius: 1rem;
-    background: color-mix(in srgb, var(--surface-elevated) 97%, transparent);
-    box-shadow: 0 28px 80px rgba(15, 23, 42, 0.22);
-    outline: none;
+    border: 1px solid var(--surface-stroke-light);
+    outline: 1px solid var(--surface-stroke-dark);
+    border-radius: 1.55rem;
+    background: var(--soft-panel-tint);
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.24), 0 10px 24px rgba(15, 23, 42, 0.16), 0 1px 0 rgba(255, 255, 255, 0.28) inset;
 }
 
 .admin-dialog-shell:focus-visible {
     border-color: color-mix(in srgb, var(--accent-primary) 38%, var(--border-default));
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 18%, transparent), 0 28px 80px rgba(15, 23, 42, 0.22);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent-primary) 18%, transparent), 0 26px 60px rgba(15, 23, 42, 0.28), 0 10px 24px rgba(15, 23, 42, 0.18);
 }
 
 .admin-dialog-header {
@@ -32,7 +32,7 @@
     align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    padding: 1.2rem 1.2rem 0;
+    padding: 1.35rem 1.35rem 0;
 }
 
 .admin-dialog-heading,
@@ -49,11 +49,11 @@
     min-width: 2.5rem;
     height: 2.5rem;
     margin-top: 0.1rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 76%, transparent);
-    border-radius: 0.85rem;
-    background: color-mix(in srgb, var(--surface-elevated) 96%, transparent);
+    border: 1px solid var(--surface-stroke-light);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--surface-muted) 84%, white 16%);
     color: color-mix(in srgb, var(--app-text) 78%, transparent);
-    box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+    box-shadow: var(--control-shadow-sm);
     cursor: pointer;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
@@ -77,7 +77,12 @@
     border-color: color-mix(in srgb, var(--accent-primary) 28%, var(--border-default));
     background: color-mix(in srgb, var(--accent-primary) 12%, var(--surface-elevated));
     color: color-mix(in srgb, var(--app-text) 92%, transparent);
-    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: var(--control-shadow-md);
+}
+
+.admin-dialog-close:active {
+    transform: translateY(0) scale(0.985);
+    box-shadow: var(--surface-shadow-inset);
 }
 
 .admin-dialog-close:focus-visible {
@@ -101,7 +106,7 @@
 }
 
 .admin-dialog-body {
-    padding: 1.2rem;
+    padding: 1.3rem 1.35rem;
     overflow: auto;
     overscroll-behavior: contain;
 }
@@ -175,13 +180,13 @@
 ::deep .admin-field select,
 ::deep .admin-field textarea {
     min-height: 2.9rem;
-    border-radius: 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 88%, transparent);
-    background: color-mix(in srgb, var(--surface-elevated) 98%, transparent);
+    border-radius: 1rem;
+    border: 1px solid var(--surface-stroke-light);
+    background: color-mix(in srgb, var(--surface-muted) 90%, white 10%);
     padding: 0.75rem 0.95rem;
     color: var(--app-text);
     outline: none;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    box-shadow: var(--surface-shadow-inset-strong);
     transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease, transform 0.18s ease;
     resize: vertical;
 }
@@ -192,7 +197,7 @@
     -moz-appearance: none;
     cursor: pointer;
     padding-right: 3rem;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08), 0 8px 18px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    box-shadow: var(--surface-shadow-inset-strong);
     background-image:
         linear-gradient(180deg, color-mix(in srgb, var(--surface-elevated) 100%, transparent), color-mix(in srgb, var(--surface-elevated) 100%, transparent)),
         linear-gradient(180deg, color-mix(in srgb, var(--sidebar-bg) 72%, transparent), color-mix(in srgb, var(--sidebar-bg) 72%, transparent)),
@@ -212,7 +217,7 @@
 ::deep .admin-field select:hover,
 ::deep .admin-field textarea:hover {
     border-color: color-mix(in srgb, var(--accent-primary) 18%, var(--border-default));
-    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+    box-shadow: var(--surface-shadow-inset-strong);
 }
 
 ::deep .admin-field select:hover {
@@ -223,7 +228,7 @@
 ::deep .admin-field select:focus,
 ::deep .admin-field textarea:focus {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-primary) 18%, transparent), 0 12px 24px rgba(15, 23, 42, 0.12);
+    box-shadow: var(--focus-ring), var(--surface-shadow-inset-strong);
 }
 
 ::deep .admin-field select::-ms-expand {
@@ -238,9 +243,10 @@
 
 ::deep .admin-helper-card {
     padding: 1rem;
-    border: 1px solid color-mix(in srgb, var(--border-default) 80%, transparent);
-    border-radius: 0.875rem;
-    background: color-mix(in srgb, var(--sidebar-bg) 56%, transparent);
+    border: 1px solid var(--surface-stroke-light);
+    border-radius: 1rem;
+    background: var(--soft-slot-bg);
+    box-shadow: var(--control-shadow-md);
 }
 
 ::deep .admin-helper-card strong,

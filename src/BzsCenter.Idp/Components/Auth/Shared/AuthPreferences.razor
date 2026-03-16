@@ -11,6 +11,7 @@
     <button class="pref-trigger"
             type="button"
             @onclick="ToggleOpen"
+            @onclick:stopPropagation="true"
             aria-label="@L["Preferences"]"
             aria-expanded="@_open.ToString().ToLowerInvariant()">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
@@ -23,7 +24,7 @@
 
     @if (_open)
     {
-        <div class="pref-panel" role="menu" aria-label="@L["Preferences"]">
+        <div class="pref-panel" role="menu" aria-label="@L["Preferences"]" @onclick:stopPropagation="true">
             <div class="pref-section">
                 <span class="pref-label">@L["Theme"]</span>
                 <div class="pref-options" role="group" aria-label="@L["Theme"]">

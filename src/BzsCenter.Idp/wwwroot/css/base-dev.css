@@ -5,6 +5,10 @@ body {
     color: var(--app-text);
 }
 
+body {
+    background-image: radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 34%), radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.08), transparent 28%);
+}
+
 a,
 .btn-link {
     color: var(--link-color);
@@ -12,8 +16,9 @@ a,
 
 .btn-primary {
     color: var(--btn-primary-text);
-    background-color: var(--btn-primary-bg);
-    border-color: var(--btn-primary-bg-hover);
+    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-bg-hover));
+    border-color: color-mix(in srgb, var(--btn-primary-bg-hover) 88%, black 12%);
+    box-shadow: 0 10px 22px rgba(91, 124, 250, 0.28);
 }
 
 button,
@@ -52,7 +57,45 @@ input[type="submit"]:disabled,
 .btn-link.nav-link:focus,
 .form-control:focus,
 .form-check-input:focus {
-    box-shadow: 0 0 0 0.1rem var(--surface-elevated), 0 0 0 0.25rem var(--accent-primary);
+    box-shadow: var(--focus-ring), var(--button-shadow-sm);
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+button,
+input[type="button"],
+input[type="submit"],
+.btn,
+.topbar-icon-btn,
+.topbar-action-chip,
+.menu-close,
+.pref-trigger,
+.pref-opt {
+    border: 1px solid var(--surface-stroke-light);
+}
+
+button:hover:not(:disabled),
+input[type="button"]:hover:not(:disabled),
+input[type="submit"]:hover:not(:disabled),
+.btn:hover:not(:disabled),
+.topbar-icon-btn:hover,
+.topbar-action-chip:hover,
+.menu-close:hover,
+.pref-trigger:hover,
+.pref-opt:hover {
+    transform: translateY(-1px);
+}
+
+button:active:not(:disabled),
+input[type="button"]:active:not(:disabled),
+input[type="submit"]:active:not(:disabled),
+.btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.985);
 }
 
 .content {

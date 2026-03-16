@@ -110,68 +110,72 @@ else
         </div>
 
         <div class="admin-table-shell" @ref="_tableShell">
-            @if (_filteredClients.Count == 0)
-            {
-                <div class="admin-empty-state">
-                    <strong>@L["NoMatchingClients"]</strong>
-                    <p>@L["NoMatchingClientsLead"]</p>
-                </div>
-            }
-            else
-            {
-                <table class="admin-table">
-                    <colgroup>
-                        <col data-column-key="client" />
-                        <col data-column-key="profile" />
-                        <col data-column-key="grantTypes" />
-                        <col data-column-key="scopes" />
-                        <col data-column-key="redirectUris" />
-                        <col data-column-key="actions" />
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th data-column-key="client" data-min-width="236" aria-sort="@GetAriaSort(ClientSortField.Client)">
-                                <div class="admin-column-head">
-                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Client)'>@L["Client"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Client)</span></button>
-                                    <span class="admin-col-resizer" data-column-key="client" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Client"]]'></span>
+            <table class="admin-table">
+                <colgroup>
+                    <col data-column-key="client" />
+                    <col data-column-key="profile" />
+                    <col data-column-key="grantTypes" />
+                    <col data-column-key="scopes" />
+                    <col data-column-key="redirectUris" />
+                    <col data-column-key="actions" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th data-column-key="client" data-min-width="236" aria-sort="@GetAriaSort(ClientSortField.Client)">
+                            <div class="admin-column-head">
+                                <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Client)'>@L["Client"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Client)</span></button>
+                                <span class="admin-col-resizer" data-column-key="client" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Client"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="profile" data-min-width="132" aria-sort="@GetAriaSort(ClientSortField.Profile)">
+                            <div class="admin-column-head">
+                                <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Profile)'>@L["Profile"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Profile)</span></button>
+                                <span class="admin-col-resizer" data-column-key="profile" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Profile"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="grantTypes" data-min-width="176">
+                            <div class="admin-column-head">
+                                <span class="admin-column-label">@L["GrantTypes"]</span>
+                                <span class="admin-col-resizer" data-column-key="grantTypes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["GrantTypes"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="scopes" data-min-width="176">
+                            <div class="admin-column-head">
+                                <span class="admin-column-label">@L["Scopes"]</span>
+                                <span class="admin-col-resizer" data-column-key="scopes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Scopes"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="redirectUris" data-min-width="188">
+                            <div class="admin-column-head">
+                                <span class="admin-column-label">@L["RedirectUris"]</span>
+                                <span class="admin-col-resizer" data-column-key="redirectUris" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["RedirectUris"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
+                            <div class="admin-column-head admin-column-head-actions">
+                                <span class="admin-column-label">@L["Actions"]</span>
+                                <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_filteredClients.Count == 0)
+                    {
+                        <tr class="admin-empty-row">
+                            <td colspan="6">
+                                <div class="admin-empty-state">
+                                    <strong>@L["NoMatchingClients"]</strong>
+                                    <p>@L["NoMatchingClientsLead"]</p>
                                 </div>
-                            </th>
-                            <th data-column-key="profile" data-min-width="132" aria-sort="@GetAriaSort(ClientSortField.Profile)">
-                                <div class="admin-column-head">
-                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.Profile)'>@L["Profile"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.Profile)</span></button>
-                                    <span class="admin-col-resizer" data-column-key="profile" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Profile"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="grantTypes" data-min-width="176">
-                                <div class="admin-column-head">
-                                    <span class="admin-column-label">@L["GrantTypes"]</span>
-                                    <span class="admin-col-resizer" data-column-key="grantTypes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["GrantTypes"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="scopes" data-min-width="176">
-                                <div class="admin-column-head">
-                                    <span class="admin-column-label">@L["Scopes"]</span>
-                                    <span class="admin-col-resizer" data-column-key="scopes" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Scopes"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="redirectUris" data-min-width="188">
-                                <div class="admin-column-head">
-                                    <span class="admin-column-label">@L["RedirectUris"]</span>
-                                    <span class="admin-col-resizer" data-column-key="redirectUris" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["RedirectUris"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
-                                <div class="admin-column-head admin-column-head-actions">
-                                    <span class="admin-column-label">@L["Actions"]</span>
-                                    <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
-                                </div>
-                            </th>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    }
+                    else
+                    {
                         @foreach (var client in _visibleClients)
                         {
-                                <tr class="admin-table-row" @key="client.ClientId">
+                            <tr class="admin-table-row" @key="client.ClientId">
                                 <td class="admin-cell-primary">
                                     <div class="admin-client-row">
                                         <span class="admin-avatar" aria-hidden="true">@GetClientInitial(client)</span>
@@ -261,9 +265,9 @@ else
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            }
+                    }
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-pagination-bar">

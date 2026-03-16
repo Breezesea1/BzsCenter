@@ -100,58 +100,62 @@ else
         </div>
 
         <div class="admin-table-shell" @ref="_tableShell">
-            @if (_filteredUsers.Count == 0)
-            {
-                <div class="admin-empty-state">
-                    <strong>@L["NoMatchingUsers"]</strong>
-                    <p>@L["NoMatchingUsersLead"]</p>
-                </div>
-            }
-            else
-            {
-                <table class="admin-table">
-                    <colgroup>
-                        <col data-column-key="user" />
-                        <col data-column-key="role" />
-                        <col data-column-key="email" />
-                        <col data-column-key="identifier" />
-                        <col data-column-key="actions" />
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th data-column-key="user" data-min-width="208" aria-sort="@GetAriaSort(UserSortField.UserName)">
-                                <div class="admin-column-head">
-                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.UserName)'>@L["User"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.UserName)</span></button>
-                                    <span class="admin-col-resizer" data-column-key="user" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["User"]]'></span>
+            <table class="admin-table">
+                <colgroup>
+                    <col data-column-key="user" />
+                    <col data-column-key="role" />
+                    <col data-column-key="email" />
+                    <col data-column-key="identifier" />
+                    <col data-column-key="actions" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th data-column-key="user" data-min-width="208" aria-sort="@GetAriaSort(UserSortField.UserName)">
+                            <div class="admin-column-head">
+                                <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.UserName)'>@L["User"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.UserName)</span></button>
+                                <span class="admin-col-resizer" data-column-key="user" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["User"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="role" data-min-width="112" aria-sort="@GetAriaSort(UserSortField.Role)">
+                            <div class="admin-column-head">
+                                <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Role)'>@L["Role"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Role)</span></button>
+                                <span class="admin-col-resizer" data-column-key="role" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Role"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="email" data-min-width="188">
+                            <div class="admin-column-head">
+                                <span class="admin-column-label">@L["Email"]</span>
+                                <span class="admin-col-resizer" data-column-key="email" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Email"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="identifier" data-min-width="138" aria-sort="@GetAriaSort(UserSortField.Identifier)">
+                            <div class="admin-column-head">
+                                <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Identifier)'>@L["Identifier"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Identifier)</span></button>
+                                <span class="admin-col-resizer" data-column-key="identifier" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Identifier"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
+                            <div class="admin-column-head admin-column-head-actions">
+                                <span class="admin-column-label">@L["Actions"]</span>
+                                <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_filteredUsers.Count == 0)
+                    {
+                        <tr class="admin-empty-row">
+                            <td colspan="5">
+                                <div class="admin-empty-state">
+                                    <strong>@L["NoMatchingUsers"]</strong>
+                                    <p>@L["NoMatchingUsersLead"]</p>
                                 </div>
-                            </th>
-                            <th data-column-key="role" data-min-width="112" aria-sort="@GetAriaSort(UserSortField.Role)">
-                                <div class="admin-column-head">
-                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Role)'>@L["Role"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Role)</span></button>
-                                    <span class="admin-col-resizer" data-column-key="role" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Role"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="email" data-min-width="188">
-                                <div class="admin-column-head">
-                                    <span class="admin-column-label">@L["Email"]</span>
-                                    <span class="admin-col-resizer" data-column-key="email" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Email"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="identifier" data-min-width="138" aria-sort="@GetAriaSort(UserSortField.Identifier)">
-                                <div class="admin-column-head">
-                                    <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(UserSortField.Identifier)'>@L["Identifier"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(UserSortField.Identifier)</span></button>
-                                    <span class="admin-col-resizer" data-column-key="identifier" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Identifier"]]'></span>
-                                </div>
-                            </th>
-                            <th data-column-key="actions" data-min-width="112" class="admin-actions-header">
-                                <div class="admin-column-head admin-column-head-actions">
-                                    <span class="admin-column-label">@L["Actions"]</span>
-                                    <span class="admin-col-resizer" data-column-key="actions" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["Actions"]]'></span>
-                                </div>
-                            </th>
+                            </td>
                         </tr>
-                    </thead>
-                    <tbody>
+                    }
+                    else
+                    {
                         @foreach (var user in _visibleUsers)
                         {
                             <tr class="admin-table-row" @key="user.Id">
@@ -207,9 +211,9 @@ else
                                 </td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            }
+                    }
+                </tbody>
+            </table>
         </div>
 
         <div class="admin-pagination-bar">

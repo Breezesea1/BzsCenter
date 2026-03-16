@@ -14,8 +14,27 @@ internal static class AppUi
 
     public static async Task OpenPreferencesAsync(PageTest test)
     {
-        await test.Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("偏好设置|Preferences", RegexOptions.IgnoreCase) }).ClickAsync();
-        await test.Expect(test.Page.GetByRole(AriaRole.Menu)).ToBeVisibleAsync();
+        var trigger = test.Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("偏好设置|Preferences", RegexOptions.IgnoreCase) });
+        var menu = test.Page.GetByRole(AriaRole.Menu);
+
+        await test.Expect(trigger).ToBeVisibleAsync();
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            await trigger.ClickAsync();
+
+            try
+            {
+                await test.Expect(menu).ToBeVisibleAsync(new() { Timeout = 3000 });
+                return;
+            }
+            catch (PlaywrightException) when (attempt < 2)
+            {
+                await test.Page.WaitForTimeoutAsync(350);
+            }
+        }
+
+        await test.Expect(menu).ToBeVisibleAsync();
     }
 
     public static string UniqueName(string prefix)

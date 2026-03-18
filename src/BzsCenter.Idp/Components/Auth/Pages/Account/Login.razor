@@ -78,9 +78,9 @@
 
             <form method="post" action="@BuildLoginAction()" class="login-form" autocomplete="off">
                 <AntiforgeryToken/>
-                <div class="field">
-                    <label for="username">@L["UserNameLabel"]</label>
+                <NeoField Class="field" Label="@L["UserNameLabel"]" ForId="username">
                     <input id="username"
+                           class="neo-input"
                            name="UserName"
                            type="text"
                            placeholder="@L["UserNamePlaceholder"]"
@@ -89,12 +89,12 @@
                            autocorrect="off"
                            spellcheck="false"
                            required/>
-                </div>
+                </NeoField>
 
-                <div class="field">
-                    <label for="password">@L["PasswordLabel"]</label>
+                <NeoField Class="field" Label="@L["PasswordLabel"]" ForId="password">
                     <div class="password-wrap">
                         <input id="password"
+                               class="neo-input"
                                name="Password"
                                type="@(_showPassword ? "text" : "password")"
                                placeholder="@L["PasswordPlaceholder"]"
@@ -134,11 +134,11 @@
                             }
                         </button>
                     </div>
-                </div>
+                </NeoField>
 
                 <div class="meta-row">
-                    <label class="remember">
-                        <input type="checkbox" name="RememberMe" value="true"/>
+                    <label class="remember neo-check-field">
+                        <input class="neo-checkbox" type="checkbox" name="RememberMe" value="true"/>
                         <span>@L["Remember30Days"]</span>
                     </label>
                     <a href="#">@L["ForgotPassword"]</a>

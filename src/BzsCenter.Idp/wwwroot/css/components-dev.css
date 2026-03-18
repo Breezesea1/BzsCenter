@@ -1,0 +1,295 @@
+.neo-field {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.neo-field__control {
+    min-width: 0;
+}
+
+.neo-field__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--neo-label-color);
+}
+
+.neo-field__hint {
+    margin: 0;
+    color: var(--neo-hint-color);
+    font-size: 0.82rem;
+    line-height: 1.55;
+}
+
+.neo-input,
+.neo-select,
+.neo-textarea {
+    width: 100%;
+    min-height: 3rem;
+    border: 1px solid var(--neo-field-border);
+    border-radius: var(--neo-field-radius);
+    background: var(--neo-field-surface);
+    color: var(--neo-field-color);
+    padding: 0.8rem 0.95rem;
+    outline: none;
+    box-shadow: var(--neo-field-shadow-rest);
+    transition:
+        border-color var(--motion-duration-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+        background-color var(--motion-duration-fast) var(--motion-ease-standard),
+        transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.neo-textarea {
+    min-height: 7.5rem;
+    resize: vertical;
+}
+
+.neo-input::placeholder,
+.neo-textarea::placeholder {
+    color: var(--neo-placeholder-color);
+}
+
+.neo-input:hover,
+.neo-select:hover,
+.neo-textarea:hover {
+    border-color: var(--neo-field-border-hover);
+}
+
+.neo-input:focus,
+.neo-select:focus,
+.neo-textarea:focus,
+.neo-input:focus-visible,
+.neo-select:focus-visible,
+.neo-textarea:focus-visible {
+    border-color: var(--neo-field-border-focus);
+    box-shadow: var(--neo-field-shadow-focus);
+}
+
+.neo-input:disabled,
+.neo-select:disabled,
+.neo-textarea:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+}
+
+.neo-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    cursor: pointer;
+    padding-right: 3rem;
+    background-image:
+        linear-gradient(180deg, transparent, transparent),
+        linear-gradient(180deg, color-mix(in srgb, var(--neo-divider-color) 100%, transparent), color-mix(in srgb, var(--neo-divider-color) 100%, transparent)),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='m5 7.5 5 5 5-5' stroke='%236b7280' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-position:
+        0 0,
+        calc(100% - 2.65rem) 50%,
+        calc(100% - 1rem) 50%;
+    background-size:
+        100% 100%,
+        1px 1.65rem,
+        0.95rem 0.95rem;
+    background-repeat: no-repeat;
+}
+
+.neo-select::-ms-expand {
+    display: none;
+}
+
+.neo-panel {
+    border: 1px solid var(--neo-panel-border);
+    border-radius: var(--neo-panel-radius);
+    color: var(--neo-panel-color);
+}
+
+.neo-panel--soft {
+    background: var(--neo-panel-soft-surface);
+    box-shadow: var(--neo-panel-soft-shadow);
+}
+
+.neo-panel--raised {
+    background: var(--neo-panel-raised-surface);
+    box-shadow: var(--neo-panel-raised-shadow);
+}
+
+.neo-panel__header {
+    display: grid;
+    gap: 0.4rem;
+}
+
+.neo-panel__title {
+    display: block;
+    color: var(--neo-panel-color-strong);
+}
+
+.neo-panel__description {
+    margin: 0;
+    color: var(--neo-panel-color);
+    line-height: 1.6;
+}
+
+.neo-switch-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.05rem;
+    border-radius: calc(var(--neo-panel-radius) - 0.2rem);
+    border: 1px solid var(--neo-panel-border);
+    background: var(--neo-panel-soft-surface);
+    box-shadow: var(--neo-panel-soft-shadow);
+}
+
+.neo-switch-field__content {
+    display: grid;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.neo-switch-field__label {
+    color: var(--neo-panel-color-strong);
+    font-weight: 600;
+}
+
+.neo-switch-field__description {
+    margin: 0;
+    color: var(--neo-panel-color);
+    font-size: 0.84rem;
+    line-height: 1.55;
+}
+
+.neo-switch {
+    position: relative;
+    display: inline-flex;
+    width: 3rem;
+    min-width: 3rem;
+    cursor: pointer;
+}
+
+.neo-switch__input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.neo-switch__track {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    width: 3rem;
+    min-width: 3rem;
+    height: 1.8rem;
+    border: 1px solid var(--neo-field-border);
+    border-radius: 999px;
+    padding: 0.2rem;
+    background: var(--neo-switch-surface);
+    box-shadow: var(--neo-switch-shadow);
+    transition:
+        box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+        background-color var(--motion-duration-fast) var(--motion-ease-standard),
+        transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.neo-switch__thumb {
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 999px;
+    background: var(--neo-switch-thumb-surface);
+    box-shadow: var(--neo-switch-thumb-shadow);
+    transition:
+        transform var(--motion-duration-fast) var(--motion-ease-standard),
+        box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+        background-color var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.neo-switch:hover .neo-switch__track {
+    transform: translateY(-1px);
+    box-shadow: var(--neo-switch-shadow-hover);
+}
+
+.neo-switch__input:checked + .neo-switch__track {
+    background: var(--neo-switch-active-surface);
+}
+
+.neo-switch__input:checked + .neo-switch__track .neo-switch__thumb {
+    transform: translateX(1.2rem);
+    background: var(--neo-switch-thumb-active-surface);
+}
+
+.neo-switch__input:focus-visible + .neo-switch__track {
+    outline: none;
+    box-shadow: var(--neo-field-shadow-focus);
+}
+
+.neo-switch__input:disabled + .neo-switch__track {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.neo-check-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.neo-checkbox {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 1px solid var(--neo-field-border);
+    border-radius: 0.4rem;
+    background: var(--neo-field-surface);
+    box-shadow: var(--neo-field-shadow-rest);
+    display: inline-grid;
+    place-items: center;
+    transition:
+        box-shadow var(--motion-duration-fast) var(--motion-ease-standard),
+        border-color var(--motion-duration-fast) var(--motion-ease-standard),
+        background-color var(--motion-duration-fast) var(--motion-ease-standard),
+        transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.neo-checkbox::after {
+    content: "";
+    width: 0.34rem;
+    height: 0.58rem;
+    border-right: 2px solid #ffffff;
+    border-bottom: 2px solid #ffffff;
+    transform: rotate(45deg) scale(0);
+    transition: transform var(--motion-duration-fast) var(--motion-ease-standard);
+}
+
+.neo-checkbox:checked {
+    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-bg-hover));
+    border-color: color-mix(in srgb, var(--accent-primary) 26%, transparent);
+    box-shadow: var(--soft-accent-shadow);
+}
+
+.neo-checkbox:checked::after {
+    transform: rotate(45deg) scale(1);
+}
+
+.neo-checkbox:focus-visible {
+    outline: none;
+    box-shadow: var(--neo-field-shadow-focus);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .neo-input,
+    .neo-select,
+    .neo-textarea,
+    .neo-switch__track,
+    .neo-switch,
+    .neo-switch__thumb,
+    .neo-checkbox {
+        transition: none;
+    }
+}

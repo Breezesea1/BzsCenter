@@ -90,6 +90,37 @@
     --code-text: var(--text-muted);
     --table-row-hover-bg: color-mix(in srgb, var(--accent-primary) 4%, var(--surface-muted));
     --input-placeholder: var(--text-subtle);
+    --motion-duration-fast: 0.18s;
+    --motion-duration-base: 0.24s;
+    --motion-ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --motion-ease-press: cubic-bezier(0.32, 0.72, 0, 1);
+    --neo-field-radius: 1rem;
+    --neo-panel-radius: 1.1rem;
+    --neo-field-surface: color-mix(in srgb, var(--surface-muted) 90%, white 10%);
+    --neo-field-border: var(--surface-stroke-light);
+    --neo-field-border-hover: color-mix(in srgb, var(--accent-primary) 16%, var(--surface-stroke-light));
+    --neo-field-border-focus: color-mix(in srgb, var(--accent-primary) 28%, var(--surface-stroke-light));
+    --neo-field-shadow-rest: var(--surface-shadow-inset-strong);
+    --neo-field-shadow-focus: var(--focus-ring), var(--surface-shadow-inset);
+    --neo-field-color: var(--app-text);
+    --neo-placeholder-color: var(--input-placeholder);
+    --neo-divider-color: color-mix(in srgb, var(--sidebar-bg) 72%, transparent);
+    --neo-label-color: var(--sidebar-text-muted);
+    --neo-hint-color: var(--text-subtle);
+    --neo-panel-border: var(--surface-stroke-light);
+    --neo-panel-soft-surface: color-mix(in srgb, var(--surface-muted) 88%, white 12%);
+    --neo-panel-raised-surface: color-mix(in srgb, var(--app-bg) 92%, var(--surface-elevated));
+    --neo-panel-soft-shadow: var(--surface-shadow-inset);
+    --neo-panel-raised-shadow: var(--surface-shadow-md);
+    --neo-panel-color: color-mix(in srgb, var(--app-text) 74%, transparent);
+    --neo-panel-color-strong: var(--app-text);
+    --neo-switch-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-muted) 92%, white 8%), color-mix(in srgb, var(--surface-elevated) 88%, var(--surface-muted) 12%));
+    --neo-switch-active-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-muted) 82%, var(--accent-primary) 18%), color-mix(in srgb, var(--surface-elevated) 74%, var(--accent-primary) 26%));
+    --neo-switch-shadow: var(--surface-shadow-inset);
+    --neo-switch-shadow-hover: var(--focus-ring), var(--surface-shadow-inset);
+    --neo-switch-thumb-surface: linear-gradient(145deg, color-mix(in srgb, white 94%, var(--surface-muted) 6%), color-mix(in srgb, var(--surface-elevated) 94%, var(--surface-muted) 6%));
+    --neo-switch-thumb-active-surface: linear-gradient(145deg, color-mix(in srgb, white 86%, var(--accent-primary) 14%), color-mix(in srgb, var(--surface-elevated) 82%, var(--accent-primary) 18%));
+    --neo-switch-thumb-shadow: var(--control-shadow-sm);
 }
 
 :root[data-theme="dark"] {
@@ -184,4 +215,15 @@
     --scrollbar-thumb-hover: color-mix(in srgb, var(--accent-primary) 18%, #9fa8b7 82%);
     --scrollbar-track: color-mix(in srgb, var(--surface-muted) 88%, white 12%);
     --scrollbar-corner: transparent;
+    --neo-field-surface: color-mix(in srgb, var(--surface-muted) 84%, black 16%);
+    --neo-field-border: var(--surface-stroke-light);
+    --neo-field-border-hover: color-mix(in srgb, var(--accent-primary) 22%, var(--surface-stroke-light));
+    --neo-field-border-focus: color-mix(in srgb, var(--accent-primary) 34%, var(--surface-stroke-light));
+    --neo-panel-soft-surface: color-mix(in srgb, var(--surface-muted) 82%, black 18%);
+    --neo-panel-raised-surface: color-mix(in srgb, var(--surface-elevated) 92%, black 8%);
+    --neo-panel-color: color-mix(in srgb, var(--app-text) 78%, transparent);
+    --neo-switch-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-muted) 90%, black 10%), color-mix(in srgb, var(--surface-elevated) 86%, var(--surface-muted) 14%));
+    --neo-switch-active-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-muted) 80%, var(--accent-primary) 20%), color-mix(in srgb, var(--surface-elevated) 68%, var(--accent-primary) 32%));
+    --neo-switch-thumb-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 90%, white 10%), color-mix(in srgb, var(--surface-muted) 92%, var(--surface-elevated) 8%));
+    --neo-switch-thumb-active-surface: linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 84%, white 16%), color-mix(in srgb, var(--surface-muted) 78%, var(--accent-primary) 22%));
 }

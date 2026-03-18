@@ -25,9 +25,9 @@
         }
 
         <div class="admin-form-grid">
-            <label class="admin-field" for="editor-client-id">
-                <span>@L["ClientId"]</span>
+            <NeoField Label="@L["ClientId"]" ForId="editor-client-id">
                 <input id="editor-client-id"
+                       class="neo-input"
                        type="text"
                        value="@ClientId"
                        @oninput="HandleClientIdInput"
@@ -37,11 +37,11 @@
                        autocapitalize="off"
                        autocorrect="off"
                        spellcheck="false" />
-            </label>
+            </NeoField>
 
-            <label class="admin-field" for="editor-display-name">
-                <span>@L["DisplayName"]</span>
+            <NeoField Label="@L["DisplayName"]" ForId="editor-display-name">
                 <input id="editor-display-name"
+                       class="neo-input"
                        type="text"
                        value="@DisplayName"
                        @oninput="HandleDisplayNameInput"
@@ -49,23 +49,22 @@
                        autocapitalize="off"
                        autocorrect="off"
                        spellcheck="false" />
-            </label>
+            </NeoField>
 
-            <label class="admin-field" for="editor-profile">
-                <span>@L["Profile"]</span>
+            <NeoField Label="@L["Profile"]" ForId="editor-profile" Hint="@L["ProfileHelp"]">
                 <select id="editor-profile"
+                        class="neo-select"
                         value="@((int)Profile)"
                         @onchange="HandleProfileChange"
                         autocomplete="off">
                     <option value="@((int)OidcClientProfile.FirstPartyInteractive)">@L["FirstPartyInteractive"]</option>
                     <option value="@((int)OidcClientProfile.FirstPartyMachine)">@L["FirstPartyMachine"]</option>
                 </select>
-                <small>@L["ProfileHelp"]</small>
-            </label>
+            </NeoField>
 
-            <label class="admin-field" for="editor-scopes">
-                <span>@L["Scopes"]</span>
+            <NeoField Label="@L["Scopes"]" ForId="editor-scopes" Hint="@L["ScopesHelp"]">
                 <textarea id="editor-scopes"
+                          class="neo-textarea"
                           rows="4"
                           value="@ScopesText"
                           @oninput="HandleScopesInput"
@@ -74,14 +73,13 @@
                           autocapitalize="off"
                           autocorrect="off"
                           spellcheck="false"></textarea>
-                <small>@L["ScopesHelp"]</small>
-            </label>
+            </NeoField>
 
             @if (Profile == OidcClientProfile.FirstPartyInteractive)
             {
-                <label class="admin-field" for="editor-redirect-uris">
-                    <span>@L["RedirectUris"]</span>
+                <NeoField Label="@L["RedirectUris"]" ForId="editor-redirect-uris">
                     <textarea id="editor-redirect-uris"
+                              class="neo-textarea"
                               rows="4"
                               value="@RedirectUrisText"
                               @oninput="HandleRedirectUrisInput"
@@ -90,11 +88,11 @@
                               autocapitalize="off"
                               autocorrect="off"
                               spellcheck="false"></textarea>
-                </label>
+                </NeoField>
 
-                <label class="admin-field" for="editor-post-logout-uris">
-                    <span>@L["PostLogoutRedirectUris"]</span>
+                <NeoField Label="@L["PostLogoutRedirectUris"]" ForId="editor-post-logout-uris">
                     <textarea id="editor-post-logout-uris"
+                              class="neo-textarea"
                               rows="3"
                               value="@PostLogoutRedirectUrisText"
                               @oninput="HandlePostLogoutRedirectUrisInput"
@@ -103,18 +101,17 @@
                               autocapitalize="off"
                               autocorrect="off"
                               spellcheck="false"></textarea>
-                </label>
+                </NeoField>
 
-                <div class="admin-helper-card">
-                    <strong>@L["ProfileBehavior"]</strong>
-                    <p>@L["InteractiveProfileBehavior"]</p>
-                </div>
+                <NeoPanel Class="admin-helper-card"
+                          Title="@L["ProfileBehavior"]"
+                          Description="@L["InteractiveProfileBehavior"]" />
             }
             else
             {
-                <label class="admin-field" for="editor-client-secret">
-                    <span>@L["ClientSecret"]</span>
+                <NeoField Label="@L["ClientSecret"]" ForId="editor-client-secret">
                     <input id="editor-client-secret"
+                           class="neo-input"
                            type="text"
                            value="@ClientSecret"
                            @oninput="HandleClientSecretInput"
@@ -123,12 +120,11 @@
                            autocapitalize="off"
                            autocorrect="off"
                            spellcheck="false" />
-                </label>
+                </NeoField>
 
-                <div class="admin-helper-card">
-                    <strong>@L["ProfileBehavior"]</strong>
-                    <p>@L["MachineProfileBehavior"]</p>
-                </div>
+                <NeoPanel Class="admin-helper-card"
+                          Title="@L["ProfileBehavior"]"
+                          Description="@L["MachineProfileBehavior"]" />
             }
         </div>
     </ChildContent>

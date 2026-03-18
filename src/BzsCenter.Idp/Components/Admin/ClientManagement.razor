@@ -83,6 +83,7 @@ else
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                     <input id="client-search"
+                            class="neo-input admin-search-input"
                             name="client-search"
                             type="search"
                             placeholder="@L["SearchPlaceholder"]"
@@ -276,7 +277,7 @@ else
             <div class="admin-pagination-controls">
                 <label class="admin-page-size-field" for="client-page-size">
                     <span>@L["Rows"]</span>
-                    <select id="client-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
+                    <select id="client-page-size" class="neo-select admin-page-size-select" value="@_pageSize" @onchange="HandlePageSizeChange">
                         @foreach (var option in PageSizeOptions)
                         {
                             <option value="@option">@option</option>
@@ -881,10 +882,14 @@ else
     {
         return (_sortField, _sortDescending) switch
         {
+            (ClientSortField.Client, false) => query.OrderBy(static client => client.ClientId, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+            (ClientSortField.Client, true) => query.OrderByDescending(static client => client.ClientId, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
             (ClientSortField.Profile, false) => query.OrderBy(static client => client.Profile).ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
             (ClientSortField.Profile, true) => query.OrderByDescending(static client => client.Profile).ThenBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
-            (_, true) => query.OrderByDescending(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
-            _ => query.OrderBy(static client => client.DisplayName ?? client.ClientId, StringComparer.OrdinalIgnoreCase),
+            (_, true) => query.OrderByDescending(static client => client.ClientId, StringComparer.OrdinalIgnoreCase),
+            _ => query.OrderBy(static client => client.ClientId, StringComparer.OrdinalIgnoreCase),
         };
     }
 

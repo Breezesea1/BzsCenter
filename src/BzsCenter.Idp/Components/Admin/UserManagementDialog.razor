@@ -24,9 +24,9 @@
         }
 
         <div class="admin-form-grid">
-            <label class="admin-field" for="editor-user-name">
-                <span>@L["UserName"]</span>
+            <NeoField Label="@L["UserName"]" ForId="editor-user-name">
                 <input id="editor-user-name"
+                       class="neo-input"
                        type="text"
                        value="@UserName"
                        @oninput="HandleUserNameInput"
@@ -34,11 +34,11 @@
                        autocapitalize="off"
                        autocorrect="off"
                        spellcheck="false" />
-            </label>
+            </NeoField>
 
-            <label class="admin-field" for="editor-email">
-                <span>@L["Email"]</span>
+            <NeoField Label="@L["Email"]" ForId="editor-email">
                 <input id="editor-email"
+                       class="neo-input"
                        type="email"
                        value="@Email"
                        @oninput="HandleEmailInput"
@@ -46,11 +46,13 @@
                        autocapitalize="off"
                        autocorrect="off"
                        spellcheck="false" />
-            </label>
+            </NeoField>
 
-            <label class="admin-field" for="editor-password">
-                <span>@(IsEditing ? L["NewPassword"] : L["Password"])</span>
+            <NeoField Label="@(IsEditing ? L["NewPassword"] : L["Password"])"
+                      ForId="editor-password"
+                      Hint="@(IsEditing ? L["LeavePasswordBlankHelp"] : L["PasswordPolicyHelp"])">
                 <input id="editor-password"
+                       class="neo-input"
                        type="password"
                        value="@Password"
                        @oninput="HandlePasswordInput"
@@ -58,16 +60,13 @@
                        autocapitalize="off"
                        autocorrect="off"
                        spellcheck="false" />
-                <small>@(IsEditing ? L["LeavePasswordBlankHelp"] : L["PasswordPolicyHelp"])</small>
-            </label>
+            </NeoField>
 
-            <label class="admin-toggle-field" for="editor-admin-role">
-                <input id="editor-admin-role" type="checkbox" checked="@IsAdmin" @onchange="HandleIsAdminInput" />
-                <div>
-                    <strong>@L["AdministratorAccess"]</strong>
-                    <span>@L["AdministratorAccessLead"]</span>
-                </div>
-            </label>
+            <NeoSwitchField Id="editor-admin-role"
+                            Label="@L["AdministratorAccess"]"
+                            Description="@L["AdministratorAccessLead"]"
+                            Value="@IsAdmin"
+                            ValueChanged="HandleIsAdminChanged" />
         </div>
     </ChildContent>
 
@@ -104,15 +103,7 @@
 
     private Task HandleEmailInput(ChangeEventArgs args) => EmailChanged.InvokeAsync(args.Value?.ToString());
 
-    private Task HandleIsAdminInput(ChangeEventArgs args)
-    {
-        if (args.Value is bool isChecked)
-        {
-            return IsAdminChanged.InvokeAsync(isChecked);
-        }
-
-        return Task.CompletedTask;
-    }
+    private Task HandleIsAdminChanged(bool value) => IsAdminChanged.InvokeAsync(value);
 
     private Task HandlePasswordInput(ChangeEventArgs args) => PasswordChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 

@@ -73,6 +73,7 @@ else
                         <path d="m21 21-4.35-4.35"/>
                     </svg>
                     <input id="user-search"
+                            class="neo-input admin-search-input"
                             name="user-search"
                             type="search"
                             placeholder="@L["SearchPlaceholder"]"
@@ -222,7 +223,7 @@ else
             <div class="admin-pagination-controls">
                 <label class="admin-page-size-field" for="user-page-size">
                     <span>@L["Rows"]</span>
-                    <select id="user-page-size" value="@_pageSize" @onchange="HandlePageSizeChange">
+                    <select id="user-page-size" class="neo-select admin-page-size-select" value="@_pageSize" @onchange="HandlePageSizeChange">
                         @foreach (var option in PageSizeOptions)
                         {
                             <option value="@option">@option</option>

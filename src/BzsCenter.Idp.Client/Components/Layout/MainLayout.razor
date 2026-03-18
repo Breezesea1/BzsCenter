@@ -6,10 +6,8 @@
 @inject NavigationManager NavigationManager
 
 <div class="layout-shell">
-    <aside class="sidebar-panel @(_isSidebarCollapsed ? "collapsed" : string.Empty) @(_isMobileMenuOpen ? "mobile-open" : string.Empty)">
-        <NavMenu IsCollapsed="_isSidebarCollapsed"
-                 IsMobileOpen="_isMobileMenuOpen"
-                 OnToggleCollapse="ToggleSidebarCollapse"
+    <aside class="sidebar-panel @(_isMobileMenuOpen ? "mobile-open" : string.Empty)">
+        <NavMenu IsMobileOpen="_isMobileMenuOpen"
                  OnCloseMobile="CloseMobileSidebar"/>
     </aside>
 
@@ -50,8 +48,6 @@
 
 @code {
     private bool _isMobileMenuOpen;
-    private bool _isSidebarCollapsed;
-
     [CascadingParameter]
     private RouteData? CurrentRouteData { get; set; }
 
@@ -72,11 +68,6 @@
     private void CloseMobileSidebar()
     {
         _isMobileMenuOpen = false;
-    }
-
-    private void ToggleSidebarCollapse()
-    {
-        _isSidebarCollapsed = !_isSidebarCollapsed;
     }
 
     private string ResolveCurrentPageTitle()

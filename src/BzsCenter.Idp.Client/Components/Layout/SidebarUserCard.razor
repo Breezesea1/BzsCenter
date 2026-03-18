@@ -1,0 +1,14 @@
+<div class="sidebar-user-card sidebar-surface @Class" title="@Name">
+    <span class="sidebar-user-card__avatar" aria-hidden="true">@Avatar</span>
+    <div class="sidebar-user-card__body">
+        <span class="sidebar-user-card__name">@Name</span>
+        <span class="sidebar-user-card__secondary">@SecondaryText</span>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string Avatar { get; set; } = string.Empty;
+    [Parameter] public string? Class { get; set; }
+    [Parameter, EditorRequired] public string Name { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string SecondaryText { get; set; } = string.Empty;
+}

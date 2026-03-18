@@ -5,9 +5,9 @@
 
 <nav class="menu-shell @GetStateClass()" aria-label="@L["PrimaryNavigation"]">
     <header class="menu-header">
-        <a class="menu-brand" href="" @onclick="CloseMobileAsync">
-            <span class="brand-mark" aria-hidden="true">B</span>
-            <span class="brand-text">BzsCenter</span>
+        <a class="sidebar-brand" href="" @onclick="CloseMobileAsync">
+            <span class="sidebar-brand__mark" aria-hidden="true">B</span>
+            <span class="sidebar-brand__text">BzsCenter</span>
         </a>
 
         <button class="menu-close"
@@ -22,39 +22,44 @@
     </header>
 
     <div class="menu-body">
-        <NavLink class="menu-link group hover:bg-transparent" href="" Match="NavLinkMatch.All"
-                 @onclick="CloseMobileAsync">
-            <span class="menu-icon" aria-hidden="true">
+        <SidebarNavItem Href=""
+                        Label="@L["Home"]"
+                        Match="NavLinkMatch.All"
+                        OnClick="CloseMobileAsync">
+            <Icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M3 11.5 12 4l9 7.5" fill="none" stroke="currentColor" stroke-width="2"
                           stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M5 10.5V20h14v-9.5" fill="none" stroke="currentColor" stroke-width="2"
                           stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-            </span>
-            <span class="menu-text">@L["Home"]</span>
-        </NavLink>
+            </Icon>
+        </SidebarNavItem>
 
         <AuthorizeView>
             <NotAuthorized>
-                <a class="menu-link group hover:bg-transparent" href="/login" data-enhance-nav="false"
-                   @onclick="CloseMobileAsync">
-                    <span class="menu-icon" aria-hidden="true">
+                <SidebarNavItem Href="/login"
+                                Label="@L["Login"]"
+                                UseAnchor="true"
+                                DisableEnhancedNavigation="true"
+                                OnClick="CloseMobileAsync">
+                    <Icon>
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                             <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
                             <path d="M4 20c1.7-3.3 4.4-5 8-5s6.3 1.7 8 5" fill="none" stroke="currentColor" stroke-width="2"
                                   stroke-linecap="round"/>
                         </svg>
-                    </span>
-                    <span class="menu-text">@L["Login"]</span>
-                </a>
+                    </Icon>
+                </SidebarNavItem>
             </NotAuthorized>
         </AuthorizeView>
 
-   
-        <NavLink class="menu-link group hover:bg-transparent" href="/admin/users" Match="NavLinkMatch.All"
-                 data-enhance-nav="false" @onclick="CloseMobileAsync">
-            <span class="menu-icon" aria-hidden="true">
+        <SidebarNavItem Href="/admin/users"
+                        Label="@L["Users"]"
+                        Match="NavLinkMatch.All"
+                        DisableEnhancedNavigation="true"
+                        OnClick="CloseMobileAsync">
+            <Icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" fill="none" stroke="currentColor" stroke-width="2"
                           stroke-linecap="round" stroke-linejoin="round"/>
@@ -63,22 +68,23 @@
                     <path d="M22 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" fill="none" stroke="currentColor"
                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
-            </span>
-            <span class="menu-text">@L["Users"]</span>
-        </NavLink>
+            </Icon>
+        </SidebarNavItem>
 
-        <NavLink class="menu-link group hover:bg-transparent" href="/admin/clients" Match="NavLinkMatch.All"
-                 data-enhance-nav="false" @onclick="CloseMobileAsync">
-            <span class="menu-icon" aria-hidden="true">
+        <SidebarNavItem Href="/admin/clients"
+                        Label="@L["Clients"]"
+                        Match="NavLinkMatch.All"
+                        DisableEnhancedNavigation="true"
+                        OnClick="CloseMobileAsync">
+            <Icon>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
                     <rect x="2" y="3" width="20" height="14" rx="2" ry="2" fill="none" stroke="currentColor"
                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     <path d="M8 21h8M12 17v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                           stroke-linejoin="round"/>
                 </svg>
-            </span>
-            <span class="menu-text">@L["Clients"]</span>
-        </NavLink>
+            </Icon>
+        </SidebarNavItem>
     </div>
 
     <div class="menu-divider"></div>
@@ -86,36 +92,26 @@
     <footer class="menu-footer">
         <AuthorizeView Context="authContext">
             <Authorized>
-                <div class="menu-user">
-                    <span class="menu-user-avatar">@GetUserAvatar(authContext.User)</span>
-                    <div class="menu-user-info">
-                        <span class="menu-user-name">@GetUserName(authContext.User)</span>
-                        <span class="menu-user-email">@GetUserSecondaryText(authContext.User)</span>
-                    </div>
-                </div>
+                <SidebarUserCard Avatar="@GetUserAvatar(authContext.User)"
+                                 Name="@GetUserName(authContext.User)"
+                                 SecondaryText="@GetUserSecondaryText(authContext.User)" />
             </Authorized>
             <NotAuthorized>
-                <div class="menu-user">
-                    <span class="menu-user-avatar">G</span>
-                    <div class="menu-user-info">
-                        <span class="menu-user-name">Guest</span>
-                        <span class="menu-user-email">Sign in to continue</span>
-                    </div>
-                </div>
+                <SidebarUserCard Avatar="G"
+                                 Name="Guest"
+                                 SecondaryText="Sign in to continue" />
             </NotAuthorized>
         </AuthorizeView>
     </footer>
 </nav>
 
 @code {
-    [Parameter] public bool IsCollapsed { get; set; }
     [Parameter] public bool IsMobileOpen { get; set; }
-    [Parameter] public EventCallback OnToggleCollapse { get; set; }
     [Parameter] public EventCallback OnCloseMobile { get; set; }
 
     private string GetStateClass()
     {
-        var state = IsCollapsed ? "is-collapsed" : string.Empty;
+        var state = string.Empty;
         if (IsMobileOpen)
         {
             state = string.IsNullOrEmpty(state)
@@ -129,11 +125,6 @@
     private async Task CloseMobileAsync()
     {
         await OnCloseMobile.InvokeAsync();
-    }
-
-    private async Task ToggleCollapseAsync()
-    {
-        await OnToggleCollapse.InvokeAsync();
     }
 
     private static string GetUserAvatar(ClaimsPrincipal user)

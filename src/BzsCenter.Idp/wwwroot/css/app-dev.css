@@ -8,7 +8,9 @@
 
 @import "./tokens-dev.css";
 @import "./base-dev.css";
+@import "./components-dev.css";
 @import "./layout-dev.css";
+@import "./sidebar-dev.css";
 @import "./preferences-dev.css";
 @import "./admin-dev.css";
 @import "./dashboard-dev.css";

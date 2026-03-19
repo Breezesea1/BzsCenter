@@ -10,8 +10,9 @@ function lerp(a, b, t) {
 
 function getGsap() {
     if (!window.gsap) {
-        throw new Error("GSAP is not loaded. Ensure lib/gsap/gsap.min.js is loaded before Login.razor.js import.");
+        throw new Error("GSAP is not loaded. Ensure lib/gsap/gsap.min.js is loaded before LoginHero.razor.js import.");
     }
+
     return window.gsap;
 }
 
@@ -24,20 +25,23 @@ function updatePupils(heroElement, state) {
 
     pupils.forEach((pupil) => {
         const parent = pupil.parentElement;
-        if (!parent) return;
+        if (!parent) {
+            return;
+        }
 
         const rect = parent.getBoundingClientRect();
         const centerX = rect.left + rect.width / 2;
         const centerY = rect.top + rect.height / 2;
 
-        let targetX, targetY;
+        let targetX;
+        let targetY;
 
         if (state.isPasswordFocus) {
             targetX = 0;
             targetY = 0;
         } else if (state.isShowPasswordState) {
-            const char = pupil.closest(".character");
-            if (char && char.classList.contains("purple")) {
+            const character = pupil.closest(".character");
+            if (character && character.classList.contains("purple")) {
                 targetX = -MAX_DISTANCE;
                 targetY = -MAX_DISTANCE;
             } else {
@@ -45,12 +49,12 @@ function updatePupils(heroElement, state) {
                 targetY = -MAX_DISTANCE * 0.4;
             }
         } else if (state.isLookingAtEachOther) {
-            const char = pupil.closest(".character");
-            if (char) {
-                if (char.classList.contains("purple")) {
+            const character = pupil.closest(".character");
+            if (character) {
+                if (character.classList.contains("purple")) {
                     targetX = MAX_DISTANCE;
                     targetY = 0;
-                } else if (char.classList.contains("charcoal")) {
+                } else if (character.classList.contains("charcoal")) {
                     targetX = -MAX_DISTANCE;
                     targetY = 0;
                 } else {
@@ -74,12 +78,12 @@ function updatePupils(heroElement, state) {
             targetY = Math.sin(angle) * dist;
         }
 
-        const cur = pupil._lerpPos || { x: 0, y: 0 };
-        const nx = lerp(cur.x, targetX, LERP_T);
-        const ny = lerp(cur.y, targetY, LERP_T);
-        pupil._lerpPos = { x: nx, y: ny };
+        const current = pupil._lerpPos || { x: 0, y: 0 };
+        const nextX = lerp(current.x, targetX, LERP_T);
+        const nextY = lerp(current.y, targetY, LERP_T);
+        pupil._lerpPos = { x: nextX, y: nextY };
 
-        pupil.style.transform = `translate(${nx}px, ${ny}px)`;
+        pupil.style.transform = `translate(${nextX}px, ${nextY}px)`;
     });
 }
 
@@ -87,14 +91,13 @@ function calculatePosition(element, mouseX, mouseY) {
     const rect = element.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
     const centerY = rect.top + rect.height / 3;
-
     const deltaX = mouseX - centerX;
     const deltaY = mouseY - centerY;
 
     return {
         faceX: clamp(deltaX / 20, -15, 15),
         faceY: clamp(deltaY / 30, -10, 10),
-        bodySkew: clamp(-deltaX / 120, -6, 6),
+        bodySkew: clamp(-deltaX / 120, -6, 6)
     };
 }
 
@@ -109,8 +112,7 @@ function setCharacterMotion(heroElement, state) {
     const yellowEyes = heroElement.querySelector(".character.yellow .eyes");
     const mouth = heroElement.querySelector(".character.yellow .mouth");
 
-    if (!purple || !charcoal || !orange || !yellow ||
-        !purpleEyes || !charcoalEyes || !orangeEyes || !yellowEyes || !mouth) {
+    if (!purple || !charcoal || !orange || !yellow || !purpleEyes || !charcoalEyes || !orangeEyes || !yellowEyes || !mouth) {
         return;
     }
 
@@ -194,7 +196,6 @@ function setCharacterMotion(heroElement, state) {
 function deriveInputState(state) {
     const usernameInput = state.usernameInput;
     const passwordInput = state.passwordInput;
-
     const isTyping = !!(usernameInput && document.activeElement === usernameInput);
     const isPasswordFocus = !!(passwordInput && document.activeElement === passwordInput);
     const passwordLength = passwordInput ? passwordInput.value.length : 0;
@@ -209,7 +210,10 @@ function deriveInputState(state) {
 }
 
 function closeEyes(heroElement, selector, state) {
-    if (state._eyesClosedForPassword) return;
+    if (state._eyesClosedForPassword) {
+        return;
+    }
+
     state._eyesClosedForPassword = true;
 
     const gsap = getGsap();
@@ -222,7 +226,10 @@ function closeEyes(heroElement, selector, state) {
 }
 
 function openEyes(heroElement, selector, state) {
-    if (!state._eyesClosedForPassword) return;
+    if (!state._eyesClosedForPassword) {
+        return;
+    }
+
     state._eyesClosedForPassword = false;
 
     const gsap = getGsap();
@@ -235,8 +242,8 @@ function openEyes(heroElement, selector, state) {
 
 function scheduleRandomBlink(heroElement, selector, state) {
     const gsap = getGsap();
-
     const eyes = heroElement.querySelectorAll(selector);
+
     eyes.forEach((eye) => {
         const normalHeight = parseFloat(getComputedStyle(eye).height);
         eye.dataset.normalHeight = normalHeight;
@@ -244,7 +251,10 @@ function scheduleRandomBlink(heroElement, selector, state) {
     });
 
     function blink() {
-        if (!trackingStates.has(heroElement)) return;
+        if (!trackingStates.has(heroElement)) {
+            return;
+        }
+
         if (state._eyesClosedForPassword) {
             const nextDelay = Math.random() * 4000 + 3000;
             const timer = window.setTimeout(blink, nextDelay);
@@ -253,7 +263,9 @@ function scheduleRandomBlink(heroElement, selector, state) {
         }
 
         const currentEyes = heroElement.querySelectorAll(selector);
-        if (currentEyes.length === 0) return;
+        if (currentEyes.length === 0) {
+            return;
+        }
 
         currentEyes.forEach((eye) => {
             const normalHeight = parseFloat(eye.dataset.normalHeight) || 18;
@@ -273,7 +285,9 @@ function scheduleRandomBlink(heroElement, selector, state) {
 }
 
 function cleanupHeroTracking(heroElement, state) {
-    if (!state) return;
+    if (!state) {
+        return;
+    }
 
     if (state.observer) {
         state.observer.disconnect();
@@ -293,7 +307,7 @@ function cleanupHeroTracking(heroElement, state) {
     state.inputHandlers.forEach(({ el, type, fn }) => el.removeEventListener(type, fn));
     state.inputHandlers = [];
 
-    state.blinkTimers.forEach((t) => window.clearTimeout(t));
+    state.blinkTimers.forEach((timer) => window.clearTimeout(timer));
     state.blinkTimers = [];
 
     if (state._lookingTimer) {
@@ -305,23 +319,37 @@ function cleanupHeroTracking(heroElement, state) {
 }
 
 function createCleanupObserver(heroElement, state) {
-    if (!document.body) return;
+    if (!document.body) {
+        return;
+    }
+
     const observer = new MutationObserver(() => {
         if (!document.body.contains(heroElement)) {
             cleanupHeroTracking(heroElement, state);
         }
     });
+
     observer.observe(document.body, { childList: true, subtree: true });
     state.observer = observer;
 }
 
+function getInputById(inputId) {
+    if (!inputId) {
+        return null;
+    }
+
+    const element = document.getElementById(inputId);
+    return element instanceof HTMLInputElement ? element : null;
+}
+
 export function initHeroTracking(heroElement) {
-    if (!heroElement || trackingStates.has(heroElement)) return;
+    if (!heroElement || trackingStates.has(heroElement)) {
+        return;
+    }
 
     const gsap = getGsap();
-
-    const usernameInput = document.getElementById("username");
-    const passwordInput = document.getElementById("password");
+    const usernameInputId = heroElement.dataset.usernameInputId?.trim() ?? "";
+    const passwordInputId = heroElement.dataset.passwordInputId?.trim() ?? "";
 
     const state = {
         mouseX: window.innerWidth / 2,
@@ -338,9 +366,9 @@ export function initHeroTracking(heroElement) {
         moveHandler: null,
         inputHandlers: [],
         tickerFn: null,
-        usernameInput: (usernameInput instanceof HTMLInputElement) ? usernameInput : null,
-        passwordInput: (passwordInput instanceof HTMLInputElement) ? passwordInput : null,
-        observer: null,
+        usernameInput: getInputById(usernameInputId),
+        passwordInput: getInputById(passwordInputId),
+        observer: null
     };
 
     createCleanupObserver(heroElement, state);
@@ -360,7 +388,10 @@ export function initHeroTracking(heroElement) {
 
     if (state.usernameInput) {
         const onUsernameFocus = () => {
-            if (state._lookingTimer) window.clearTimeout(state._lookingTimer);
+            if (state._lookingTimer) {
+                window.clearTimeout(state._lookingTimer);
+            }
+
             state.isLookingAtEachOther = true;
             state._lookingTimerPending = true;
             state._lookingTimer = window.setTimeout(() => {
@@ -369,6 +400,7 @@ export function initHeroTracking(heroElement) {
                 state._lookingTimer = null;
             }, 800);
         };
+
         state.usernameInput.addEventListener("focus", onUsernameFocus);
         state.usernameInput.addEventListener("input", onUsernameFocus);
         state.inputHandlers.push({ el: state.usernameInput, type: "focus", fn: onUsernameFocus });
@@ -376,13 +408,14 @@ export function initHeroTracking(heroElement) {
     }
 
     if (state.passwordInput) {
-        const ALL_EYES = ".character.purple .eye, .character.charcoal .eye";
+        const allEyes = ".character.purple .eye, .character.charcoal .eye";
 
         const onPasswordFocus = () => {
-            closeEyes(heroElement, ALL_EYES, state);
+            closeEyes(heroElement, allEyes, state);
         };
+
         const onPasswordBlur = () => {
-            openEyes(heroElement, ALL_EYES, state);
+            openEyes(heroElement, allEyes, state);
         };
 
         state.passwordInput.addEventListener("focus", onPasswordFocus);
@@ -397,7 +430,6 @@ export function initHeroTracking(heroElement) {
     deriveInputState(state);
     setCharacterMotion(heroElement, state);
     updatePupils(heroElement, state);
-
     trackingStates.set(heroElement, state);
 }
 

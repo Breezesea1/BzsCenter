@@ -1,0 +1,12 @@
+.git
+.github
+.sisyphus
+artifacts
+**/bin
+**/obj
+**/node_modules
+**/TestResults
+**/playwright-report
+**/test-results
+deploy/.env
+login-hero-*.png

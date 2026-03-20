@@ -1,0 +1,189 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  DOTNET_VERSION: 10.0.x
+  NODE_VERSION: "22"
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
+
+jobs:
+  build-test:
+    name: Build, format, and test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore solution
+        run: dotnet restore BzsCenter.sln
+
+      - name: Build solution
+        run: dotnet build BzsCenter.sln -c Release --no-restore
+
+      - name: Verify formatting
+        run: dotnet format BzsCenter.sln --verify-no-changes --verbosity minimal
+
+      - name: Run unit tests
+        run: dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj -c Release --no-build --logger "trx;LogFileName=unit-tests.trx"
+
+      - name: Run integration tests
+        run: dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj -c Release --no-build --logger "trx;LogFileName=integration-tests.trx"
+
+      - name: Upload .NET test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-test-results
+          path: |
+            tests/BzsCenter.Idp.UnitTests/TestResults/**/*.trx
+            tests/BzsCenter.Idp.IntegrationTests/TestResults/**/*.trx
+
+  e2e:
+    name: End-to-end tests
+    runs-on: ubuntu-latest
+    needs: build-test
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install Aspire CLI
+        shell: bash
+        run: |
+          curl -fsSL https://aspire.dev/install.sh | bash
+          echo "$HOME/.aspire/bin" >> "$GITHUB_PATH"
+
+      - name: Restore solution
+        run: dotnet restore BzsCenter.sln
+
+      - name: Build E2E tests
+        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+
+      - name: Install Playwright browsers
+        run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
+
+      - name: Run E2E tests
+        env:
+          CI: true
+        run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --logger "trx;LogFileName=e2e-tests.trx"
+
+      - name: Upload E2E artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-test-results
+          path: |
+            tests/BzsCenter.Idp.E2ETests/TestResults/**/*.trx
+            test-results/**
+
+  container-images:
+    name: Build container images
+    runs-on: ubuntu-latest
+    needs:
+      - build-test
+      - e2e
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute image metadata
+        id: image-metadata
+        shell: bash
+        run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          idp_sha="ghcr.io/${owner}/bzscenter-idp:sha-${GITHUB_SHA}"
+          migrator_sha="ghcr.io/${owner}/bzscenter-idp-migrator:sha-${GITHUB_SHA}"
+
+          echo "publish=false" >> "$GITHUB_OUTPUT"
+          echo "idp_tags=${idp_sha}" >> "$GITHUB_OUTPUT"
+          echo "migrator_tags=${migrator_sha}" >> "$GITHUB_OUTPUT"
+
+          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF}" == "refs/heads/main" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "idp_tags=${idp_sha},ghcr.io/${owner}/bzscenter-idp:latest" >> "$GITHUB_OUTPUT"
+            echo "migrator_tags=${migrator_sha},ghcr.io/${owner}/bzscenter-idp-migrator:latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Log in to GHCR
+        if: steps.image-metadata.outputs.publish == 'true'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build IDP image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/BzsCenter.Idp/Dockerfile
+          push: ${{ steps.image-metadata.outputs.publish == 'true' }}
+          tags: ${{ steps.image-metadata.outputs.idp_tags }}
+          provenance: false
+
+      - name: Build migrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: src/BzsCenter.Idp.Migrator/Dockerfile
+          push: ${{ steps.image-metadata.outputs.publish == 'true' }}
+          tags: ${{ steps.image-metadata.outputs.migrator_tags }}
+          provenance: false

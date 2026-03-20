@@ -1,0 +1,82 @@
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bzscenter}
+      POSTGRES_USER: ${POSTGRES_USER:-bzscenter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+    volumes:
+      - ${POSTGRES_DATA_PATH:-/opt/bzscenter/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bzscenter} -d ${POSTGRES_DB:-bzscenter}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  idp:
+    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzscenter-idp:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${IDP_HTTP_PORT:-8080}:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ASPNETCORE_URLS: ${ASPNETCORE_URLS:-http://+:8080}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__redis: ${ConnectionStrings__redis:-redis:6379}
+      CacheOptions__CacheType: ${CacheOptions__CacheType:-Redis}
+      Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
+      Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
+      IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
+      Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
+      Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
+      Oidc__EncryptionCertificatePath__0: ${Oidc__EncryptionCertificatePath__0:?Oidc__EncryptionCertificatePath__0 is required}
+      Oidc__EncryptionCertificatePassword__0: ${Oidc__EncryptionCertificatePassword__0:?Oidc__EncryptionCertificatePassword__0 is required}
+      ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
+      ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
+    volumes:
+      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
+
+  idp-migrator:
+    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzscenter-idp-migrator:${IMAGE_TAG:?IMAGE_TAG is required}
+    restart: "no"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
+      Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
+      IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
+      Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
+      Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
+      Oidc__EncryptionCertificatePath__0: ${Oidc__EncryptionCertificatePath__0:?Oidc__EncryptionCertificatePath__0 is required}
+      Oidc__EncryptionCertificatePassword__0: ${Oidc__EncryptionCertificatePassword__0:?Oidc__EncryptionCertificatePassword__0 is required}
+      ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
+      ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
+    volumes:
+      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro

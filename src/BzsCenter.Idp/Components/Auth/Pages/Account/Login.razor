@@ -2,59 +2,20 @@
 @rendermode InteractiveServer
 @attribute [ExcludeFromInteractiveRouting]
 @layout BzsCenter.Idp.Components.Auth.AuthLayout
-@implements IAsyncDisposable
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @using System.Globalization
-@using BzsCenter.Idp.Client.Infra.Blazor
 @using BzsCenter.Idp.Components.Auth.Shared
 @inject IStringLocalizer<Login> L
-@inject IJSRuntime JS
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
 <div class="login-page">
-    <section class="login-hero" aria-hidden="true">
-        <div class="login-brand">
-            <div class="brand-icon">B</div>
-            <span class="brand-name">BzsCenter</span>
-        </div>
-
-        <div class="hero-stage">
-            <div class="hero-art" @ref="_heroArtRef">
-                <div class="character purple">
-                    <div class="eyes">
-                        <span class="eye"><i class="pupil"></i></span>
-                        <span class="eye"><i class="pupil"></i></span>
-                    </div>
-                </div>
-                <div class="character charcoal">
-                    <div class="eyes">
-                        <span class="eye"><i class="pupil"></i></span>
-                        <span class="eye"><i class="pupil"></i></span>
-                    </div>
-                </div>
-                <div class="character orange">
-                    <div class="eyes solid">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                </div>
-                <div class="character yellow">
-                    <div class="eyes solid">
-                        <span class="dot"></span>
-                        <span class="dot"></span>
-                    </div>
-                    <div class="mouth"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="hero-links">
-            <a href="#">@L["PrivacyPolicy"]</a>
-            <a href="#">@L["TermsOfService"]</a>
-        </div>
-    </section>
+    <LoginHero BrandName="BzsCenter"
+               PrivacyPolicyText='@L["PrivacyPolicy"]'
+               TermsOfServiceText='@L["TermsOfService"]'
+               UserNameInputId="username"
+               PasswordInputId="password" />
 
     <section class="login-panel">
         <div class="login-panel-top">
@@ -199,35 +160,11 @@
     [SupplyParameterFromQuery] public string? Error { get; set; }
 
     private bool _showPassword;
-    private ElementReference _heroArtRef;
-    private IJSObjectReference? _loginModule;
-
     private string CurrentCultureName =>
         CultureInfo.CurrentUICulture.Name;
 
     private string CurrentThemeName =>
         "system";
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            _loginModule = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Auth/Pages/Account/Login.razor.js");
-            await _loginModule.InvokeVoidAsync("initHeroTracking", _heroArtRef);
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await BlazorUtils.DisposeJsModuleAsync(async () =>
-        {
-            if (_loginModule is not null)
-            {
-                await _loginModule.DisposeAsync();
-                _loginModule = null;
-            }
-        });
-    }
 
     private string? ErrorMessage => Error switch
     {

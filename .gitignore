@@ -92,6 +92,7 @@ project.lock.json
 # Local tool manifest cache or tool outputs
 .dotnet/
 .aspire/
+artifacts/
 # dotnet user secrets - do NOT commit secrets
 **/secrets.json
 **/*.secrets.json

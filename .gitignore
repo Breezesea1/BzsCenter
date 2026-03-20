@@ -93,6 +93,8 @@ project.lock.json
 .dotnet/
 .aspire/
 artifacts/
+deploy/.env
+production.env
 # dotnet user secrets - do NOT commit secrets
 **/secrets.json
 **/*.secrets.json

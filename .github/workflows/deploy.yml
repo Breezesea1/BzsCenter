@@ -48,6 +48,9 @@ jobs:
         id: vars
         shell: bash
         run: |
+          owner="${GITHUB_REPOSITORY_OWNER,,}"
+          echo "ghcr_image_prefix=ghcr.io/${owner}" >> "$GITHUB_OUTPUT"
+
           if [[ "${GITHUB_EVENT_NAME}" == "workflow_run" ]]; then
             echo "image_tag=sha-${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
             echo "deploy_path=/opt/bzscenter" >> "$GITHUB_OUTPUT"
@@ -108,7 +111,7 @@ jobs:
           IMAGE_TAG: ${{ steps.vars.outputs.image_tag }}
           DEPLOY_PATH: ${{ steps.vars.outputs.deploy_path }}
           GHCR_USERNAME: ${{ github.repository_owner }}
-          GHCR_IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}
+          GHCR_IMAGE_PREFIX: ${{ steps.vars.outputs.ghcr_image_prefix }}
         shell: bash
         run: |
           ssh -p "${SSH_PORT:-22}" "${SSH_USER}@${SSH_HOST}" \

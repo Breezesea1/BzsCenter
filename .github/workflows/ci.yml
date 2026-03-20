@@ -47,6 +47,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/BzsCenter.Idp
+
       - name: Restore solution
         run: dotnet restore BzsCenter.sln
 
@@ -100,6 +104,10 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/BzsCenter.Idp
 
       - name: Install Aspire CLI
         shell: bash

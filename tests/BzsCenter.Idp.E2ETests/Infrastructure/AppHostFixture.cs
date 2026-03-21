@@ -24,6 +24,11 @@ public sealed class AppHostFixture : IAsyncLifetime
     {
         IdpClient = CreateClient(IdpBaseUri);
 
+        if (await IsIdpReadyAsync())
+        {
+            return;
+        }
+
         await StartAspireAsync();
         await WaitForIdpAsync();
     }

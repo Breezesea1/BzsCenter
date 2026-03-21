@@ -1,12 +1,11 @@
 using System.Text.RegularExpressions;
 using BzsCenter.Idp.E2ETests.Infrastructure;
 using Microsoft.Playwright;
-using Microsoft.Playwright.Xunit;
 
 namespace BzsCenter.Idp.E2ETests;
 
 [Collection(E2ETestCollection.Name)]
-public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : PageTest
+public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 {
     [Fact]
     public async Task LoginPage_AllowsThemeAndLanguageSwitching()
@@ -39,5 +38,19 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : PageTest
 
         await Page.GotoAsync(fixture.BuildUrl("/not-found"));
         await Expect(Page.GetByRole(AriaRole.Heading)).ToContainTextAsync(new Regex("不存在|not found", RegexOptions.IgnoreCase));
+    }
+
+    [Fact]
+    public async Task LogoutFlow_AfterAdminSession_RedirectsProtectedRouteBackToLogin()
+    {
+        await AppUi.LoginAsAdminAsync(this, fixture, "/admin/users");
+        await Expect(Page).ToHaveURLAsync(new Regex("/admin/users", RegexOptions.IgnoreCase), new() { Timeout = 30000 });
+        await Page.GotoAsync(fixture.BuildUrl("/admin/users"));
+        await Page.Locator(".admin-table").WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 20000 });
+
+        await AppUi.LogoutAsync(this, fixture, "/admin/users");
+
+        await Expect(Page).ToHaveURLAsync(new Regex(@"/login\?returnUrl=%2Fadmin%2Fusers", RegexOptions.IgnoreCase));
+        await Expect(Page.Locator("#username")).ToBeVisibleAsync();
     }
 }

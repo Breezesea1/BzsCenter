@@ -10,6 +10,44 @@ internal static class AppUi
     {
         await test.Page.GotoAsync(fixture.BuildUrl($"/testing/e2e/sign-in-admin?returnUrl={Uri.EscapeDataString(returnPath)}"));
         await test.Expect(test.Page.Locator("#username")).ToHaveCountAsync(0);
+        await WaitForAppReadyAsync(test);
+    }
+
+    public static async Task LoginWithPasswordAsync(
+        PageTest test,
+        AppHostFixture fixture,
+        string userName,
+        string password,
+        string returnPath = "/",
+        bool rememberMe = false)
+    {
+        await test.Page.GotoAsync(fixture.BuildUrl($"/login?returnUrl={Uri.EscapeDataString(returnPath)}"));
+        await test.Expect(test.Page.Locator("#username")).ToBeVisibleAsync();
+
+        await test.Page.Locator("#username").FillAsync(userName);
+        await test.Page.Locator("#password").FillAsync(password);
+
+        var rememberMeToggle = test.Page.Locator("input[name='RememberMe']");
+        if (rememberMe)
+        {
+            await rememberMeToggle.CheckAsync();
+        }
+
+        await test.Page.Locator("form.login-form button[type='submit']").ClickAsync();
+        await WaitForAppReadyAsync(test);
+    }
+
+    public static async Task LogoutAsync(PageTest test, AppHostFixture fixture, string returnPath = "/")
+    {
+        await test.Page.GotoAsync(fixture.BuildUrl($"/logout?returnUrl={Uri.EscapeDataString(returnPath)}"));
+        await test.Expect(test.Page.Locator("form.logout-form button[type='submit']")).ToBeVisibleAsync();
+        await test.Page.Locator("form.logout-form button[type='submit']").ClickAsync();
+        await WaitForAppReadyAsync(test);
+    }
+
+    public static async Task WaitForAppReadyAsync(PageTest test)
+    {
+        await test.Expect(test.Page.Locator("#components-reconnect-modal")).ToBeHiddenAsync(new() { Timeout = 30000 });
     }
 
     public static async Task OpenPreferencesAsync(PageTest test)

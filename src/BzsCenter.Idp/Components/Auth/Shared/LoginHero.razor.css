@@ -95,6 +95,30 @@
     bottom: 0;
     transition: transform 1s ease-in-out, height 0.6s ease-in-out;
     transform-origin: bottom center;
+    overflow: hidden;
+    box-shadow:
+        inset 1px 1px 0 rgba(255, 255, 255, 0.14),
+        inset -1px -1px 0 rgba(18, 22, 36, 0.12);
+}
+
+.character::before,
+.character::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.character::before {
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.08) 3.5%, transparent 8%),
+        linear-gradient(315deg, transparent 82%, rgba(14, 20, 34, 0.05) 93%, rgba(14, 20, 34, 0.12) 100%);
+    opacity: 0.82;
+}
+
+.character::after {
+    content: none;
 }
 
 .character.purple {
@@ -102,7 +126,16 @@
     width: 180px;
     height: 400px;
     background-color: var(--hero-figure-primary);
-    border-radius: 10px 10px 0 0;
+    border-radius: 34px 34px 0 0;
+    border: 1px solid rgba(231, 235, 255, 0.22);
+    box-shadow:
+        5px 6px 8px rgba(18, 22, 36, 0.12),
+        1px 2px 0 rgba(12, 16, 28, 0.1),
+        inset 1px 1px 0 rgba(255, 255, 255, 0.26),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.05),
+        inset -5px -6px 7px rgba(35, 45, 90, 0.16),
+        inset -1px 0 0 rgba(35, 45, 90, 0.14),
+        inset 0 -1px 0 rgba(36, 42, 79, 0.14);
     z-index: 1;
 }
 
@@ -111,7 +144,16 @@
     width: 120px;
     height: 310px;
     background-color: var(--hero-figure-neutral);
-    border-radius: 8px 8px 0 0;
+    border-radius: 24px 24px 0 0;
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    box-shadow:
+        5px 6px 8px rgba(18, 22, 36, 0.11),
+        1px 2px 0 rgba(12, 16, 28, 0.1),
+        inset 1px 1px 0 rgba(255, 255, 255, 0.34),
+        inset 2px 2px 4px rgba(255, 255, 255, 0.06),
+        inset -5px -6px 7px rgba(85, 94, 116, 0.14),
+        inset -1px 0 0 rgba(85, 94, 116, 0.1),
+        inset 0 -1px 0 rgba(58, 67, 88, 0.1);
     z-index: 2;
 }
 
@@ -122,6 +164,15 @@
     z-index: 3;
     background-color: var(--hero-figure-accent);
     border-radius: 110px 110px 0 0;
+    border: 1px solid rgba(255, 238, 229, 0.24);
+    box-shadow:
+        5px 6px 8px rgba(18, 22, 36, 0.1),
+        1px 2px 0 rgba(17, 21, 32, 0.09),
+        inset 1px 1px 0 rgba(255, 247, 241, 0.24),
+        inset 2px 2px 4px rgba(255, 238, 229, 0.04),
+        inset -5px -6px 7px rgba(160, 101, 68, 0.14),
+        inset -1px 0 0 rgba(160, 101, 68, 0.11),
+        inset 0 -1px 0 rgba(143, 95, 63, 0.14);
 }
 
 .character.yellow {
@@ -129,7 +180,16 @@
     width: 140px;
     height: 230px;
     background-color: var(--hero-figure-highlight);
-    border-radius: 70px 70px 0 0;
+    border-radius: 58px 58px 0 0;
+    border: 1px solid rgba(255, 248, 192, 0.22);
+    box-shadow:
+        5px 6px 8px rgba(18, 22, 36, 0.1),
+        1px 2px 0 rgba(17, 21, 32, 0.08),
+        inset 1px 1px 0 rgba(255, 252, 222, 0.24),
+        inset 2px 2px 4px rgba(255, 252, 218, 0.05),
+        inset -5px -6px 7px rgba(146, 130, 42, 0.14),
+        inset -1px 0 0 rgba(146, 130, 42, 0.11),
+        inset 0 -1px 0 rgba(120, 106, 36, 0.14);
     z-index: 4;
 }
 
@@ -168,6 +228,11 @@
     height: 18px;
     border-radius: 999px;
     background-color: var(--hero-eye);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    box-shadow:
+        inset 2px 2px 4px rgba(255, 255, 255, 0.55),
+        inset -3px -3px 5px rgba(39, 45, 64, 0.16),
+        2px 3px 0 rgba(13, 18, 31, 0.05);
     display: grid;
     place-items: center;
     overflow: hidden;
@@ -184,6 +249,7 @@
     height: 7px;
     border-radius: 999px;
     background-color: var(--hero-pupil);
+    box-shadow: 1px 2px 0 rgba(7, 10, 18, 0.3);
 }
 
 .character.charcoal .pupil {
@@ -196,6 +262,10 @@
     height: 12px;
     border-radius: 999px;
     background-color: var(--hero-pupil);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+        2px 2px 0 rgba(9, 13, 21, 0.18),
+        inset 1px 1px 2px rgba(255, 255, 255, 0.12);
 }
 
 .mouth {
@@ -206,6 +276,9 @@
     height: 4px;
     border-radius: 999px;
     background: var(--hero-pupil);
+    box-shadow:
+        inset 0 1px 2px rgba(255, 255, 255, 0.08),
+        0 2px 0 rgba(9, 13, 21, 0.18);
     transition: height 0.2s ease-out, top 0.2s ease-out, border-radius 0.2s ease-out, left 0.2s ease-out;
 }
 

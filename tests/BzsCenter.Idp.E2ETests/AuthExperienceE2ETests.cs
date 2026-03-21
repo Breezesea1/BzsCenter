@@ -15,13 +15,13 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 
         await AppUi.OpenPreferencesAsync(this);
         await Page.GetByRole(AriaRole.Menuitemradio, new() { Name = "EN" }).ClickAsync();
+        await AppUi.WaitForAppReadyAsync(this);
         await Expect(Page.GetByRole(AriaRole.Heading, new() { NameRegex = new Regex("Welcome back", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
 
         await AppUi.OpenPreferencesAsync(this);
         await Page.GetByRole(AriaRole.Menuitemradio, new() { NameRegex = new Regex("Light|浅色", RegexOptions.IgnoreCase) }).ClickAsync();
-
-        var theme = await Page.EvaluateAsync<string>("() => document.documentElement.getAttribute('data-theme') || ''");
-        Assert.Equal("light", theme);
+        await AppUi.WaitForAppReadyAsync(this);
+        await Expect(Page.Locator("html")).ToHaveAttributeAsync("data-theme", "light");
     }
 
     [Fact]

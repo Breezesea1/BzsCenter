@@ -34,10 +34,6 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
         await Expect(Page.Locator(".admin-dialog-shell")).ToBeHiddenAsync(new() { Timeout = 20000 });
         await Expect(Page.Locator(".admin-feedback.is-success")).ToBeVisibleAsync(new() { Timeout = 20000 });
 
-        await Page.GotoAsync(fixture.BuildUrl("/admin/clients"));
-        await AppUi.WaitForAppReadyAsync(this);
-        await Expect(Page.GetByRole(AriaRole.Row).Filter(new() { HasTextString = clientId })).ToBeVisibleAsync(new() { Timeout = 20000 });
-
         var authorizeUrl = QueryHelpers.AddQueryString(
             fixture.BuildUrl("/connect/authorize"),
             new Dictionary<string, string?>

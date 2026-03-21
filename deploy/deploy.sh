@@ -3,7 +3,7 @@
 set -euo pipefail
 
 DEPLOY_PATH="${DEPLOY_PATH:-$(pwd)}"
-COMPOSE_FILE="${COMPOSE_FILE:-${DEPLOY_PATH}/docker-compose.yml}"
+COMPOSE_FILES="${COMPOSE_FILES:-${DEPLOY_PATH}/docker-compose.yml}"
 LOGIN_URL="${LOGIN_URL:-http://127.0.0.1:${IDP_HTTP_PORT:-8080}/login}"
 
 : "${GHCR_USERNAME:?GHCR_USERNAME is required}"
@@ -13,22 +13,21 @@ LOGIN_URL="${LOGIN_URL:-http://127.0.0.1:${IDP_HTTP_PORT:-8080}/login}"
 
 cd "${DEPLOY_PATH}"
 
+compose_args=()
+for file in ${COMPOSE_FILES}; do
+    compose_args+=( -f "$file" )
+done
+
 echo "Logging into GHCR..."
 printf '%s' "${GHCR_PAT}" | docker login ghcr.io -u "${GHCR_USERNAME}" --password-stdin
 
 export GHCR_IMAGE_PREFIX IMAGE_TAG
 
 echo "Pulling images..."
-docker compose -f "${COMPOSE_FILE}" pull
+docker compose "${compose_args[@]}" pull
 
-echo "Starting infrastructure services..."
-docker compose -f "${COMPOSE_FILE}" up -d postgres redis
-
-echo "Running database migrator..."
-docker compose -f "${COMPOSE_FILE}" run --rm idp-migrator
-
-echo "Starting IDP service..."
-docker compose -f "${COMPOSE_FILE}" up -d idp
+echo "Starting IDP stack (migrator runs before idp)..."
+docker compose "${compose_args[@]}" up -d idp
 
 echo "Waiting for IDP login page..."
 for attempt in $(seq 1 24); do
@@ -42,6 +41,6 @@ for attempt in $(seq 1 24); do
 done
 
 echo "IDP did not become ready in time." >&2
-docker compose -f "${COMPOSE_FILE}" ps >&2 || true
-docker compose -f "${COMPOSE_FILE}" logs --tail=200 idp >&2 || true
+docker compose "${compose_args[@]}" ps >&2 || true
+docker compose "${compose_args[@]}" logs --tail=200 idp >&2 || true
 exit 1

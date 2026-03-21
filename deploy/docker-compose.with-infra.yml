@@ -1,0 +1,88 @@
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  postgres:
+    image: postgres:16
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-bzscenter}
+      POSTGRES_USER: ${POSTGRES_USER:-bzscenter}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ${POSTGRES_DATA_PATH:-/opt/bzscenter/postgres}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bzscenter} -d ${POSTGRES_DB:-bzscenter}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    stop_grace_period: 30s
+    logging: *default-logging
+    networks:
+      - default
+
+  redis:
+    image: redis:7-alpine
+    pull_policy: always
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - ${REDIS_DATA_PATH:-/opt/bzscenter/redis}:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    stop_grace_period: 30s
+    logging: *default-logging
+    networks:
+      - default
+
+  idp:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      idp-migrator:
+        condition: service_completed_successfully
+    environment:
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__redis: redis:6379
+    networks:
+      - default
+      - edge
+
+  idp-migrator:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DOTNET_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__redis: redis:6379
+      Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
+      Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
+      IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
+      Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
+      Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
+      Oidc__EncryptionCertificatePath__0: ${Oidc__EncryptionCertificatePath__0:?Oidc__EncryptionCertificatePath__0 is required}
+      Oidc__EncryptionCertificatePassword__0: ${Oidc__EncryptionCertificatePassword__0:?Oidc__EncryptionCertificatePassword__0 is required}
+      ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
+      ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
+    volumes:
+      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
+    networks:
+      - default
+      - edge

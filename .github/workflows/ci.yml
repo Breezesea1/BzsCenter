@@ -3,9 +3,15 @@ name: CI
 on:
   push:
     branches:
-      - "**"
+      - main
   pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -195,3 +201,20 @@ jobs:
           push: ${{ steps.image-metadata.outputs.publish == 'true' }}
           tags: ${{ steps.image-metadata.outputs.migrator_tags }}
           provenance: false
+
+      - name: Summarize image output
+        shell: bash
+        run: |
+          {
+            echo "## Container images"
+            echo
+            echo "- IDP tags: ${{ steps.image-metadata.outputs.idp_tags }}"
+            echo "- Migrator tags: ${{ steps.image-metadata.outputs.migrator_tags }}"
+            echo
+            if [[ "${{ steps.image-metadata.outputs.publish }}" == "true" ]]; then
+              echo "Published to GHCR from main push."
+              echo "Packages usually appear under https://github.com/users/${GITHUB_REPOSITORY_OWNER}/packages or the organization packages page."
+            else
+              echo "Built for validation only. This run did not push images because it was not a push to main."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

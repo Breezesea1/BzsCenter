@@ -6,7 +6,9 @@ using System.Text.Json;
 using BzsCenter.Idp.Components;
 using BzsCenter.Idp.Controllers;
 using BzsCenter.Idp.Models;
+using BzsCenter.Idp.Client.Services.Dashboard;
 using BzsCenter.Idp.Infra;
+using BzsCenter.Idp.Services.Admin;
 using BzsCenter.Idp.Services;
 using BzsCenter.Idp.Services.Authorization;
 using BzsCenter.Idp.Services.Identity;
@@ -78,8 +80,9 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadAsStringAsync();
-        Assert.Contains("access denied", body, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("switch account", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"denied-page\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"denied-secondary\" href=\"/login\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("BzsCenter", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -91,7 +94,8 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("<form method=\"post\" action=\"/account/logout?returnUrl=%2F\"", body, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("sign out", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"logout-form\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"logout-secondary\" href=\"/\"", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -219,6 +223,70 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.Equal("admin@bzscenter.local", GetFirstJsonStringValue(root, OpenIddictConstants.Claims.Email, ClaimTypes.Email));
         Assert.Contains(IdentitySeedConstants.AdminRoleName, GetJsonStringValues(root, OpenIddictConstants.Claims.Role, ClaimTypes.Role));
         Assert.Contains(PermissionConstants.UsersWrite, GetJsonStringValues(root, PermissionConstants.ClaimType));
+    }
+
+    [Fact]
+    public async Task UserInfo_WithBearerTokenViaPost_ReturnsExpectedUserClaims()
+    {
+        await SignInAsAdminAsync();
+
+        var code = await RequestAuthorizationCodeAsync();
+        using var tokenResponse = await ExchangeAuthorizationCodeAsync(code);
+        tokenResponse.EnsureSuccessStatusCode();
+
+        using var tokenPayload = await tokenResponse.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(tokenPayload);
+        var accessToken = tokenPayload.RootElement.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "/connect/userinfo")
+        {
+            Content = new FormUrlEncodedContent([]),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        using var payload = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(payload);
+
+        var root = payload.RootElement;
+        Assert.Equal("admin", GetFirstJsonStringValue(root, OpenIddictConstants.Claims.Name, ClaimTypes.Name));
+        Assert.Equal("admin@bzscenter.local", GetFirstJsonStringValue(root, OpenIddictConstants.Claims.Email, ClaimTypes.Email));
+        Assert.Contains(IdentitySeedConstants.AdminRoleName, GetJsonStringValues(root, OpenIddictConstants.Claims.Role, ClaimTypes.Role));
+    }
+
+    [Fact]
+    public async Task LogoutEndpoint_WhenInvoked_RedirectsToRoot()
+    {
+        await SignInAsAdminAsync();
+
+        using var response = await _client.GetAsync("/connect/logout");
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        Assert.Equal("/", response.Headers.Location?.OriginalString);
+    }
+
+    [Fact]
+    public async Task AdminDashboardSummary_WithAdminCookie_ReturnsExpectedCounts()
+    {
+        await SignInAsAdminAsync();
+
+        using var response = await _client.GetAsync("/api/admin/dashboard/summary");
+        response.EnsureSuccessStatusCode();
+
+        var payload = await response.Content.ReadFromJsonAsync<AdminDashboardSummaryResponse>();
+        Assert.NotNull(payload);
+        Assert.Equal(2, payload.TotalClients);
+        Assert.Equal(1, payload.InteractiveClients);
+        Assert.Equal(1, payload.MachineClients);
+        Assert.True(payload.TotalUsers >= 1);
+        Assert.True(payload.AdminUsers >= 1);
+        Assert.Equal(payload.TotalUsers, payload.AdminUsers + payload.StandardUsers);
+        Assert.True(payload.TotalPermissionMappings >= 7);
+        Assert.True(payload.TotalConfiguredScopes >= payload.TotalPermissionMappings);
+        Assert.Equal(payload.TotalClients, payload.InteractiveClients + payload.MachineClients);
     }
 
     [Fact]
@@ -568,6 +636,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
         builder.Services.AddScoped<IOidcClientService, OidcClientService>();
+        builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         builder.Services.AddScoped<IdentitySeeder>();
         builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();
         builder.Services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
@@ -582,10 +651,10 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         _app.UseAuthorization();
         _app.UseAntiforgery();
         _app.MapControllers();
-        _app.MapRazorComponents<App>()
+        _app.MapRazorComponents<global::BzsCenter.Idp.Components.App>()
             .AddInteractiveServerRenderMode()
             .AddInteractiveWebAssemblyRenderMode()
-            .AddAdditionalAssemblies(typeof(BzsCenter.Idp.Client._Imports).Assembly);
+            .AddAdditionalAssemblies(typeof(IAdminDashboardClient).Assembly);
 
         await _app.StartAsync();
 

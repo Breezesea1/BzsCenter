@@ -4,12 +4,11 @@ using System.Text.RegularExpressions;
 using BzsCenter.Idp.E2ETests.Infrastructure;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Playwright;
-using Microsoft.Playwright.Xunit;
 
 namespace BzsCenter.Idp.E2ETests;
 
 [Collection(E2ETestCollection.Name)]
-public sealed class OidcFlowE2ETests(AppHostFixture fixture) : PageTest
+public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
 {
     private const string CodeChallenge = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";
     private const string CodeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
@@ -32,7 +31,8 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : PageTest
         await Page.Locator("#editor-redirect-uris").FillAsync(redirectUri);
         await Page.Locator("#editor-post-logout-uris").FillAsync(redirectUri);
         await Page.Locator(".admin-dialog-shell .admin-primary-button").ClickAsync();
-        await Expect(Page.GetByRole(AriaRole.Row).Filter(new() { HasTextString = clientId })).ToBeVisibleAsync();
+        await Expect(Page.Locator(".admin-dialog-shell")).ToBeHiddenAsync(new() { Timeout = 20000 });
+        await Expect(Page.Locator(".admin-feedback.is-success")).ToBeVisibleAsync(new() { Timeout = 20000 });
 
         var authorizeUrl = QueryHelpers.AddQueryString(
             fixture.BuildUrl("/connect/authorize"),

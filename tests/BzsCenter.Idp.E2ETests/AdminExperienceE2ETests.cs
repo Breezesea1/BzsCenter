@@ -1,12 +1,11 @@
 using System.Text.RegularExpressions;
 using BzsCenter.Idp.E2ETests.Infrastructure;
 using Microsoft.Playwright;
-using Microsoft.Playwright.Xunit;
 
 namespace BzsCenter.Idp.E2ETests;
 
 [Collection(E2ETestCollection.Name)]
-public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : PageTest
+public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 {
     [Fact]
     public async Task DashboardAndAdminPages_RenderAfterAdminLogin()
@@ -81,4 +80,5 @@ public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : PageTest
         await updatedRow.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("删除|Delete", RegexOptions.IgnoreCase) }).ClickAsync();
         await Expect(Page.GetByRole(AriaRole.Row).Filter(new() { HasTextString = clientId })).ToHaveCountAsync(0);
     }
+
 }

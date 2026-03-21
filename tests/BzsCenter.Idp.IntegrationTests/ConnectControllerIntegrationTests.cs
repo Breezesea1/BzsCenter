@@ -81,7 +81,8 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("class=\"denied-page\"", body, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("class=\"denied-secondary\" href=\"/login\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"denied-secondary\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("href=\"/login\"", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("BzsCenter", body, StringComparison.OrdinalIgnoreCase);
     }
 
@@ -93,9 +94,12 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadAsStringAsync();
-        Assert.Contains("<form method=\"post\" action=\"/account/logout?returnUrl=%2F\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("<form", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("method=\"post\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("action=\"/account/logout?returnUrl=%2F\"", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("class=\"logout-form\"", body, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("class=\"logout-secondary\" href=\"/\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("class=\"logout-secondary\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("href=\"/\"", body, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

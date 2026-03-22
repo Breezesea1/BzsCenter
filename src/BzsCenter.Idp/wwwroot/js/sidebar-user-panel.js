@@ -1,5 +1,5 @@
 export function init(rootElement, dotNetRef) {
-    if (!rootElement) {
+    if (!rootElement || typeof rootElement.contains !== "function") {
         return;
     }
 

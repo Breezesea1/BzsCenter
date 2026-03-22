@@ -1,4 +1,5 @@
 using BzsCenter.Idp.Models;
+using BzsCenter.Idp.Services.Identity;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +9,9 @@ namespace BzsCenter.Idp.Controllers;
 
 [Route("account")]
 public sealed class AccountController(
-    SignInManager<BzsUser> signInManager) : Controller
+    SignInManager<BzsUser> signInManager,
+    IExternalLoginService externalLoginService,
+    IExternalLoginProviderStore externalLoginProviderStore) : Controller
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromForm] LoginForm form, [FromQuery] string? returnUrl)
@@ -35,6 +38,31 @@ public sealed class AccountController(
         return SignOut(
             new AuthenticationProperties { RedirectUri = IsSafeLocalUrl(returnUrl) ? returnUrl : "/" },
             IdentityConstants.ApplicationScheme);
+    }
+
+    [HttpPost("external-login/{provider}")]
+    public IActionResult ExternalLogin([FromRoute] string provider, [FromQuery] string? returnUrl)
+    {
+        if (!externalLoginProviderStore.TryGetProvider(provider, out var externalLoginProvider))
+        {
+            return RedirectToLogin(returnUrl, "external_login_failed");
+        }
+
+        var callbackUrl = BuildExternalLoginCallbackUrl(returnUrl);
+        var properties = signInManager.ConfigureExternalAuthenticationProperties(externalLoginProvider.Scheme, callbackUrl);
+        return Challenge(properties, externalLoginProvider.Scheme);
+    }
+
+    [HttpGet("external-login/callback")]
+    public async Task<IActionResult> ExternalLoginCallback([FromQuery] string? returnUrl, CancellationToken cancellationToken)
+    {
+        var result = await externalLoginService.SignInAsync(cancellationToken);
+        if (result.Succeeded)
+        {
+            return RedirectToSafeLocal(returnUrl);
+        }
+
+        return RedirectToLogin(returnUrl, result.ErrorCode ?? "external_login_failed");
     }
 
     private IActionResult RedirectToLogin(string? returnUrl, string error)
@@ -71,6 +99,19 @@ public sealed class AccountController(
     private bool IsSafeLocalUrl(string? returnUrl)
     {
         return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl);
+    }
+
+    private string BuildExternalLoginCallbackUrl(string? returnUrl)
+    {
+        if (!IsSafeLocalUrl(returnUrl))
+        {
+            return "/account/external-login/callback";
+        }
+
+        return QueryHelpers.AddQueryString("/account/external-login/callback", new Dictionary<string, string?>
+        {
+            ["returnUrl"] = returnUrl,
+        });
     }
 
     public sealed class LoginForm

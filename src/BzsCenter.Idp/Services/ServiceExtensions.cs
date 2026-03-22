@@ -38,6 +38,7 @@ internal static class ServiceExtensions
         ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
         sc.AddInfraServices(connectionString);
+        sc.AddExternalAuthenticationServices(configuration);
 
         var registrar = new IdpServiceRegistrar(sc, configuration, hostEnvironment);
         registrar.AddIdpOptions();

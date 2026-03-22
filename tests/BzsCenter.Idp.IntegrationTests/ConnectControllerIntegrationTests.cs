@@ -69,7 +69,19 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("<form method=\"post\" action=\"/account/login\"", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/account/external-login/github", body, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Log in with GitHub", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("BzsCenter", body, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ExternalLogin_WhenGitHubRequested_RedirectsToGitHubAuthorizationEndpoint()
+    {
+        using var response = await _client.PostAsync("/account/external-login/github?returnUrl=%2Fadmin%2Fusers", new FormUrlEncodedContent([]));
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
+        Assert.Contains("gho_test_valid_client_id", response.Headers.Location.OriginalString, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -616,11 +628,15 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
             ["Identity:Admin:UserName"] = "admin",
             ["Identity:Admin:Password"] = "Passw0rd!",
             ["PermissionPolicy:PolicyPrefix"] = PermissionPolicyOptions.DefaultPolicyPrefix,
+            ["Authentication:GitHub:ClientId"] = "gho_test_valid_client_id",
+            ["Authentication:GitHub:ClientSecret"] = "ghs_test_valid_client_secret",
+            ["Authentication:GitHub:CallbackPath"] = "/signin-github",
         });
 
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
+        builder.Services.AddExternalAuthenticationServices(builder.Configuration);
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents()
             .AddInteractiveWebAssemblyComponents();

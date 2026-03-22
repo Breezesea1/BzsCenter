@@ -26,6 +26,9 @@ services:
       Oidc__EncryptionCertificatePassword__0: ${Oidc__EncryptionCertificatePassword__0:?Oidc__EncryptionCertificatePassword__0 is required}
       ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
       ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
+      Authentication__GitHub__ClientId: ${Authentication__GitHub__ClientId:-}
+      Authentication__GitHub__ClientSecret: ${Authentication__GitHub__ClientSecret:-}
+      Authentication__GitHub__CallbackPath: ${Authentication__GitHub__CallbackPath:-/signin-github}
     volumes:
       - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
       - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
@@ -62,6 +65,9 @@ services:
       Oidc__EncryptionCertificatePassword__0: ${Oidc__EncryptionCertificatePassword__0:?Oidc__EncryptionCertificatePassword__0 is required}
       ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
       ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
+      Authentication__GitHub__ClientId: ${Authentication__GitHub__ClientId:-}
+      Authentication__GitHub__ClientSecret: ${Authentication__GitHub__ClientSecret:-}
+      Authentication__GitHub__CallbackPath: ${Authentication__GitHub__CallbackPath:-/signin-github}
     volumes:
       - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
       - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro

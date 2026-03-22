@@ -16,7 +16,8 @@
 @if (!_isRedirectingAuthenticatedUser)
 {
     <div class="login-page">
-        <LoginHero BrandName="BzsCenter"
+        <LoginHero BrandName="OIDC"
+                   BrandImageSrc="/oidc-brand.jpg"
                    PrivacyPolicyText='@L["PrivacyPolicy"]'
                    TermsOfServiceText='@L["TermsOfService"]'
                    UserNameInputId="username"
@@ -25,8 +26,10 @@
         <section class="login-panel">
             <div class="login-panel-top">
                 <div class="mobile-brand">
-                    <div class="brand-icon">B</div>
-                    <span class="brand-name">BzsCenter</span>
+                    <div class="brand-icon" aria-hidden="true">
+                        <img src="/oidc-brand.jpg" alt="" width="32" height="32" />
+                    </div>
+                    <span class="brand-name">OIDC</span>
                 </div>
                 <AuthPreferences CurrentCulture="@CurrentCultureName" CurrentTheme="@CurrentThemeName"/>
             </div>

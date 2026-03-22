@@ -75,6 +75,31 @@ internal static class AppUi
         await test.Expect(menu).ToBeVisibleAsync();
     }
 
+    public static async Task OpenSidebarUserMenuAsync(PageTest test)
+    {
+        var trigger = test.Page.Locator("button.sidebar-avatar");
+        var panel = test.Page.Locator(".sidebar-user-panel");
+
+        await test.Expect(trigger).ToBeVisibleAsync();
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            await trigger.ClickAsync();
+
+            try
+            {
+                await test.Expect(panel).ToBeVisibleAsync(new() { Timeout = 3000 });
+                return;
+            }
+            catch (PlaywrightException) when (attempt < 2)
+            {
+                await test.Page.WaitForTimeoutAsync(350);
+            }
+        }
+
+        await test.Expect(panel).ToBeVisibleAsync();
+    }
+
     public static string UniqueName(string prefix)
     {
         return $"{prefix}-{Guid.NewGuid():N}"[..Math.Min(prefix.Length + 9, prefix.Length + 9)];

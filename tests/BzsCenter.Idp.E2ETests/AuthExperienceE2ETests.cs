@@ -53,4 +53,26 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Expect(Page).ToHaveURLAsync(new Regex(@"/login\?returnUrl=%2Fadmin%2Fusers", RegexOptions.IgnoreCase));
         await Expect(Page.Locator("#username")).ToBeVisibleAsync();
     }
+
+    [Fact]
+    public async Task LoginPage_WhenAlreadyAuthenticated_RedirectsToHome()
+    {
+        await AppUi.LoginAsAdminAsync(this, fixture);
+
+        await Page.GotoAsync(fixture.BuildUrl("/login"));
+
+        await Page.WaitForURLAsync(new Regex(@"/$"));
+        await Expect(Page.Locator("#username")).ToHaveCountAsync(0);
+    }
+
+    [Fact]
+    public async Task SidebarAvatar_WhenClicked_OpensUserMenu()
+    {
+        await AppUi.LoginAsAdminAsync(this, fixture);
+        await Page.GotoAsync(fixture.BuildUrl("/"));
+
+        await AppUi.OpenSidebarUserMenuAsync(this);
+
+        await Expect(Page.Locator(".sidebar-user-panel__action")).ToContainTextAsync(new Regex("退出|log out", RegexOptions.IgnoreCase));
+    }
 }

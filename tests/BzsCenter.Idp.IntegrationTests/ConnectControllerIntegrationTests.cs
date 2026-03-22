@@ -8,6 +8,7 @@ using BzsCenter.Idp.Controllers;
 using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Client.Services.Dashboard;
 using BzsCenter.Idp.Infra;
+using BzsCenter.Idp.Infra.Oidc;
 using BzsCenter.Idp.Services.Admin;
 using BzsCenter.Idp.Services;
 using BzsCenter.Idp.Services.Authorization;
@@ -81,6 +82,26 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.Equal(HttpStatusCode.Found, response.StatusCode);
         Assert.NotNull(response.Headers.Location);
         Assert.Contains("gho_test_valid_client_id", response.Headers.Location.OriginalString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task ExternalLogin_WhenForwardedProtoIsHttps_GeneratesHttpsRedirectUri()
+    {
+        using var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "http://auth.breezesea.fun/account/external-login/github?returnUrl=%2Fadmin%2Fusers");
+        request.Headers.Add("X-Forwarded-Proto", "https");
+        request.Headers.Add("X-Forwarded-Host", "auth.breezesea.fun");
+        request.Content = new FormUrlEncodedContent([]);
+
+        using var response = await _client.SendAsync(request);
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
+
+        var query = QueryHelpers.ParseQuery(response.Headers.Location.Query);
+        Assert.True(query.TryGetValue("redirect_uri", out var redirectUris));
+        Assert.Equal("https://auth.breezesea.fun/signin-github", redirectUris.ToString());
     }
 
     [Fact]
@@ -635,6 +656,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddMemoryCache();
         builder.Services.AddHttpContextAccessor();
         builder.Services.AddLocalization(options => { options.ResourcesPath = "Resources"; });
+        builder.Services.AddForwardedHeaders();
         builder.Services.AddExternalAuthenticationServices(builder.Configuration);
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents()
@@ -666,6 +688,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         _app = builder.Build();
         _app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
+        _app.UseForwardedHeaders();
         _app.UseAuthentication();
         _app.UseAuthorization();
         _app.UseAntiforgery();

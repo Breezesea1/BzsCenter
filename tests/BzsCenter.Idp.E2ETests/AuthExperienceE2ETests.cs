@@ -34,7 +34,8 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Expect(Page.GetByRole(AriaRole.Heading)).ToContainTextAsync(new Regex("退出|sign out", RegexOptions.IgnoreCase));
 
         await Page.GotoAsync(fixture.BuildUrl("/account/denied"));
-        await Expect(Page.GetByRole(AriaRole.Heading)).ToContainTextAsync(new Regex("拒绝|denied|access", RegexOptions.IgnoreCase));
+        await Expect(Page.Locator(".denied-page")).ToBeVisibleAsync();
+        await Expect(Page.Locator(".denied-secondary")).ToHaveAttributeAsync("href", "/login");
 
         await Page.GotoAsync(fixture.BuildUrl("/not-found"));
         await Expect(Page.GetByRole(AriaRole.Heading)).ToContainTextAsync(new Regex("不存在|not found", RegexOptions.IgnoreCase));

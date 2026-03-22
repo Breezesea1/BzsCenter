@@ -137,6 +137,7 @@
 - `ForwardedHeaders__KnownIpNetworks__0`
 
 因为当前应用会启用 `UseForwardedHeaders()`，而且 OIDC issuer、回调地址、HTTPS 判断都依赖反向代理头。
+如果你的反向代理没有转发 `X-Forwarded-Proto` / `X-Forwarded-Host`，或者应用没有把代理 IP / 网段加入受信任列表，像 GitHub 这类外部登录的 `redirect_uri` 就可能错误地生成为 `http://.../signin-github`。
 
 ### 6. Redis
 
@@ -409,6 +410,11 @@ docker compose up -d idp
 - `ForwardedHeaders:KnownProxies`
   或
 - `ForwardedHeaders:KnownIpNetworks`
+
+同时确保反向代理显式转发：
+
+- `X-Forwarded-Proto`
+- `X-Forwarded-Host`
 
 ---
 

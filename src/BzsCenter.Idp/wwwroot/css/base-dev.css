@@ -3,10 +3,43 @@ body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
     background: var(--app-bg);
     color: var(--app-text);
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 body {
     background-image: radial-gradient(circle at top left, rgba(255, 255, 255, 0.9), transparent 34%), radial-gradient(circle at bottom right, rgba(148, 163, 184, 0.08), transparent 28%);
+}
+
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: 999px;
+    box-shadow: var(--surface-shadow-inset);
+}
+
+*::-webkit-scrollbar-thumb {
+    border: 2px solid var(--scrollbar-track);
+    border-radius: 999px;
+    background: linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 92%, white 8%), color-mix(in srgb, var(--surface-muted) 86%, var(--accent-primary) 14%));
+    box-shadow: var(--control-shadow-xs);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 82%, white 18%), var(--scrollbar-thumb-hover));
+}
+
+*::-webkit-scrollbar-corner {
+    background: var(--scrollbar-corner);
 }
 
 a,

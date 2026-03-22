@@ -1,14 +1,19 @@
+@implements IAsyncDisposable
 @using System.Security.Claims
+@using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.Extensions.Localization
+@rendermode InteractiveServer
 @inject IStringLocalizer<NavMenu> L
+@inject IJSRuntime JS
+@inject NavigationManager NavigationManager
 
 <nav class="menu-shell @GetStateClass()" aria-label="@L["PrimaryNavigation"]">
     <header class="menu-header">
-        <a class="sidebar-brand" href="" @onclick="CloseMobileAsync">
-            <span class="sidebar-brand__mark" aria-hidden="true">B</span>
-            <span class="sidebar-brand__text">BzsCenter</span>
-        </a>
+        <SidebarBrand Href=""
+                      Mark="B"
+                      Text="BzsCenter"
+                      OnClick="CloseMobileAsync" />
 
         <button class="menu-close"
                 type="button"
@@ -92,12 +97,38 @@
     <footer class="menu-footer">
         <AuthorizeView Context="authContext">
             <Authorized>
-                <SidebarUserCard Avatar="@GetUserAvatar(authContext.User)"
-                                 Name="@GetUserName(authContext.User)"
-                                 SecondaryText="@GetUserSecondaryText(authContext.User)" />
+                <div class="sidebar-user-menu" @ref="_userMenuRef">
+                    <SidebarUserMenu Avatar="@GetUserAvatar(authContext.User)"
+                                     Name="@GetUserName(authContext.User)"
+                                     SecondaryText="@GetUserSecondaryText(authContext.User)"
+                                     AvatarButtonAriaLabel="@L["OpenUserMenu"]"
+                                     AvatarControlsId="@_userPanelId"
+                                     AvatarExpanded="@_isUserPanelOpen"
+                                     OnAvatarClick="ToggleUserPanelAsync" />
+
+                    @if (_isUserPanelOpen)
+                    {
+                        <div id="@_userPanelId"
+                             class="sidebar-user-panel"
+                             aria-label="@L["QuickActions"]"
+                             @onclick:stopPropagation="true">
+                            <a class="sidebar-user-panel__action sidebar-user-panel__action--destructive"
+                               href="@BuildLogoutUrl()"
+                               data-enhance-nav="false"
+                               @onclick="CloseUserPanelAsync">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M15 3h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 17l5-5-5-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M15 12H3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                                </svg>
+                                <span>@L["LogOut"]</span>
+                            </a>
+                        </div>
+                    }
+                </div>
             </Authorized>
             <NotAuthorized>
-                <SidebarUserCard Avatar="G"
+                <SidebarUserMenu Avatar="G"
                                  Name="Guest"
                                  SecondaryText="Sign in to continue" />
             </NotAuthorized>
@@ -106,8 +137,24 @@
 </nav>
 
 @code {
+    private readonly string _userPanelId = $"sidebar-user-panel-{Guid.NewGuid():N}";
+    private ElementReference _userMenuRef;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<NavMenu>? _dotNetRef;
+    private bool _isUserPanelOpen;
+
     [Parameter] public bool IsMobileOpen { get; set; }
     [Parameter] public EventCallback OnCloseMobile { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _dotNetRef = DotNetObjectReference.Create(this);
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./js/sidebar-user-panel.js");
+            await _module.InvokeVoidAsync("init", _userMenuRef, _dotNetRef);
+        }
+    }
 
     private string GetStateClass()
     {
@@ -124,7 +171,43 @@
 
     private async Task CloseMobileAsync()
     {
+        _isUserPanelOpen = false;
         await OnCloseMobile.InvokeAsync();
+    }
+
+    [JSInvokable]
+    public void CloseUserPanel()
+    {
+        if (_isUserPanelOpen)
+        {
+            _isUserPanelOpen = false;
+            StateHasChanged();
+        }
+    }
+
+    private Task CloseUserPanelAsync()
+    {
+        _isUserPanelOpen = false;
+        return Task.CompletedTask;
+    }
+
+    private Task ToggleUserPanelAsync()
+    {
+        _isUserPanelOpen = !_isUserPanelOpen;
+        return Task.CompletedTask;
+    }
+
+    private string BuildLogoutUrl()
+    {
+        var current = new Uri(NavigationManager.Uri, UriKind.Absolute);
+        var returnUrl = string.IsNullOrWhiteSpace(current.PathAndQuery)
+            ? "/"
+            : $"{current.PathAndQuery}{current.Fragment}";
+
+        return QueryHelpers.AddQueryString("/logout", new Dictionary<string, string?>
+        {
+            ["returnUrl"] = returnUrl,
+        });
     }
 
     private static string GetUserAvatar(ClaimsPrincipal user)
@@ -157,4 +240,25 @@
         return user.Claims.FirstOrDefault(claim => string.Equals(claim.Type, claimType, StringComparison.Ordinal))?.Value;
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetRef?.Dispose();
+
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.InvokeVoidAsync("dispose", _userMenuRef);
+            await _module.DisposeAsync();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (JSDisconnectedException)
+        {
+        }
+    }
 }

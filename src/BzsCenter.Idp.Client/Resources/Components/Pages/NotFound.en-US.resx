@@ -21,7 +21,7 @@
   <data name="HelpfulDestinationsAria" xml:space="preserve"><value>Suggested destinations</value></data>
   <data name="HelpfulDestinationsLabel" xml:space="preserve"><value>Suggested destinations</value></data>
   <data name="HomeLinkTitle" xml:space="preserve"><value>Home</value></data>
-  <data name="HomeLinkMeta" xml:space="preserve"><value>Return to the BzsCenter home page.</value></data>
+  <data name="HomeLinkMeta" xml:space="preserve"><value>Return to the OIDC home page.</value></data>
   <data name="LoginLinkTitle" xml:space="preserve"><value>Sign in</value></data>
   <data name="LoginLinkMeta" xml:space="preserve"><value>Start sign-in again or switch to another account.</value></data>
   <data name="BookmarkTip" xml:space="preserve"><value>If you got here from a bookmark, update the saved address after you reach the right page.</value></data>

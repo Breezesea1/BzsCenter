@@ -61,6 +61,14 @@
     font-size: 1rem;
     font-weight: 700;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+}
+
+.notfound-brand-mark img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .notfound-brand-text {

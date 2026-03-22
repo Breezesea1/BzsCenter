@@ -79,6 +79,13 @@
     --feedback-error-bg: #fef2f2;
     --feedback-error-border: #fecaca;
     --feedback-error-text: #991b1b;
+    --destructive-solid-bg: #dc2626;
+    --destructive-solid-bg-hover: #b91c1c;
+    --destructive-solid-text: #fff7f7;
+    --destructive-soft-bg: rgba(220, 38, 38, 0.12);
+    --destructive-soft-surface: color-mix(in srgb, #fca5a5 14%, var(--surface-elevated));
+    --destructive-soft-border: rgba(220, 38, 38, 0.18);
+    --destructive-soft-text: #991b1b;
     --destructive-hover-bg: color-mix(in srgb, var(--error-outline) 12%, var(--surface-elevated));
     --destructive-hover-border: color-mix(in srgb, var(--error-outline) 28%, transparent);
     --destructive-hover-text: color-mix(in srgb, var(--error-outline) 78%, #7f1d1d);
@@ -200,6 +207,13 @@
     --feedback-error-bg: rgba(220, 38, 38, 0.16);
     --feedback-error-border: rgba(239, 68, 68, 0.28);
     --feedback-error-text: #fecaca;
+    --destructive-solid-bg: #ef4444;
+    --destructive-solid-bg-hover: #dc2626;
+    --destructive-solid-text: #fff1f2;
+    --destructive-soft-bg: rgba(248, 113, 113, 0.16);
+    --destructive-soft-surface: color-mix(in srgb, rgba(127, 29, 29, 0.48) 42%, var(--surface-elevated));
+    --destructive-soft-border: rgba(248, 113, 113, 0.24);
+    --destructive-soft-text: #fecaca;
     --destructive-hover-bg: rgba(127, 29, 29, 0.35);
     --destructive-hover-border: rgba(248, 113, 113, 0.35);
     --destructive-hover-text: #fca5a5;

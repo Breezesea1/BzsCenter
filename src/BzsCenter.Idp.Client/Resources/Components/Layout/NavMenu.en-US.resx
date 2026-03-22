@@ -10,4 +10,7 @@
   <data name="Login" xml:space="preserve"><value>Login</value></data>
   <data name="Users" xml:space="preserve"><value>Users</value></data>
   <data name="Clients" xml:space="preserve"><value>Clients</value></data>
+  <data name="OpenUserMenu" xml:space="preserve"><value>Open user menu</value></data>
+  <data name="QuickActions" xml:space="preserve"><value>Quick actions</value></data>
+  <data name="LogOut" xml:space="preserve"><value>Log out</value></data>
 </root>

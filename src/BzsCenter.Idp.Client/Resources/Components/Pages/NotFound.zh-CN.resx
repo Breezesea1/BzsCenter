@@ -21,7 +21,7 @@
   <data name="HelpfulDestinationsAria" xml:space="preserve"><value>推荐入口</value></data>
   <data name="HelpfulDestinationsLabel" xml:space="preserve"><value>推荐入口</value></data>
   <data name="HomeLinkTitle" xml:space="preserve"><value>首页</value></data>
-  <data name="HomeLinkMeta" xml:space="preserve"><value>返回 BzsCenter 首页。</value></data>
+  <data name="HomeLinkMeta" xml:space="preserve"><value>返回 OIDC 首页。</value></data>
   <data name="LoginLinkTitle" xml:space="preserve"><value>登录</value></data>
   <data name="LoginLinkMeta" xml:space="preserve"><value>重新登录，或切换到其他账号。</value></data>
   <data name="BookmarkTip" xml:space="preserve"><value>如果你是通过书签来到这里，建议在进入正确页面后更新保存的地址。</value></data>

@@ -1,5 +1,6 @@
 using BzsCenter.Idp.Controllers;
 using BzsCenter.Idp.Models;
+using BzsCenter.Idp.Services.Identity;
 using BzsCenter.Idp.UnitTests.TestDoubles;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
@@ -103,13 +104,146 @@ public sealed class AccountControllerTests
         Assert.Equal("/", signOut.Properties?.RedirectUri);
     }
 
-    private static AccountController CreateSut(SignInManager<BzsUser> signInManager, Func<string, bool> isLocalUrl)
+    [Fact]
+    public void ExternalLogin_WhenProviderSupported_ReturnsChallengeWithSafeReturnUrl()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        providerStore.TryGetProvider(ExternalLoginProvider.GitHubRouteSegment, out Arg.Any<ExternalLoginProvider>())
+            .Returns(callInfo =>
+            {
+                callInfo[1] = new ExternalLoginProvider(ExternalLoginProvider.GitHubRouteSegment, ExternalLoginProvider.GitHubScheme, "GitHub");
+                return true;
+            });
+        signInManager.ConfigureExternalAuthenticationProperties(ExternalLoginProvider.GitHubScheme, "/account/external-login/callback?returnUrl=%2Fadmin%2Fusers")
+            .Returns(new AuthenticationProperties
+            {
+                RedirectUri = "/account/external-login/callback?returnUrl=%2Fadmin%2Fusers",
+            });
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static url => url == "/admin/users");
+
+        var result = sut.ExternalLogin(ExternalLoginProvider.GitHubRouteSegment, "/admin/users");
+
+        var challenge = Assert.IsType<ChallengeResult>(result);
+        Assert.Equal([ExternalLoginProvider.GitHubScheme], challenge.AuthenticationSchemes);
+        Assert.Equal("/account/external-login/callback?returnUrl=%2Fadmin%2Fusers", challenge.Properties?.RedirectUri);
+
+        providerStore.Received(1).TryGetProvider(ExternalLoginProvider.GitHubRouteSegment, out Arg.Any<ExternalLoginProvider>());
+    }
+
+    [Fact]
+    public void ExternalLogin_WhenProviderUnsupported_RedirectsToLoginWithExternalLoginError()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        providerStore.TryGetProvider("google", out Arg.Any<ExternalLoginProvider>()).Returns(false);
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static url => url == "/admin/users");
+
+        var result = sut.ExternalLogin("google", "/admin/users");
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var uri = new Uri($"https://localhost{redirect.Url}");
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        Assert.Equal("/login", uri.AbsolutePath);
+        Assert.Equal("external_login_failed", query["error"].ToString());
+        Assert.Equal("/admin/users", query["returnUrl"].ToString());
+
+        providerStore.Received(1).TryGetProvider("google", out Arg.Any<ExternalLoginProvider>());
+    }
+
+    [Fact]
+    public void ExternalLogin_WhenReturnUrlUnsafe_DropsReturnUrlFromCallbackRedirect()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        providerStore.TryGetProvider(ExternalLoginProvider.GitHubRouteSegment, out Arg.Any<ExternalLoginProvider>())
+            .Returns(callInfo =>
+            {
+                callInfo[1] = new ExternalLoginProvider(ExternalLoginProvider.GitHubRouteSegment, ExternalLoginProvider.GitHubScheme, "GitHub");
+                return true;
+            });
+        signInManager.ConfigureExternalAuthenticationProperties(ExternalLoginProvider.GitHubScheme, "/account/external-login/callback")
+            .Returns(new AuthenticationProperties
+            {
+                RedirectUri = "/account/external-login/callback",
+            });
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static _ => false);
+
+        var result = sut.ExternalLogin(ExternalLoginProvider.GitHubRouteSegment, "https://evil.example");
+
+        var challenge = Assert.IsType<ChallengeResult>(result);
+        Assert.Equal("/account/external-login/callback", challenge.Properties?.RedirectUri);
+    }
+
+    [Fact]
+    public async Task ExternalLoginCallback_WhenExternalSignInSucceeds_LocalRedirectsToSafeReturnUrl()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        externalLoginService.SignInAsync(Arg.Any<CancellationToken>())
+            .Returns(new ExternalLoginResult(true, null));
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static url => url == "/admin/users");
+
+        var result = await sut.ExternalLoginCallback("/admin/users", CancellationToken.None);
+
+        var redirect = Assert.IsType<LocalRedirectResult>(result);
+        Assert.Equal("/admin/users", redirect.Url);
+        await externalLoginService.Received(1).SignInAsync(CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task ExternalLoginCallback_WhenExternalSignInFails_RedirectsToLoginWithExternalLoginError()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        externalLoginService.SignInAsync(Arg.Any<CancellationToken>())
+            .Returns(new ExternalLoginResult(false, "external_login_failed"));
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static url => url == "/admin/users");
+
+        var result = await sut.ExternalLoginCallback("/admin/users", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var uri = new Uri($"https://localhost{redirect.Url}");
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        Assert.Equal("/login", uri.AbsolutePath);
+        Assert.Equal("external_login_failed", query["error"].ToString());
+        Assert.Equal("/admin/users", query["returnUrl"].ToString());
+    }
+
+    [Fact]
+    public async Task ExternalLoginCallback_WhenReturnUrlUnsafe_RedirectsToRoot()
+    {
+        var signInManager = CreateSignInManager();
+        var externalLoginService = Substitute.For<IExternalLoginService>();
+        externalLoginService.SignInAsync(Arg.Any<CancellationToken>())
+            .Returns(new ExternalLoginResult(true, null));
+        var providerStore = Substitute.For<IExternalLoginProviderStore>();
+        var sut = CreateSut(signInManager, externalLoginService, providerStore, static _ => false);
+
+        var result = await sut.ExternalLoginCallback("https://evil.example", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        Assert.Equal("/", redirect.Url);
+    }
+
+    private static AccountController CreateSut(
+        SignInManager<BzsUser> signInManager,
+        IExternalLoginService externalLoginService,
+        IExternalLoginProviderStore providerStore,
+        Func<string, bool> isLocalUrl)
     {
         var urlHelper = Substitute.For<IUrlHelper>();
         urlHelper.IsLocalUrl(Arg.Any<string>())
             .Returns(callInfo => isLocalUrl(callInfo.Arg<string>()));
 
-        return new AccountController(signInManager)
+        return new AccountController(signInManager, externalLoginService, providerStore)
         {
             ControllerContext = new ControllerContext
             {
@@ -117,6 +251,15 @@ public sealed class AccountControllerTests
             },
             Url = urlHelper,
         };
+    }
+
+    private static AccountController CreateSut(SignInManager<BzsUser> signInManager, Func<string, bool> isLocalUrl)
+    {
+        return CreateSut(
+            signInManager,
+            Substitute.For<IExternalLoginService>(),
+            Substitute.For<IExternalLoginProviderStore>(),
+            isLocalUrl);
     }
 
     private static SignInManager<BzsUser> CreateSignInManager()

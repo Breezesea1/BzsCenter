@@ -4,6 +4,7 @@ using BzsCenter.Idp.Infra.Oidc;
 using BzsCenter.Idp.Services.Identity;
 using BzsCenter.Idp.Services.Authorization;
 using BzsCenter.Idp.Services.Oidc;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using OpenIddict.Server;
@@ -80,7 +81,8 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         var oidcOptions = cfg.GetSection(OidcSectionName).Get<OidcOptions>();
         var identityOptions = cfg.GetSection(IdentitySectionName).Get<IdentitySeedOptions>() ?? new IdentitySeedOptions();
 
-        ConfigureAuthenticationSchemes();
+        var authenticationBuilder = ConfigureAuthenticationSchemes();
+        authenticationBuilder.AddConfiguredExternalAuthenticationProviders(cfg);
         ConfigureIdentity();
         ConfigureApplicationCookie();
         ConfigureOpenIddict(oidcOptions, identityOptions);
@@ -91,9 +93,9 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     /// <summary>
     /// 配置选项。
     /// </summary>
-    private void ConfigureAuthenticationSchemes()
+    private AuthenticationBuilder ConfigureAuthenticationSchemes()
     {
-        sc.AddAuthentication(options =>
+        return sc.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
             options.DefaultSignInScheme = IdentityConstants.ApplicationScheme;

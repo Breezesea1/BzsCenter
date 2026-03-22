@@ -34,7 +34,8 @@ public sealed class ClientManagementDialogTests
             .Add(x => x.Profile, OidcClientProfile.FirstPartyInteractive)
             .Add(x => x.ProfileChanged, EventCallback.Factory.Create<OidcClientProfile>(new object(), value => changedTo = value)));
 
-        cut.Find("#editor-profile").Change(((int)OidcClientProfile.FirstPartyMachine).ToString());
+        cut.Find("#editor-profile").Click();
+        cut.Find("[data-neo-select-index='1']").Click();
 
         Assert.Equal(OidcClientProfile.FirstPartyMachine, changedTo);
     }

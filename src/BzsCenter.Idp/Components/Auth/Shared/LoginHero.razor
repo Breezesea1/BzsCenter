@@ -4,7 +4,16 @@
 
 <section class="login-hero" aria-hidden="true">
     <div class="login-brand">
-        <div class="brand-icon">@BrandIconText</div>
+        <div class="brand-icon">
+            @if (!string.IsNullOrWhiteSpace(BrandImageSrc))
+            {
+                <img src="@BrandImageSrc" alt="" />
+            }
+            else
+            {
+                @BrandIconText
+            }
+        </div>
         <span class="brand-name">@BrandName</span>
     </div>
 
@@ -49,6 +58,7 @@
 
 @code {
     [Parameter] public string BrandIconText { get; set; } = "B";
+    [Parameter] public string? BrandImageSrc { get; set; }
     [Parameter] public string BrandName { get; set; } = string.Empty;
     [Parameter] public string PrivacyPolicyHref { get; set; } = "#";
     [Parameter] public string PrivacyPolicyText { get; set; } = string.Empty;

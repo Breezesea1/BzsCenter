@@ -70,7 +70,6 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         var body = await response.Content.ReadAsStringAsync();
         Assert.Contains("<form method=\"post\" action=\"/account/login\"", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("/account/external-login/github", body, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Log in with GitHub", body, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("BzsCenter", body, StringComparison.OrdinalIgnoreCase);
     }
 

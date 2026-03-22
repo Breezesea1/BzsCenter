@@ -52,14 +52,12 @@
             </NeoField>
 
             <NeoField Label="@L["Profile"]" ForId="editor-profile" Hint="@L["ProfileHelp"]">
-                <select id="editor-profile"
-                        class="neo-select"
-                        value="@((int)Profile)"
-                        @onchange="HandleProfileChange"
-                        autocomplete="off">
-                    <option value="@((int)OidcClientProfile.FirstPartyInteractive)">@L["FirstPartyInteractive"]</option>
-                    <option value="@((int)OidcClientProfile.FirstPartyMachine)">@L["FirstPartyMachine"]</option>
-                </select>
+                <NeoSelect TValue="OidcClientProfile"
+                           Id="editor-profile"
+                           AriaLabel="@L["Profile"]"
+                           Value="Profile"
+                           ValueChanged="ProfileChanged"
+                           Options="@ProfileOptions" />
             </NeoField>
 
             <NeoField Label="@L["Scopes"]" ForId="editor-scopes" Hint="@L["ScopesHelp"]">
@@ -165,6 +163,11 @@
     private string DialogLead => IsEditing ? L["EditClientLead"] : L["RegisterClientLead"];
     private string InitialFocusSelector => IsEditing ? "#editor-display-name" : "#editor-client-id";
     private string DialogTitle => IsEditing ? L["EditClient"] : L["RegisterClient"];
+    private IReadOnlyList<NeoSelectOption<OidcClientProfile>> ProfileOptions =>
+    [
+        new(OidcClientProfile.FirstPartyInteractive, L["FirstPartyInteractive"]),
+        new(OidcClientProfile.FirstPartyMachine, L["FirstPartyMachine"]),
+    ];
 
     private Task HandleClientIdInput(ChangeEventArgs args) => ClientIdChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
@@ -177,14 +180,4 @@
     private Task HandleRedirectUrisInput(ChangeEventArgs args) => RedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
     private Task HandleScopesInput(ChangeEventArgs args) => ScopesTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
-
-    private Task HandleProfileChange(ChangeEventArgs args)
-    {
-        if (int.TryParse(args.Value?.ToString(), out var rawProfile) && Enum.IsDefined(typeof(OidcClientProfile), rawProfile))
-        {
-            return ProfileChanged.InvokeAsync((OidcClientProfile)rawProfile);
-        }
-
-        return Task.CompletedTask;
-    }
 }

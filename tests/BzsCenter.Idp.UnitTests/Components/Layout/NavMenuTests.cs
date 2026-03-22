@@ -44,9 +44,45 @@ public sealed class NavMenuTests
         Assert.Contains("/login", cut.Markup, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void NavMenu_WhenAuthenticated_OpensUserPanelFromAvatarButton()
+    {
+        using var context = CreateContext();
+        SetAuthenticationState(
+            context,
+            new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "readonly-user"),
+            ], "TestAuth")));
+
+        var cut = RenderNavMenu(context);
+
+        cut.Find("button.sidebar-avatar").Click();
+
+        Assert.Contains("/logout?returnUrl=%2F", cut.Markup, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NavMenu_WhenAuthenticated_RendersDedicatedUserMenuWrapper()
+    {
+        using var context = CreateContext();
+        SetAuthenticationState(
+            context,
+            new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "readonly-user"),
+            ], "TestAuth")));
+
+        var cut = RenderNavMenu(context);
+
+        Assert.Contains("class=\"sidebar-user-menu\"", cut.Markup, StringComparison.Ordinal);
+        Assert.Contains("class=\"sidebar-user-menu__trigger sidebar-surface\"", cut.Markup, StringComparison.Ordinal);
+    }
+
     private static BunitContext CreateContext()
     {
         var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
         context.Services.AddAuthorization();
         context.Services.AddSingleton<IAuthorizationService, AllowAllAuthorizationService>();
         context.Services.AddSingleton<IStringLocalizer<NavMenu>, TestStringLocalizer<NavMenu>>();

@@ -46,6 +46,12 @@
     --soft-panel-tint: color-mix(in srgb, var(--app-bg) 90%, var(--surface-elevated));
     --soft-slot-bg: color-mix(in srgb, var(--surface-muted) 92%, white 8%);
     --soft-accent-shadow: 0 10px 20px rgba(68, 82, 159, 0.2), 0 2px 6px rgba(68, 82, 159, 0.12);
+    --layout-shell-glow-top-left: rgba(255, 255, 255, 0.74);
+    --layout-shell-glow-top-left-stop: 30%;
+    --layout-shell-glow-bottom-right: rgba(140, 146, 158, 0.08);
+    --layout-shell-glow-bottom-right-stop: 24%;
+    --sidebar-avatar-shadow-rest: 0 8px 18px color-mix(in srgb, var(--accent-primary) 10%, transparent), 0 2px 4px rgba(30, 41, 59, 0.08);
+    --sidebar-avatar-shadow-active: 0 12px 24px color-mix(in srgb, var(--accent-primary) 14%, transparent), 0 3px 6px rgba(30, 41, 59, 0.12);
     --hero-surface-top: #b6bac2;
     --hero-surface-mid: #8e949f;
     --hero-surface-bottom: #6e7580;
@@ -174,6 +180,12 @@
     --soft-panel-tint: color-mix(in srgb, var(--app-bg) 90%, var(--surface-elevated));
     --soft-slot-bg: color-mix(in srgb, var(--surface-muted) 92%, black 8%);
     --soft-accent-shadow: 0 10px 20px rgba(91, 104, 201, 0.22), 0 2px 6px rgba(91, 104, 201, 0.14);
+    --layout-shell-glow-top-left: rgba(255, 255, 255, 0.05);
+    --layout-shell-glow-top-left-stop: 32%;
+    --layout-shell-glow-bottom-right: rgba(127, 141, 231, 0.08);
+    --layout-shell-glow-bottom-right-stop: 26%;
+    --sidebar-avatar-shadow-rest: 0 8px 18px color-mix(in srgb, var(--accent-primary) 12%, transparent), 0 2px 5px rgba(0, 0, 0, 0.24);
+    --sidebar-avatar-shadow-active: 0 12px 24px color-mix(in srgb, var(--accent-primary) 16%, transparent), 0 4px 8px rgba(0, 0, 0, 0.28);
     --hero-surface-top: #3a404b;
     --hero-surface-mid: #2f3540;
     --hero-surface-bottom: #242933;

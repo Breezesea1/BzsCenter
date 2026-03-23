@@ -49,6 +49,24 @@ internal static class AppUi
     public static async Task WaitForAppReadyAsync(PageTest test)
     {
         await test.Expect(test.Page.Locator("#components-reconnect-modal")).ToBeHiddenAsync(new() { Timeout = 30000 });
+        await test.Page.WaitForFunctionAsync(
+            """
+            async () => {
+                try {
+                    const response = await fetch('/_blazor/negotiate?negotiateVersion=1', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+                        body: ''
+                    });
+
+                    return response.ok;
+                } catch {
+                    return false;
+                }
+            }
+            """,
+            null,
+            new() { Timeout = 30000, PollingInterval = 500 });
     }
 
     public static async Task OpenPreferencesAsync(PageTest test)
@@ -56,6 +74,7 @@ internal static class AppUi
         var trigger = test.Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("偏好设置|Preferences", RegexOptions.IgnoreCase) });
         var menu = test.Page.GetByRole(AriaRole.Menu);
 
+        await WaitForAppReadyAsync(test);
         await test.Expect(trigger).ToBeVisibleAsync();
 
         for (var attempt = 0; attempt < 3; attempt++)
@@ -81,6 +100,7 @@ internal static class AppUi
         var trigger = test.Page.Locator("button.sidebar-avatar");
         var panel = test.Page.Locator(".sidebar-user-panel");
 
+        await WaitForAppReadyAsync(test);
         await test.Expect(trigger).ToBeVisibleAsync();
 
         for (var attempt = 0; attempt < 3; attempt++)

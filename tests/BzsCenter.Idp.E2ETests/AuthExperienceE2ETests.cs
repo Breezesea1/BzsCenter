@@ -32,15 +32,14 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         var toggleButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("切换密码可见性|Toggle password", RegexOptions.IgnoreCase) });
 
         await Expect(passwordInput).ToBeVisibleAsync();
+        await AppUi.WaitForAppReadyAsync(this);
         await passwordInput.FillAsync("Passw0rd!");
 
         var beforeBox = await toggleButton.BoundingBoxAsync();
         Assert.NotNull(beforeBox);
 
         await toggleButton.ClickAsync();
-
-        var inputType = await passwordInput.EvaluateAsync<string>("element => element.getAttribute('type') ?? string.Empty");
-        Assert.Equal("text", inputType);
+        await Expect(passwordInput).ToHaveAttributeAsync("type", "text", new() { Timeout = 5000 });
 
         var afterBox = await toggleButton.BoundingBoxAsync();
         Assert.NotNull(afterBox);
@@ -57,6 +56,7 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 
         await Page.GotoAsync(fixture.BuildUrl("/register"));
         await Expect(Page.Locator("#register-username")).ToBeVisibleAsync();
+        await AppUi.WaitForAppReadyAsync(this);
 
         await Page.Locator("#register-username").FillAsync(userName);
         await Page.Locator("#register-email").FillAsync(email);
@@ -64,16 +64,11 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Page.Locator("#register-confirm-password").FillAsync(password);
         await Page.Locator("#register-confirm-password").BlurAsync();
 
-        var registerResponseTask = Page.WaitForResponseAsync(response =>
-            response.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase) &&
-            response.Url.Contains("/account/register", StringComparison.OrdinalIgnoreCase));
-
         await Page.Locator("form.register-form").EvaluateAsync("form => form.requestSubmit()");
-        await registerResponseTask;
         await Expect(Page).ToHaveURLAsync(new Regex("/$"), new() { Timeout = 30000 });
         await AppUi.WaitForAppReadyAsync(this);
 
-        await Expect(Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("打开用户菜单", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
+        await Expect(Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("打开用户菜单|Open user menu", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
     }
 
     [Fact]
@@ -114,7 +109,8 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 
         await Page.GotoAsync(fixture.BuildUrl("/login"));
 
-        await Page.WaitForURLAsync(new Regex(@"/$"));
+        await Expect(Page).ToHaveURLAsync(new Regex(@"/$"), new() { Timeout = 30000 });
+        await AppUi.WaitForAppReadyAsync(this);
         await Expect(Page.Locator("#username")).ToHaveCountAsync(0);
     }
 

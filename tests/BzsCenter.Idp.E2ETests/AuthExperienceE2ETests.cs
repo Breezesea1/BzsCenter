@@ -49,6 +49,32 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
     }
 
     [Fact]
+    public async Task RegisterPage_AllowsCreatingANewUser()
+    {
+        var userName = AppUi.UniqueName("user");
+        var email = $"{userName}@example.com";
+        const string password = "Passw0rd!";
+
+        await Page.GotoAsync(fixture.BuildUrl("/register"));
+        await Expect(Page.Locator("#register-username")).ToBeVisibleAsync();
+
+        await Page.Locator("#register-username").FillAsync(userName);
+        await Page.Locator("#register-email").FillAsync(email);
+        await Page.Locator("#register-password").FillAsync(password);
+        await Page.Locator("#register-confirm-password").FillAsync(password);
+
+        await Page.Locator("form.register-form button[type='submit']").ClickAsync();
+        await AppUi.WaitForAppReadyAsync(this);
+
+        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
+        await Expect(Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("打开用户菜单", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
+
+        await AppUi.LogoutAsync(this, fixture, "/login");
+        await AppUi.LoginWithPasswordAsync(this, fixture, userName, password);
+        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
+    }
+
+    [Fact]
     public async Task PublicPages_RenderExpectedServerOwnedShells()
     {
         await Page.GotoAsync(fixture.BuildUrl("/login"));

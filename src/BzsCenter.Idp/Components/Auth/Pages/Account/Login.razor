@@ -159,7 +159,7 @@
 
                 <p class="signup-tip">
                     @L["NoAccount"]
-                    <a href="#">@L["SignUp"]</a>
+                    <a href="@BuildRegisterHref()">@L["SignUp"]</a>
                 </p>
             </div>
         </section>
@@ -226,6 +226,19 @@
         }
 
         return QueryHelpers.AddQueryString(path, new Dictionary<string, string?>
+        {
+            ["returnUrl"] = ReturnUrl,
+        });
+    }
+
+    private string BuildRegisterHref()
+    {
+        if (string.IsNullOrWhiteSpace(ReturnUrl))
+        {
+            return "/register";
+        }
+
+        return QueryHelpers.AddQueryString("/register", new Dictionary<string, string?>
         {
             ["returnUrl"] = ReturnUrl,
         });

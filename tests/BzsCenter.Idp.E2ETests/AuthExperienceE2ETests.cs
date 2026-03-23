@@ -25,6 +25,30 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
     }
 
     [Fact]
+    public async Task LoginPage_TogglePassword_DoesNotShiftToggleButtonPosition()
+    {
+        await Page.GotoAsync(fixture.BuildUrl("/login"));
+        var passwordInput = Page.Locator("#password");
+        var toggleButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("切换密码可见性|Toggle password", RegexOptions.IgnoreCase) });
+
+        await Expect(passwordInput).ToBeVisibleAsync();
+        await passwordInput.FillAsync("Passw0rd!");
+
+        var beforeBox = await toggleButton.BoundingBoxAsync();
+        Assert.NotNull(beforeBox);
+
+        await toggleButton.ClickAsync();
+
+        var inputType = await passwordInput.EvaluateAsync<string>("element => element.getAttribute('type') ?? string.Empty");
+        Assert.Equal("text", inputType);
+
+        var afterBox = await toggleButton.BoundingBoxAsync();
+        Assert.NotNull(afterBox);
+
+        Assert.InRange(Math.Abs(afterBox!.Y - beforeBox!.Y), 0, 1);
+    }
+
+    [Fact]
     public async Task PublicPages_RenderExpectedServerOwnedShells()
     {
         await Page.GotoAsync(fixture.BuildUrl("/login"));

@@ -64,7 +64,7 @@ public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : E2EPageTes
         await Page.Locator("#editor-client-id").FillAsync(clientId);
         await Page.Locator("#editor-display-name").FillAsync(displayName);
         await Page.Locator("#editor-profile").ClickAsync();
-        await Page.Locator("[data-neo-select-index='1']").ClickAsync();
+        await Page.GetByRole(AriaRole.Option, new() { NameRegex = new Regex("Daemon|机器调用|machine-to-machine", RegexOptions.IgnoreCase) }).ClickAsync();
         await Page.Locator("#editor-scopes").FillAsync("api");
         await Page.Locator("#editor-client-secret").FillAsync("machine-client-secret");
         await Page.Locator(".admin-dialog-shell .admin-primary-button").ClickAsync();

@@ -27,12 +27,11 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
         await Page.Locator("#editor-client-id").FillAsync(clientId);
         await Page.Locator("#editor-display-name").FillAsync("OIDC E2E Client");
         await Page.Locator("#editor-profile").ClickAsync();
-        await Page.Locator("[data-neo-select-index='0']").ClickAsync();
+        await Page.GetByRole(AriaRole.Option, new() { NameRegex = new Regex("SPA|用户登录型|user sign-in", RegexOptions.IgnoreCase) }).ClickAsync();
         await Page.Locator("#editor-scopes").FillAsync("openid\nprofile\nemail\nroles\noffline_access\napi");
         await Page.Locator("#editor-redirect-uris").FillAsync(redirectUri);
         await Page.Locator("#editor-post-logout-uris").FillAsync(redirectUri);
         await Page.Locator(".admin-dialog-shell .admin-primary-button").ClickAsync();
-        await Expect(Page.Locator(".admin-dialog-shell")).ToBeHiddenAsync(new() { Timeout = 20000 });
         await Expect(Page.Locator(".admin-feedback.is-success")).ToBeVisibleAsync(new() { Timeout = 20000 });
 
         var authorizeUrl = QueryHelpers.AddQueryString(

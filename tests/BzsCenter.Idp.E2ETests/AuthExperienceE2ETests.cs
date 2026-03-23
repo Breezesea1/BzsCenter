@@ -25,6 +25,56 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
     }
 
     [Fact]
+    public async Task LoginPage_TogglePassword_DoesNotShiftToggleButtonPosition()
+    {
+        await Page.GotoAsync(fixture.BuildUrl("/login"));
+        var passwordInput = Page.Locator("#password");
+        var toggleButton = Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("切换密码可见性|Toggle password", RegexOptions.IgnoreCase) });
+
+        await Expect(passwordInput).ToBeVisibleAsync();
+        await passwordInput.FillAsync("Passw0rd!");
+
+        var beforeBox = await toggleButton.BoundingBoxAsync();
+        Assert.NotNull(beforeBox);
+
+        await toggleButton.ClickAsync();
+
+        var inputType = await passwordInput.EvaluateAsync<string>("element => element.getAttribute('type') ?? string.Empty");
+        Assert.Equal("text", inputType);
+
+        var afterBox = await toggleButton.BoundingBoxAsync();
+        Assert.NotNull(afterBox);
+
+        Assert.InRange(Math.Abs(afterBox!.Y - beforeBox!.Y), 0, 1);
+    }
+
+    [Fact]
+    public async Task RegisterPage_AllowsCreatingANewUser()
+    {
+        var userName = AppUi.UniqueName("user");
+        var email = $"{userName}@example.com";
+        const string password = "Passw0rd!";
+
+        await Page.GotoAsync(fixture.BuildUrl("/register"));
+        await Expect(Page.Locator("#register-username")).ToBeVisibleAsync();
+
+        await Page.Locator("#register-username").FillAsync(userName);
+        await Page.Locator("#register-email").FillAsync(email);
+        await Page.Locator("#register-password").FillAsync(password);
+        await Page.Locator("#register-confirm-password").FillAsync(password);
+
+        await Page.Locator("form.register-form button[type='submit']").ClickAsync();
+        await AppUi.WaitForAppReadyAsync(this);
+
+        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
+        await Expect(Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("打开用户菜单", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
+
+        await AppUi.LogoutAsync(this, fixture, "/login");
+        await AppUi.LoginWithPasswordAsync(this, fixture, userName, password);
+        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
+    }
+
+    [Fact]
     public async Task PublicPages_RenderExpectedServerOwnedShells()
     {
         await Page.GotoAsync(fixture.BuildUrl("/login"));

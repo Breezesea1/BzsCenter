@@ -184,6 +184,15 @@
     box-shadow: var(--control-shadow-sm);
 }
 
+.password-wrap > .password-toggle:is(:hover, :focus-visible, :active) {
+    transform: translateY(-50%);
+}
+
+.password-wrap > .password-toggle:focus-visible {
+    border-radius: 9999px;
+    box-shadow: 0 0 0 2px var(--surface-elevated), var(--focus-ring);
+}
+
 .password-toggle svg {
     width: 1rem;
     height: 1rem;

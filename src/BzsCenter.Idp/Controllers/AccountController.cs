@@ -4,14 +4,17 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Logging;
 
 namespace BzsCenter.Idp.Controllers;
 
 [Route("account")]
 public sealed class AccountController(
     SignInManager<BzsUser> signInManager,
+    IUserService userService,
     IExternalLoginService externalLoginService,
-    IExternalLoginProviderStore externalLoginProviderStore) : Controller
+    IExternalLoginProviderStore externalLoginProviderStore,
+    ILogger<AccountController> logger) : Controller
 {
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromForm] LoginForm form, [FromQuery] string? returnUrl)
@@ -31,6 +34,39 @@ public sealed class AccountController(
         return RedirectToLogin(returnUrl, "invalid_credentials");
     }
 
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromForm] RegisterForm form, [FromQuery] string? returnUrl, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(form.UserName) ||
+            string.IsNullOrWhiteSpace(form.Email) ||
+            string.IsNullOrWhiteSpace(form.Password) ||
+            string.IsNullOrWhiteSpace(form.ConfirmPassword))
+        {
+            return RedirectToRegister(returnUrl, "validation");
+        }
+
+        var userName = form.UserName.Trim();
+        var email = form.Email.Trim();
+        if (!string.Equals(form.Password, form.ConfirmPassword, StringComparison.Ordinal))
+        {
+            return RedirectToRegister(returnUrl, "password_mismatch");
+        }
+
+        var result = await userService.CreateAsync(userName, form.Password, email, cancellationToken);
+        if (!result.Succeeded)
+        {
+            return RedirectToRegister(returnUrl, "registration_failed");
+        }
+
+        var signInResult = await signInManager.PasswordSignInAsync(userName, form.Password, false, false);
+        if (!signInResult.Succeeded)
+        {
+            return RedirectToLogin(returnUrl, "invalid_credentials");
+        }
+
+        return RedirectToSafeLocal(returnUrl);
+    }
+
     [HttpPost("logout")]
     [IgnoreAntiforgeryToken]
     public IActionResult Logout([FromQuery] string? returnUrl)
@@ -45,6 +81,7 @@ public sealed class AccountController(
     {
         if (!externalLoginProviderStore.TryGetProvider(provider, out var externalLoginProvider))
         {
+            logger.LogWarning("External login provider '{Provider}' is not enabled. ReturnUrl: {ReturnUrl}", provider, returnUrl);
             return RedirectToLogin(returnUrl, "external_login_failed");
         }
 
@@ -62,10 +99,22 @@ public sealed class AccountController(
             return RedirectToSafeLocal(returnUrl);
         }
 
+        logger.LogWarning("External login callback failed with error code '{ErrorCode}'. ReturnUrl: {ReturnUrl}", result.ErrorCode ?? "external_login_failed", returnUrl);
+
         return RedirectToLogin(returnUrl, result.ErrorCode ?? "external_login_failed");
     }
 
     private IActionResult RedirectToLogin(string? returnUrl, string error)
+    {
+        return RedirectToAuthPage("/login", returnUrl, error);
+    }
+
+    private IActionResult RedirectToRegister(string? returnUrl, string error)
+    {
+        return RedirectToAuthPage("/register", returnUrl, error);
+    }
+
+    private IActionResult RedirectToAuthPage(string path, string? returnUrl, string error)
     {
         var queryValues = new Dictionary<string, string?>
         {
@@ -78,14 +127,15 @@ public sealed class AccountController(
         }
 
         IDictionary<string, string?> safeQueryValues = queryValues;
-        var path = QueryHelpers.AddQueryString(
-            "/login",
+        var redirectPath = QueryHelpers.AddQueryString(
+            path,
             safeQueryValues
                 .Where(static item => !string.IsNullOrWhiteSpace(item.Value))
                 .ToDictionary(static item => item.Key, static item => item.Value));
 
-        return Redirect(path);
+        return Redirect(redirectPath);
     }
+
     private IActionResult RedirectToSafeLocal(string? returnUrl)
     {
         if (IsSafeLocalUrl(returnUrl))
@@ -119,5 +169,13 @@ public sealed class AccountController(
         public string UserName { get; init; } = string.Empty;
         public string Password { get; init; } = string.Empty;
         public bool RememberMe { get; init; }
+    }
+
+    public sealed class RegisterForm
+    {
+        public string UserName { get; init; } = string.Empty;
+        public string Email { get; init; } = string.Empty;
+        public string Password { get; init; } = string.Empty;
+        public string ConfirmPassword { get; init; } = string.Empty;
     }
 }

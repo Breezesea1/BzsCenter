@@ -81,6 +81,74 @@ public sealed class AccountControllerTests
     }
 
     [Fact]
+    public async Task Register_WhenRequiredFieldsMissing_RedirectsToRegisterWithValidationError()
+    {
+        var signInManager = CreateSignInManager();
+        var userService = Substitute.For<IUserService>();
+        var sut = CreateSut(signInManager, userService, static url => url == "/admin/users");
+
+        var result = await sut.Register(new AccountController.RegisterForm(), "/admin/users", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var uri = new Uri($"https://localhost{redirect.Url}");
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        Assert.Equal("/register", uri.AbsolutePath);
+        Assert.Equal("validation", query["error"].ToString());
+        Assert.Equal("/admin/users", query["returnUrl"].ToString());
+        await userService.DidNotReceive().CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Register_WhenPasswordsDoNotMatch_RedirectsToRegisterWithMismatchError()
+    {
+        var signInManager = CreateSignInManager();
+        var userService = Substitute.For<IUserService>();
+        var sut = CreateSut(signInManager, userService, static url => url == "/admin/users");
+
+        var result = await sut.Register(new AccountController.RegisterForm
+        {
+            UserName = "new-user",
+            Email = "new@example.com",
+            Password = "Passw0rd!",
+            ConfirmPassword = "different",
+        }, "/admin/users", CancellationToken.None);
+
+        var redirect = Assert.IsType<RedirectResult>(result);
+        var uri = new Uri($"https://localhost{redirect.Url}");
+        var query = QueryHelpers.ParseQuery(uri.Query);
+
+        Assert.Equal("/register", uri.AbsolutePath);
+        Assert.Equal("password_mismatch", query["error"].ToString());
+        await userService.DidNotReceive().CreateAsync(Arg.Any<string>(), Arg.Any<string>(), Arg.Any<string?>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task Register_WhenCreationSucceeds_SignsInAndRedirectsToSafeReturnUrl()
+    {
+        var signInManager = CreateSignInManager();
+        var userService = Substitute.For<IUserService>();
+        userService.CreateAsync("new-user", "Passw0rd!", "new@example.com", CancellationToken.None)
+            .Returns(IdentityResult.Success);
+        signInManager.PasswordSignInAsync("new-user", "Passw0rd!", false, false)
+            .Returns(Microsoft.AspNetCore.Identity.SignInResult.Success);
+        var sut = CreateSut(signInManager, userService, static url => url == "/admin/users");
+
+        var result = await sut.Register(new AccountController.RegisterForm
+        {
+            UserName = "  new-user  ",
+            Email = "  new@example.com  ",
+            Password = "Passw0rd!",
+            ConfirmPassword = "Passw0rd!",
+        }, "/admin/users", CancellationToken.None);
+
+        var redirect = Assert.IsType<LocalRedirectResult>(result);
+        Assert.Equal("/admin/users", redirect.Url);
+        await userService.Received(1).CreateAsync("new-user", "Passw0rd!", "new@example.com", CancellationToken.None);
+        await signInManager.Received(1).PasswordSignInAsync("new-user", "Passw0rd!", false, false);
+    }
+
+    [Fact]
     public void Logout_WhenReturnUrlSafe_SignsOutToLocalTarget()
     {
         var sut = CreateSut(CreateSignInManager(), static url => url == "/admin/users");
@@ -239,11 +307,26 @@ public sealed class AccountControllerTests
         IExternalLoginProviderStore providerStore,
         Func<string, bool> isLocalUrl)
     {
+        return CreateSut(signInManager, Substitute.For<IUserService>(), externalLoginService, providerStore, isLocalUrl);
+    }
+
+    private static AccountController CreateSut(
+        SignInManager<BzsUser> signInManager,
+        IUserService userService,
+        IExternalLoginService externalLoginService,
+        IExternalLoginProviderStore providerStore,
+        Func<string, bool> isLocalUrl)
+    {
         var urlHelper = Substitute.For<IUrlHelper>();
         urlHelper.IsLocalUrl(Arg.Any<string>())
             .Returns(callInfo => isLocalUrl(callInfo.Arg<string>()));
 
-        return new AccountController(signInManager, externalLoginService, providerStore)
+        return new AccountController(
+            signInManager,
+            userService,
+            externalLoginService,
+            providerStore,
+            Substitute.For<ILogger<AccountController>>())
         {
             ControllerContext = new ControllerContext
             {
@@ -257,6 +340,17 @@ public sealed class AccountControllerTests
     {
         return CreateSut(
             signInManager,
+            Substitute.For<IUserService>(),
+            Substitute.For<IExternalLoginService>(),
+            Substitute.For<IExternalLoginProviderStore>(),
+            isLocalUrl);
+    }
+
+    private static AccountController CreateSut(SignInManager<BzsUser> signInManager, IUserService userService, Func<string, bool> isLocalUrl)
+    {
+        return CreateSut(
+            signInManager,
+            userService,
             Substitute.For<IExternalLoginService>(),
             Substitute.For<IExternalLoginProviderStore>(),
             isLocalUrl);

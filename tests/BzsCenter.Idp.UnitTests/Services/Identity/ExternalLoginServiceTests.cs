@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
@@ -30,7 +31,7 @@ public sealed class ExternalLoginServiceTests
             return Task.FromResult(IdentityResult.Success);
         };
 
-        var sut = new ExternalLoginService(userManager, signInManager);
+        var sut = new ExternalLoginService(userManager, signInManager, NullLogger<ExternalLoginService>.Instance);
 
         var result = await sut.SignInAsync();
 
@@ -66,7 +67,7 @@ public sealed class ExternalLoginServiceTests
             return Task.FromResult(IdentityResult.Success);
         };
 
-        var sut = new ExternalLoginService(userManager, signInManager);
+        var sut = new ExternalLoginService(userManager, signInManager, NullLogger<ExternalLoginService>.Instance);
 
         var result = await sut.SignInAsync();
 
@@ -85,7 +86,7 @@ public sealed class ExternalLoginServiceTests
         var signInManager = CreateSignInManager(userManager);
         signInManager.GetExternalLoginInfoAsync().Returns((ExternalLoginInfo?)null);
 
-        var sut = new ExternalLoginService(userManager, signInManager);
+        var sut = new ExternalLoginService(userManager, signInManager, NullLogger<ExternalLoginService>.Instance);
 
         var result = await sut.SignInAsync();
 
@@ -114,7 +115,7 @@ public sealed class ExternalLoginServiceTests
         userManager.FindByEmailAsyncHandler = _ => Task.FromResult<BzsUser?>(existingUser);
         userManager.IsLockedOutAsyncHandler = _ => Task.FromResult(true);
 
-        var sut = new ExternalLoginService(userManager, signInManager);
+        var sut = new ExternalLoginService(userManager, signInManager, NullLogger<ExternalLoginService>.Instance);
 
         var result = await sut.SignInAsync();
 

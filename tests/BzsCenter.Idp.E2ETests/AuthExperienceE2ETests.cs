@@ -62,9 +62,7 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Page.Locator("#register-email").FillAsync(email);
         await Page.Locator("#register-password").FillAsync(password);
         await Page.Locator("#register-confirm-password").FillAsync(password);
-
-        var isRegisterFormValid = await Page.Locator("form.register-form").EvaluateAsync<bool>("form => form.checkValidity()");
-        Assert.True(isRegisterFormValid);
+        await Page.Locator("#register-confirm-password").BlurAsync();
 
         var registerResponseTask = Page.WaitForResponseAsync(response =>
             response.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase) &&

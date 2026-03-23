@@ -10,13 +10,18 @@
 .mobile-brand {
     position: relative;
     z-index: 2;
+}
+
+.mobile-brand {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 2.5rem;
     font-size: 1.125rem;
     font-weight: 600;
+    color: var(--hero-brand-fg);
+}
+
+.mobile-brand {
     color: var(--app-text);
 }
 
@@ -27,10 +32,16 @@
     border-radius: 0.5rem;
     display: grid;
     place-items: center;
-    background: var(--app-text);
-    border: 1px solid var(--app-text);
+    background: var(--hero-icon-chip-bg);
+    border: 1px solid var(--hero-icon-chip-border);
+    backdrop-filter: blur(8px);
     color: transparent;
     overflow: hidden;
+}
+
+.mobile-brand .brand-icon {
+    background: var(--app-text);
+    border-color: var(--app-text);
 }
 
 .brand-icon img {
@@ -63,6 +74,15 @@
     width: 100%;
     max-width: 432px;
     align-self: center;
+    padding: 1.75rem;
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--surface-elevated) 96%, white 4%);
+    box-shadow: 0 22px 54px color-mix(in srgb, black 10%, transparent);
+}
+
+.mobile-brand {
+    justify-content: center;
+    margin-bottom: 2.5rem;
 }
 
 .login-header {
@@ -84,7 +104,7 @@
     color: var(--text-subtle);
     font-size: 14px;
     line-height: 20px;
-    max-width: 34ch;
+    max-width: 30ch;
 }
 
 .login-error {
@@ -182,6 +202,42 @@
     height: 1rem;
 }
 
+.meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    min-height: 1.75rem;
+}
+
+.remember {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--app-text);
+    font-size: 14px;
+    line-height: 20px;
+    min-height: 1.5rem;
+}
+
+.remember input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--accent-primary);
+}
+
+.meta-row a {
+    color: var(--link-color);
+    text-decoration: none;
+    font-size: 14px;
+    line-height: 20px;
+    font-weight: 500;
+}
+
+.meta-row a:hover {
+    text-decoration: underline;
+}
+
 .btn-primary {
     position: relative;
     overflow: hidden;
@@ -238,6 +294,27 @@
     line-height: 20px;
 }
 
+.social-login {
+    margin-top: 1.5rem;
+}
+
+.btn-google {
+    gap: 0.5rem;
+}
+
+.google-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.btn-google .label-static {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
 .signup-tip a {
     color: var(--app-text);
     text-decoration: none;
@@ -265,6 +342,7 @@
 
     .login-card {
         max-width: 456px;
+        padding: 2rem;
     }
 
     .login-panel-top {
@@ -272,19 +350,44 @@
     }
 }
 
-:root[data-theme="dark"] .login-page,
+:root[data-theme="dark"] .login-page {
+    background: var(--app-bg);
+}
+
 :root[data-theme="dark"] .login-panel {
     background: var(--app-bg);
 }
 
-:root[data-theme="dark"] .field label,
+:root[data-theme="dark"] .mobile-brand {
+    color: var(--hero-brand-fg);
+}
+
+:root[data-theme="dark"] .mobile-brand .brand-icon {
+    background: var(--surface-elevated);
+    border-color: var(--surface-stroke-light);
+}
+
 :root[data-theme="dark"] .login-header h1 {
     color: var(--app-text);
 }
 
-:root[data-theme="dark"] .login-header p,
-:root[data-theme="dark"] .signup-tip {
+:root[data-theme="dark"] .login-header p {
     color: var(--text-subtle);
+}
+
+:root[data-theme="dark"] .login-card {
+    background: color-mix(in srgb, var(--surface-elevated) 94%, rgba(15, 23, 42, 0.94) 6%);
+    box-shadow: 0 26px 68px color-mix(in srgb, black 42%, transparent);
+}
+
+:root[data-theme="dark"] .login-error {
+    background: var(--feedback-error-bg);
+    border-color: var(--feedback-error-border);
+    color: var(--feedback-error-text);
+}
+
+:root[data-theme="dark"] .field label {
+    color: var(--app-text);
 }
 
 :root[data-theme="dark"] .field input {
@@ -293,8 +396,209 @@
     color: var(--app-text);
 }
 
-:root[data-theme="dark"] .login-error {
-    background: var(--feedback-error-bg);
-    border-color: var(--feedback-error-border);
-    color: var(--feedback-error-text);
+:root[data-theme="dark"] .field input::placeholder {
+    color: var(--text-subtle);
+}
+
+:root[data-theme="dark"] .field input:focus {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px var(--app-bg), var(--focus-ring);
+}
+
+:root[data-theme="dark"] .password-toggle {
+    color: var(--text-subtle);
+}
+
+:root[data-theme="dark"] .password-toggle:hover {
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .remember {
+    color: var(--app-text);
+}
+
+:root[data-theme="dark"] .remember input {
+    accent-color: #6366f1;
+}
+
+:root[data-theme="dark"] .meta-row a {
+    color: var(--link-color);
+}
+
+:root[data-theme="dark"] .btn-primary {
+    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-bg-hover));
+    border-color: color-mix(in srgb, var(--accent-primary) 22%, transparent);
+    color: var(--btn-primary-text);
+}
+
+:root[data-theme="dark"] .btn-slide .label-hover {
+    background: linear-gradient(135deg, var(--btn-primary-bg-hover), var(--btn-primary-bg));
+    color: var(--btn-primary-text);
+}
+
+:root[data-theme="dark"] .signup-tip {
+    color: var(--text-subtle);
+}
+
+:root[data-theme="dark"] .signup-tip a {
+    color: var(--app-text);
+}
+
+.login-page {
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.78), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(140, 146, 158, 0.08), transparent 24%),
+        var(--app-bg);
+}
+
+.login-panel {
+    background: transparent;
+}
+
+.login-card {
+    max-width: 448px;
+    padding: 1.9rem;
+    border: 1px solid var(--surface-stroke-light);
+    outline: 1px solid var(--surface-stroke-dark);
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--app-bg) 92%, var(--surface-elevated));
+    box-shadow: var(--surface-shadow-md);
+}
+
+.login-header {
+    margin-bottom: 1.85rem;
+    text-align: left;
+}
+
+.login-header h1 {
+    color: var(--app-text);
+}
+
+.login-header p,
+.signup-tip,
+ .meta-row a,
+ .field input::placeholder {
+    color: var(--text-subtle);
+}
+
+.login-header p {
+    max-width: 30ch;
+}
+
+.social-login {
+    margin-top: 1.7rem;
+}
+
+.social-login .label-static,
+.social-login .label-hover {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.social-login .provider-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    flex: 0 0 1.125rem;
+    display: block;
+}
+
+.field label,
+.remember,
+.signup-tip a {
+    color: var(--app-text);
+}
+
+.signup-tip {
+    text-align: left;
+}
+
+.field input {
+    border-radius: 16px;
+    border: 1px solid var(--surface-stroke-light);
+    background: color-mix(in srgb, var(--surface-muted) 88%, white 12%);
+    box-shadow: var(--surface-shadow-inset-strong);
+}
+
+.field input:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 10%, var(--surface-stroke-light));
+}
+
+.field input:focus {
+    border-color: color-mix(in srgb, var(--accent-primary) 28%, var(--surface-stroke-light));
+    box-shadow: var(--focus-ring), var(--surface-shadow-inset);
+}
+
+.password-toggle {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 999px;
+    color: var(--text-subtle);
+    background: transparent;
+    box-shadow: var(--control-shadow-xs);
+}
+
+.password-toggle:hover {
+    color: var(--app-text);
+    background: color-mix(in srgb, var(--surface-muted) 72%, white 28%);
+    box-shadow: var(--control-shadow-sm);
+}
+
+.btn-primary {
+    border: 1px solid color-mix(in srgb, var(--accent-primary) 22%, transparent);
+    background: linear-gradient(135deg, var(--btn-primary-bg), var(--btn-primary-bg-hover));
+    color: #ffffff;
+    box-shadow: var(--soft-accent-shadow);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 12px 24px color-mix(in srgb, var(--btn-primary-bg) 30%, transparent), 0 3px 8px color-mix(in srgb, var(--btn-primary-bg) 18%, transparent);
+}
+
+.btn-primary:active {
+    box-shadow: inset 4px 4px 8px rgba(41, 55, 130, 0.24), inset -3px -3px 8px rgba(255, 255, 255, 0.16);
+}
+
+.btn-slide .label-hover {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--btn-primary-bg-hover) 88%, white 12%), var(--btn-primary-bg-hover));
+}
+
+.social-login .btn-primary {
+    border-color: var(--surface-stroke-light);
+    background: color-mix(in srgb, var(--app-bg) 90%, var(--surface-elevated));
+    color: var(--app-text);
+    box-shadow: var(--control-shadow-md);
+}
+
+.social-login .btn-slide .label-hover {
+    background: color-mix(in srgb, var(--surface-elevated) 88%, white 12%);
+    color: var(--app-text);
+}
+
+.login-error {
+    border-radius: 18px;
+}
+
+:root[data-theme="dark"] .login-page {
+    background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.05), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(124, 147, 255, 0.1), transparent 24%),
+        var(--app-bg);
+}
+
+:root[data-theme="dark"] .login-card,
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .social-login .btn-primary {
+    background: var(--surface-elevated);
+    border-color: var(--surface-stroke-light);
+}
+
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .social-login .btn-primary {
+    background: color-mix(in srgb, var(--surface-muted) 84%, black 16%);
+}
+
+:root[data-theme="dark"] .btn-slide .label-hover {
+    color: #ffffff;
 }

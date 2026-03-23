@@ -74,6 +74,10 @@
     width: 100%;
     max-width: 432px;
     align-self: center;
+    padding: 1.75rem;
+    border-radius: 28px;
+    background: color-mix(in srgb, var(--surface-elevated) 96%, white 4%);
+    box-shadow: 0 22px 54px color-mix(in srgb, black 10%, transparent);
 }
 
 .mobile-brand {
@@ -338,6 +342,7 @@
 
     .login-card {
         max-width: 456px;
+        padding: 2rem;
     }
 
     .login-panel-top {
@@ -368,6 +373,11 @@
 
 :root[data-theme="dark"] .login-header p {
     color: var(--text-subtle);
+}
+
+:root[data-theme="dark"] .login-card {
+    background: color-mix(in srgb, var(--surface-elevated) 94%, rgba(15, 23, 42, 0.94) 6%);
+    box-shadow: 0 26px 68px color-mix(in srgb, black 42%, transparent);
 }
 
 :root[data-theme="dark"] .login-error {

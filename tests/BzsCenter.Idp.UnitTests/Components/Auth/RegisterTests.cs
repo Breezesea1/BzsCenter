@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Text;
 using Bunit;
 using BzsCenter.Idp.Components.Auth.Pages.Account;
 using BzsCenter.Idp.Components.Auth.Shared;
@@ -58,6 +59,19 @@ public sealed class RegisterTests
         Assert.Equal("/login", signInLink.GetAttribute("href"));
     }
 
+    [Fact]
+    public void RegisterCss_MatchesLoginCssExactly()
+    {
+        var solutionRoot = FindSolutionRoot();
+        var loginCssPath = Path.Combine(solutionRoot, "src", "BzsCenter.Idp", "Components", "Auth", "Pages", "Account", "Login.razor.css");
+        var registerCssPath = Path.Combine(solutionRoot, "src", "BzsCenter.Idp", "Components", "Auth", "Pages", "Account", "Register.razor.css");
+
+        var loginCss = NormalizeLineEndings(File.ReadAllText(loginCssPath, Encoding.UTF8));
+        var registerCss = NormalizeLineEndings(File.ReadAllText(registerCssPath, Encoding.UTF8));
+
+        Assert.Equal(loginCss, registerCss);
+    }
+
     private sealed class TestAuthenticationStateProvider(ClaimsPrincipal user) : AuthenticationStateProvider
     {
         private readonly AuthenticationState _state = new(user);
@@ -74,5 +88,28 @@ public sealed class RegisterTests
         {
             return new AntiforgeryRequestToken("test-request-token", "test-form-field");
         }
+    }
+
+    private static string FindSolutionRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+
+        while (directory is not null)
+        {
+            var solutionPath = Path.Combine(directory.FullName, "BzsCenter.sln");
+            if (File.Exists(solutionPath))
+            {
+                return directory.FullName;
+            }
+
+            directory = directory.Parent;
+        }
+
+        throw new InvalidOperationException("Could not locate BzsCenter.sln from the test output directory.");
+    }
+
+    private static string NormalizeLineEndings(string content)
+    {
+        return content.Replace("\r\n", "\n", StringComparison.Ordinal);
     }
 }

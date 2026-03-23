@@ -34,6 +34,7 @@ internal static class AppUi
         }
 
         await test.Page.Locator("form.login-form button[type='submit']").ClickAsync();
+        await test.Expect(test.Page.Locator("#username")).ToHaveCountAsync(0, new() { Timeout = 30000 });
         await WaitForAppReadyAsync(test);
     }
 

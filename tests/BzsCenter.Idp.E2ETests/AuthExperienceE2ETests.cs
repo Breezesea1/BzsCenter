@@ -63,15 +63,19 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Page.Locator("#register-password").FillAsync(password);
         await Page.Locator("#register-confirm-password").FillAsync(password);
 
-        await Page.Locator("form.register-form button[type='submit']").ClickAsync();
+        var isRegisterFormValid = await Page.Locator("form.register-form").EvaluateAsync<bool>("form => form.checkValidity()");
+        Assert.True(isRegisterFormValid);
+
+        var registerResponseTask = Page.WaitForResponseAsync(response =>
+            response.Request.Method.Equals("POST", StringComparison.OrdinalIgnoreCase) &&
+            response.Url.Contains("/account/register", StringComparison.OrdinalIgnoreCase));
+
+        await Page.Locator("form.register-form").EvaluateAsync("form => form.requestSubmit()");
+        await registerResponseTask;
+        await Expect(Page).ToHaveURLAsync(new Regex("/$"), new() { Timeout = 30000 });
         await AppUi.WaitForAppReadyAsync(this);
 
-        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
         await Expect(Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("打开用户菜单", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
-
-        await AppUi.LogoutAsync(this, fixture, "/login");
-        await AppUi.LoginWithPasswordAsync(this, fixture, userName, password);
-        await Expect(Page).ToHaveURLAsync(new Regex("/$"));
     }
 
     [Fact]

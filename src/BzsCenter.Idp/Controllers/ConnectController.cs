@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 using SharedPermissionConstants = BzsCenter.Shared.Infrastructure.Authorization.PermissionConstants;
@@ -19,7 +18,7 @@ public sealed class ConnectController(
     UserManager<BzsUser> userManager,
     IOpenIddictApplicationManager applicationManager,
     IPermissionScopeService permissionScopeService,
-    IOptions<IdentitySeedOptions> identityOptions) : ControllerBase
+    IOidcPrincipalFactory oidcPrincipalFactory) : ControllerBase
 {
     /// <summary>
     /// 处理授权流程。
@@ -56,8 +55,8 @@ public sealed class ConnectController(
             return Forbid(IdentityConstants.ApplicationScheme);
         }
 
-        var principal = await CreateOidcPrincipalAsync(user);
-        principal.SetScopes(FilterRequestedScopes(request.GetScopes()));
+        var principal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
+        principal.SetScopes(oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()));
         await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService, cancellationToken);
 
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -100,7 +99,7 @@ public sealed class ConnectController(
                 return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
-            var refreshedPrincipal = await CreateOidcPrincipalAsync(user);
+            var refreshedPrincipal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
             refreshedPrincipal.SetScopes(principal.GetScopes());
             await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(refreshedPrincipal, permissionScopeService,
                 cancellationToken);
@@ -121,17 +120,9 @@ public sealed class ConnectController(
                 return Forbid(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             }
 
-            var identity = new ClaimsIdentity(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-            identity.SetClaim(OpenIddictConstants.Claims.Subject, request.ClientId);
-
             var displayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken);
-            if (!string.IsNullOrWhiteSpace(displayName))
-            {
-                identity.SetClaim(OpenIddictConstants.Claims.Name, displayName);
-            }
-
-            var principal = new ClaimsPrincipal(identity);
-            principal.SetScopes(FilterRequestedScopes(request.GetScopes()));
+            var principal = oidcPrincipalFactory.CreateClientPrincipal(request.ClientId, displayName);
+            principal.SetScopes(oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()));
             await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService,
                 cancellationToken);
 
@@ -183,7 +174,9 @@ public sealed class ConnectController(
         var response = new Dictionary<string, object?>
         {
             [OpenIddictConstants.Claims.Subject] = subject,
-            [OpenIddictConstants.Claims.Name] = User.Identity?.Name ?? user.UserName,
+            [OpenIddictConstants.Claims.Name] = User.GetClaim(OpenIddictConstants.Claims.Name)
+                                                 ?? User.Identity?.Name
+                                                 ?? (string.IsNullOrWhiteSpace(user.DisplayName) ? user.UserName : user.DisplayName),
             [OpenIddictConstants.Claims.Email] = User.FindFirstValue(ClaimTypes.Email) ?? user.Email,
             [OpenIddictConstants.Claims.Role] = roles,
             [SharedPermissionConstants.ClaimType] = permissions,
@@ -212,86 +205,6 @@ public sealed class ConnectController(
             new AuthenticationProperties { RedirectUri = redirectUri },
             IdentityConstants.ApplicationScheme,
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-    }
-
-    /// <summary>
-    /// 过滤并返回结果。
-    /// </summary>
-    /// <param name="requestedScopes">参数requestedScopes。</param>
-    /// <returns>执行结果。</returns>
-    private IReadOnlyList<string> FilterRequestedScopes(IEnumerable<string> requestedScopes)
-    {
-        var allowedScopes = identityOptions.Value.AdditionalScopes
-            .Append(OpenIddictConstants.Scopes.OpenId)
-            .Append(OpenIddictConstants.Scopes.Profile)
-            .Append(OpenIddictConstants.Scopes.Email)
-            .Append(OpenIddictConstants.Scopes.Roles)
-            .Append(OpenIddictConstants.Scopes.OfflineAccess)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        return requestedScopes
-            .Where(scope => allowedScopes.Contains(scope))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToArray();
-    }
-
-    /// <summary>
-    /// 创建适用于 OIDC 签发的 principal。
-    /// </summary>
-    /// <param name="user">参数user。</param>
-    /// <returns>执行结果。</returns>
-    private async Task<ClaimsPrincipal> CreateOidcPrincipalAsync(BzsUser user)
-    {
-        var principal = await signInManager.CreateUserPrincipalAsync(user);
-        principal.SetClaim(OpenIddictConstants.Claims.Subject, await userManager.GetUserIdAsync(user));
-
-        if (!string.IsNullOrWhiteSpace(user.UserName))
-        {
-            principal.SetClaim(OpenIddictConstants.Claims.Name, user.UserName);
-        }
-
-        if (!string.IsNullOrWhiteSpace(user.Email))
-        {
-            principal.SetClaim(OpenIddictConstants.Claims.Email, user.Email);
-        }
-
-        var identity = principal.Identities.FirstOrDefault();
-        if (identity is null)
-        {
-            return principal;
-        }
-
-        RemoveClaims(identity, ClaimTypes.Name, ClaimTypes.Email, ClaimTypes.Role);
-
-        var existingRoles = identity.FindAll(OpenIddictConstants.Claims.Role)
-            .Select(static claim => claim.Value)
-            .ToHashSet(StringComparer.OrdinalIgnoreCase);
-
-        foreach (var roleName in (await userManager.GetRolesAsync(user)).Distinct(StringComparer.OrdinalIgnoreCase))
-        {
-            if (existingRoles.Add(roleName))
-            {
-                identity.AddClaim(new Claim(OpenIddictConstants.Claims.Role, roleName));
-            }
-        }
-
-        return principal;
-    }
-
-    /// <summary>
-    /// 删除同类型旧 claims，避免在 token 中重复发放。
-    /// </summary>
-    /// <param name="identity">参数identity。</param>
-    /// <param name="claimTypes">参数claimTypes。</param>
-    private static void RemoveClaims(ClaimsIdentity identity, params string[] claimTypes)
-    {
-        foreach (var claim in identity.Claims
-                     .Where(claim => claimTypes.Contains(claim.Type, StringComparer.OrdinalIgnoreCase))
-                     .ToArray())
-        {
-            identity.RemoveClaim(claim);
-        }
     }
 
     /// <summary>

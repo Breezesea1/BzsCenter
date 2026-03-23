@@ -100,11 +100,7 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
 
         var toAdd = targetScopes
             .Where(scope => !existingScopes.Contains(scope))
-            .Select(scope => new PermissionScopeMapping
-            {
-                Permission = normalizedPermission,
-                Scope = scope,
-            })
+            .Select(scope => PermissionScopeMapping.Create(normalizedPermission, scope))
             .ToArray();
 
         if (toAdd.Length > 0)
@@ -191,11 +187,7 @@ internal sealed class PermissionScopeService(IdpDbContext dbContext, IMemoryCach
         var seedEntries = defaults
             .Where(static kv => !string.IsNullOrWhiteSpace(kv.Key))
             .SelectMany(static kv => NormalizeScopes(kv.Value)
-                .Select(scope => new PermissionScopeMapping
-                {
-                    Permission = kv.Key.Trim().ToLowerInvariant(),
-                    Scope = scope,
-                }))
+                .Select(scope => PermissionScopeMapping.Create(kv.Key, scope)))
             .DistinctBy(static x => new { x.Permission, x.Scope })
             .ToArray();
 

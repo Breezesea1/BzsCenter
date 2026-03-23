@@ -75,21 +75,7 @@ public sealed class AppHostFixture : IAsyncLifetime
 
     private async Task StartAspireAsync()
     {
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "aspire",
-            Arguments = "run",
-            WorkingDirectory = GetRepositoryRoot(),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-
-        startInfo.Environment.Remove("http_proxy");
-        startInfo.Environment.Remove("https_proxy");
-        startInfo.Environment.Remove("all_proxy");
-        startInfo.Environment.Remove("no_proxy");
-        startInfo.Environment["Testing__E2E__Enabled"] = "true";
+        var startInfo = CreateAppHostStartInfo();
 
         _aspireProcess = new Process
         {
@@ -112,6 +98,27 @@ public sealed class AppHostFixture : IAsyncLifetime
         await Task.Delay(TimeSpan.FromSeconds(2));
     }
 
+    internal static ProcessStartInfo CreateAppHostStartInfo()
+    {
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "dotnet",
+            Arguments = "run --no-build --project \"src/BzsCenter.AppHost/BzsCenter.AppHost.csproj\"",
+            WorkingDirectory = GetRepositoryRoot(),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+        };
+
+        startInfo.Environment.Remove("http_proxy");
+        startInfo.Environment.Remove("https_proxy");
+        startInfo.Environment.Remove("all_proxy");
+        startInfo.Environment.Remove("no_proxy");
+        startInfo.Environment["Testing__E2E__Enabled"] = "true";
+
+        return startInfo;
+    }
+
     private async Task WaitForIdpAsync()
     {
         var timeoutAt = DateTimeOffset.UtcNow.Add(StartupTimeout);
@@ -120,7 +127,7 @@ public sealed class AppHostFixture : IAsyncLifetime
         {
             if (_aspireProcess is { HasExited: true })
             {
-                throw new InvalidOperationException($"'aspire run' exited before the IDP became ready.{Environment.NewLine}{_aspireLogs}");
+                throw new InvalidOperationException($"'dotnet run --no-build' exited before the IDP became ready.{Environment.NewLine}{_aspireLogs}");
             }
 
             if (await IsIdpReadyAsync())
@@ -131,7 +138,7 @@ public sealed class AppHostFixture : IAsyncLifetime
             await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout}.{Environment.NewLine}{_aspireLogs}");
+        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout} after launching 'dotnet run --no-build'.{Environment.NewLine}{_aspireLogs}");
     }
 
     private static Uri ResolveIdpBaseUri()

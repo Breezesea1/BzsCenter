@@ -75,6 +75,7 @@ public sealed class ExternalLoginServiceTests
         Assert.NotNull(createdUser);
         Assert.Equal("octocat", createdUser.UserName);
         Assert.Equal("octocat@users.noreply.github.com", createdUser.Email);
+        Assert.Equal("The Octocat", createdUser.DisplayName);
         Assert.Same(createdUser, linkedUser);
         await signInManager.Received(1).SignInAsync(Arg.Any<BzsUser>(), false, loginInfo.LoginProvider);
     }

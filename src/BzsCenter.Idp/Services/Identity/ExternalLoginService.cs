@@ -75,12 +75,7 @@ internal sealed class ExternalLoginService(
         }
 
         var userName = await GenerateUserNameAsync(loginInfo, cancellationToken);
-        var user = new BzsUser
-        {
-            UserName = userName,
-            Email = string.IsNullOrWhiteSpace(email) ? null : email,
-            EmailConfirmed = !string.IsNullOrWhiteSpace(email),
-        };
+        var user = BzsUser.CreateExternal(userName, email, ResolveDisplayName(loginInfo.Principal));
 
         var createResult = await userManager.CreateAsync(user);
         if (!createResult.Succeeded)
@@ -124,5 +119,12 @@ internal sealed class ExternalLoginService(
         }
 
         return $"{loginInfo.LoginProvider.ToLowerInvariant()}-{Guid.NewGuid():N}";
+    }
+
+    private static string? ResolveDisplayName(ClaimsPrincipal principal)
+    {
+        return principal.FindFirstValue("urn:github:name")
+               ?? principal.FindFirstValue(ClaimTypes.GivenName)
+               ?? principal.FindFirstValue(ClaimTypes.Name);
     }
 }

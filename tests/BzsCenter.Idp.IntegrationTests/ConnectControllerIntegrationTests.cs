@@ -294,6 +294,32 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task UserInfo_WhenUserHasDisplayName_ReturnsDisplayNameClaim()
+    {
+        await UpdateAdminDisplayNameAsync("Admin Display");
+        await SignInAsAdminAsync();
+
+        var code = await RequestAuthorizationCodeAsync();
+        using var tokenResponse = await ExchangeAuthorizationCodeAsync(code);
+        tokenResponse.EnsureSuccessStatusCode();
+
+        using var tokenPayload = await tokenResponse.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(tokenPayload);
+        var accessToken = tokenPayload.RootElement.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/connect/userinfo");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+        using var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        using var payload = await response.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(payload);
+        Assert.Equal("Admin Display", GetFirstJsonStringValue(payload.RootElement, OpenIddictConstants.Claims.Name, ClaimTypes.Name));
+    }
+
+    [Fact]
     public async Task LogoutEndpoint_WhenInvoked_RedirectsToRoot()
     {
         await SignInAsAdminAsync();
@@ -676,6 +702,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        builder.Services.AddScoped<IOidcPrincipalFactory, OidcPrincipalFactory>();
         builder.Services.AddScoped<IOidcClientService, OidcClientService>();
         builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         builder.Services.AddScoped<IdentitySeeder>();
@@ -802,6 +829,19 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         _authCookieHeader = string.Join("; ", cookieHeaders);
         _client.DefaultRequestHeaders.Remove("Cookie");
         _client.DefaultRequestHeaders.Add("Cookie", _authCookieHeader);
+    }
+
+    private async Task UpdateAdminDisplayNameAsync(string displayName)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<BzsUser>>();
+        var admin = await userManager.FindByNameAsync("admin");
+        Assert.NotNull(admin);
+
+        admin.UpdateDisplayName(displayName);
+
+        var updateResult = await userManager.UpdateAsync(admin);
+        Assert.True(updateResult.Succeeded, string.Join(", ", updateResult.Errors.Select(static error => error.Description)));
     }
 
     private async Task<string> RequestAuthorizationCodeAsync(IEnumerable<string>? scopes = null)

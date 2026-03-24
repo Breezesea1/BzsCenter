@@ -1,19 +1,17 @@
-using System.Diagnostics;
-using System.Text;
-using System.Text.Json;
+using Aspire.Hosting;
+using Aspire.Hosting.ApplicationModel;
+using Aspire.Hosting.Testing;
 
 namespace BzsCenter.Idp.E2ETests.Infrastructure;
 
 public sealed class AppHostFixture : IAsyncLifetime
 {
     private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(5);
-    private readonly StringBuilder _aspireLogs = new();
-    private Process? _aspireProcess;
-    private bool _startedAspire;
+    private DistributedApplication? _app;
 
     public HttpClient IdpClient { get; private set; } = null!;
 
-    public Uri IdpBaseUri { get; private set; } = ResolveIdpBaseUri();
+    public Uri IdpBaseUri { get; private set; } = null!;
 
     public string BuildUrl(string relativePath)
     {
@@ -22,29 +20,38 @@ public sealed class AppHostFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
+        using var cancellationTokenSource = new CancellationTokenSource(StartupTimeout);
+        var cancellationToken = cancellationTokenSource.Token;
+
+        var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.BzsCenter_AppHost>(
+            ["Testing:E2E:Enabled=true"]);
+
+        _app = await appHost.BuildAsync(cancellationToken);
+        await _app.StartAsync(cancellationToken);
+
+        await _app.ResourceNotifications.WaitForResourceAsync(
+            "idp",
+            notification =>
+                notification.Snapshot.State?.Text == KnownResourceStates.Running
+                && notification.Snapshot.Urls.Length > 0,
+            cancellationToken);
+
+        IdpBaseUri = _app.GetEndpoint("idp", "https");
         IdpClient = CreateClient(IdpBaseUri);
-
-        if (await IsIdpReadyAsync())
-        {
-            return;
-        }
-
-        await StartAspireAsync();
         await WaitForIdpAsync();
     }
 
-    public Task DisposeAsync()
+    public async Task DisposeAsync()
     {
-        IdpClient.Dispose();
-
-        if (_startedAspire && _aspireProcess is { HasExited: false })
+        if (IdpClient is not null)
         {
-            _aspireProcess.Kill(entireProcessTree: true);
-            _aspireProcess.WaitForExit(15_000);
+            IdpClient.Dispose();
         }
 
-        _aspireProcess?.Dispose();
-        return Task.CompletedTask;
+        if (_app is not null)
+        {
+            await _app.DisposeAsync();
+        }
     }
 
     private static HttpClient CreateClient(Uri idpBaseUri)
@@ -73,84 +80,12 @@ public sealed class AppHostFixture : IAsyncLifetime
         }
     }
 
-    private async Task StartAspireAsync()
-    {
-        var startInfo = CreateAppHostStartInfo();
-
-        _aspireProcess = new Process
-        {
-            StartInfo = startInfo,
-            EnableRaisingEvents = true,
-        };
-
-        _aspireProcess.OutputDataReceived += (_, args) => AppendLog(args.Data);
-        _aspireProcess.ErrorDataReceived += (_, args) => AppendLog(args.Data);
-
-        if (!_aspireProcess.Start())
-        {
-            throw new InvalidOperationException("Failed to start 'dotnet run --no-build' for E2E tests.");
-        }
-
-        _aspireProcess.BeginOutputReadLine();
-        _aspireProcess.BeginErrorReadLine();
-        _startedAspire = true;
-
-        await Task.Delay(TimeSpan.FromSeconds(2));
-    }
-
-    internal static ProcessStartInfo CreateAppHostStartInfo(string? baseDirectory = null)
-    {
-        var configuration = ResolveBuildConfiguration(baseDirectory ?? AppContext.BaseDirectory);
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "dotnet",
-            Arguments = $"run --no-build -c {configuration} --project \"src/BzsCenter.AppHost/BzsCenter.AppHost.csproj\"",
-            WorkingDirectory = GetRepositoryRoot(),
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-        };
-
-        startInfo.Environment.Remove("http_proxy");
-        startInfo.Environment.Remove("https_proxy");
-        startInfo.Environment.Remove("all_proxy");
-        startInfo.Environment.Remove("no_proxy");
-        startInfo.Environment["Testing__E2E__Enabled"] = "true";
-
-        return startInfo;
-    }
-
-    internal static string ResolveBuildConfiguration(string baseDirectory)
-    {
-        var segments = baseDirectory.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-
-        foreach (var segment in segments)
-        {
-            if (string.Equals(segment, "Release", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Release";
-            }
-
-            if (string.Equals(segment, "Debug", StringComparison.OrdinalIgnoreCase))
-            {
-                return "Debug";
-            }
-        }
-
-        return "Debug";
-    }
-
     private async Task WaitForIdpAsync()
     {
         var timeoutAt = DateTimeOffset.UtcNow.Add(StartupTimeout);
 
         while (DateTimeOffset.UtcNow < timeoutAt)
         {
-            if (_aspireProcess is { HasExited: true })
-            {
-                throw new InvalidOperationException($"'dotnet run --no-build' exited before the IDP became ready.{Environment.NewLine}{_aspireLogs}");
-            }
-
             if (await IsIdpReadyAsync())
             {
                 return;
@@ -159,62 +94,16 @@ public sealed class AppHostFixture : IAsyncLifetime
             await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout} after launching 'dotnet run --no-build'.{Environment.NewLine}{_aspireLogs}");
+        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout} after Aspire.Hosting.Testing started the AppHost.");
     }
 
-    private static Uri ResolveIdpBaseUri()
+    internal static Uri ResolveIdpBaseUri(HttpClient client)
     {
-        var launchSettingsPath = Path.Combine(
-            GetRepositoryRoot(),
-            "src",
-            "BzsCenter.Idp",
-            "Properties",
-            "launchSettings.json");
-
-        using var stream = File.OpenRead(launchSettingsPath);
-        using var document = JsonDocument.Parse(stream);
-
-        if (!document.RootElement.TryGetProperty("profiles", out var profiles))
+        if (client.BaseAddress is null)
         {
-            throw new InvalidOperationException("Unable to locate launch profiles for BzsCenter.Idp.");
+            throw new InvalidOperationException("The IDP HttpClient must have a BaseAddress before resolving the runtime URL.");
         }
 
-        foreach (var profile in profiles.EnumerateObject())
-        {
-            if (!profile.Value.TryGetProperty("applicationUrl", out var applicationUrlProperty))
-            {
-                continue;
-            }
-
-            var applicationUrls = applicationUrlProperty.GetString();
-            if (string.IsNullOrWhiteSpace(applicationUrls))
-            {
-                continue;
-            }
-
-            var httpsUrl = applicationUrls
-                .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                .FirstOrDefault(static url => url.StartsWith("https://", StringComparison.OrdinalIgnoreCase));
-
-            if (!string.IsNullOrWhiteSpace(httpsUrl))
-            {
-                return new Uri(httpsUrl, UriKind.Absolute);
-            }
-        }
-
-        throw new InvalidOperationException("Unable to resolve the HTTPS application URL for BzsCenter.Idp from launchSettings.json.");
-    }
-
-    private static string GetRepositoryRoot()
-    {
-        return Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", ".."));
-    }
-
-    private void AppendLog(string? line)
-    {
-        if (!string.IsNullOrWhiteSpace(line))
-        {
-            _aspireLogs.AppendLine(line);
-        }
+        return client.BaseAddress;
     }
 }

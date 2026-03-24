@@ -47,7 +47,9 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
             });
 
         await Page.GotoAsync(authorizeUrl);
-        await Page.WaitForURLAsync(new Regex($"{Regex.Escape(redirectUri)}.*code=", RegexOptions.IgnoreCase));
+        await Expect(Page).ToHaveURLAsync(
+            new Regex($"{Regex.Escape(redirectUri)}.*code=", RegexOptions.IgnoreCase),
+            new() { Timeout = 30000 });
 
         var code = QueryHelpers.ParseQuery(new Uri(Page.Url).Query)["code"].ToString();
         Assert.False(string.IsNullOrWhiteSpace(code));

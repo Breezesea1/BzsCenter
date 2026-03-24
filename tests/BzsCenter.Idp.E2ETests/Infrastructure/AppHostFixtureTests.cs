@@ -1,36 +1,27 @@
-using System.Diagnostics;
+using System.Net.Http;
 
 namespace BzsCenter.Idp.E2ETests.Infrastructure;
 
 public sealed class AppHostFixtureTests
 {
     [Fact]
-    public void CreateAppHostStartInfo_UsesDotnetRunWithoutBuild()
+    public void ResolveIdpBaseUri_WhenClientHasBaseAddress_ReturnsBaseAddress()
     {
-        var startInfo = AppHostFixture.CreateAppHostStartInfo();
+        using var client = new HttpClient
+        {
+            BaseAddress = new Uri("https://127.0.0.1:4321/", UriKind.Absolute),
+        };
 
-        Assert.Equal("dotnet", startInfo.FileName);
-        Assert.Contains("run", startInfo.Arguments, StringComparison.Ordinal);
-        Assert.Contains("--no-build", startInfo.Arguments, StringComparison.Ordinal);
-        Assert.Contains("src/BzsCenter.AppHost/BzsCenter.AppHost.csproj", startInfo.Arguments, StringComparison.OrdinalIgnoreCase);
-        Assert.Equal("true", startInfo.Environment["Testing__E2E__Enabled"]);
-    }
-
-    [Theory]
-    [InlineData(@"/home/runner/work/BzsCenter/BzsCenter/tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/", "Release")]
-    [InlineData(@"D:\Coding\BzsCenter\tests\BzsCenter.Idp.E2ETests\bin\Debug\net10.0\", "Debug")]
-    public void CreateAppHostStartInfo_UsesCurrentBuildConfiguration(string baseDirectory, string expectedConfiguration)
-    {
-        var startInfo = AppHostFixture.CreateAppHostStartInfo(baseDirectory);
-
-        Assert.Contains($"-c {expectedConfiguration}", startInfo.Arguments, StringComparison.Ordinal);
+        Assert.Equal(client.BaseAddress, AppHostFixture.ResolveIdpBaseUri(client));
     }
 
     [Fact]
-    public void CreateAppHostStartInfo_WhenConfigurationCannotBeInferred_DefaultsToDebug()
+    public void ResolveIdpBaseUri_WhenClientHasNoBaseAddress_ThrowsInvalidOperationException()
     {
-        var startInfo = AppHostFixture.CreateAppHostStartInfo(@"/tmp/bzscenter-e2e/");
+        using var client = new HttpClient();
 
-        Assert.Contains("-c Debug", startInfo.Arguments, StringComparison.Ordinal);
+        var exception = Assert.Throws<InvalidOperationException>(() => AppHostFixture.ResolveIdpBaseUri(client));
+
+        Assert.Contains("BaseAddress", exception.Message, StringComparison.Ordinal);
     }
 }

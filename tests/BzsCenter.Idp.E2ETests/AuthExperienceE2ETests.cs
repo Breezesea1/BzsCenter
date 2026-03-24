@@ -34,11 +34,13 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
         await Expect(passwordInput).ToBeVisibleAsync();
         await AppUi.WaitForAppReadyAsync(this);
         await passwordInput.FillAsync("Passw0rd!");
+        await Expect(toggleButton).ToHaveAttributeAsync("aria-pressed", "false");
 
         var beforeBox = await toggleButton.BoundingBoxAsync();
         Assert.NotNull(beforeBox);
 
         await toggleButton.ClickAsync();
+        await Expect(toggleButton).ToHaveAttributeAsync("aria-pressed", "true", new() { Timeout = 5000 });
         await Expect(passwordInput).ToHaveAttributeAsync("type", "text", new() { Timeout = 5000 });
 
         var afterBox = await toggleButton.BoundingBoxAsync();

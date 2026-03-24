@@ -77,6 +77,7 @@
                             <button class="password-toggle"
                                     type="button"
                                     @onclick="TogglePassword"
+                                    aria-pressed="@_showPassword.ToString().ToLowerInvariant()"
                                     aria-label="@L["TogglePassword"]">
                                 @if (_showPassword)
                                 {

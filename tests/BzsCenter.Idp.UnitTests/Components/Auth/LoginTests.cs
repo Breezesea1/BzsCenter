@@ -56,6 +56,36 @@ public sealed class LoginTests
         Assert.Contains("LoginWithExternalProvider", externalLoginForm.TextContent);
     }
 
+    [Fact]
+    public void Login_WhenPasswordVisibilityToggled_UpdatesPressedStateAndInputType()
+    {
+        using var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        context.Services.AddSingleton<AuthenticationStateProvider>(
+            new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity())));
+        context.Services.AddSingleton<IStringLocalizer<Login>, TestStringLocalizer<Login>>();
+        context.Services.AddSingleton<IStringLocalizer<AuthPreferences>, TestStringLocalizer<AuthPreferences>>();
+        context.Services.AddSingleton<AntiforgeryStateProvider, TestAntiforgeryStateProvider>();
+        context.Services.AddSingleton<IExternalLoginProviderStore>(new EmptyExternalLoginProviderStore());
+
+        var cut = context.Render<CascadingAuthenticationState>(parameters => parameters
+            .AddChildContent<Login>());
+
+        var passwordInput = cut.Find("#password");
+        var toggleButton = cut.Find("button.password-toggle");
+
+        Assert.Equal("password", passwordInput.GetAttribute("type"));
+        Assert.Equal("false", toggleButton.GetAttribute("aria-pressed"));
+
+        toggleButton.Click();
+
+        passwordInput = cut.Find("#password");
+        toggleButton = cut.Find("button.password-toggle");
+
+        Assert.Equal("text", passwordInput.GetAttribute("type"));
+        Assert.Equal("true", toggleButton.GetAttribute("aria-pressed"));
+    }
+
     private sealed class TestAuthenticationStateProvider(ClaimsPrincipal user) : AuthenticationStateProvider
     {
         private readonly AuthenticationState _state = new(user);

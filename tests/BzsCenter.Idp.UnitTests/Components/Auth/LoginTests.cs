@@ -54,6 +54,7 @@ public sealed class LoginTests
 
         var externalLoginForm = cut.Find("form[action='/account/external-login/github']");
         Assert.Contains("LoginWithExternalProvider", externalLoginForm.TextContent);
+        Assert.Equal("false", externalLoginForm.GetAttribute("data-enhance"));
     }
 
     [Fact]

@@ -135,7 +135,7 @@
                     <div class="social-login">
                         @foreach (var provider in _externalLoginProviders)
                         {
-                            <form method="post" action="@BuildExternalLoginAction(provider.RouteSegment)" autocomplete="off">
+                            <form method="post" action="@BuildExternalLoginAction(provider.RouteSegment)" class="external-login-form" autocomplete="off" data-enhance="false">
                                 <AntiforgeryToken/>
                                 <button type="submit" class="btn-primary btn-slide">
                                     <span class="label-static">

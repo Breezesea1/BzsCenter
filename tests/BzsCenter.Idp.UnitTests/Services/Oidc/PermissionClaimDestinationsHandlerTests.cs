@@ -34,11 +34,31 @@ public sealed class PermissionClaimDestinationsHandlerTests
             [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
             identity.FindFirst(OpenIddictConstants.Claims.Subject)!.GetDestinations().ToArray());
         Assert.Equal(
-            [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+            [OpenIddictConstants.Destinations.IdentityToken],
             identity.FindFirst(OpenIddictConstants.Claims.Name)!.GetDestinations().ToArray());
         Assert.Equal(
-            [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken],
+            [OpenIddictConstants.Destinations.IdentityToken],
             identity.FindFirst(OpenIddictConstants.Claims.Email)!.GetDestinations().ToArray());
+    }
+
+    [Fact]
+    public async Task ApplyDestinationsAsync_WhenProfileAndEmailScopesMissing_DoesNotEmitNameOrEmailClaims()
+    {
+        var service = Substitute.For<IPermissionScopeService>();
+        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+            .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase));
+
+        var identity = new ClaimsIdentity("test");
+        identity.AddClaim(new Claim(OpenIddictConstants.Claims.Name, "alice"));
+        identity.AddClaim(new Claim(OpenIddictConstants.Claims.Email, "alice@example.com"));
+
+        var principal = new ClaimsPrincipal(identity);
+        principal.SetScopes([OpenIddictConstants.Scopes.OpenId]);
+
+        await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, service, CancellationToken.None);
+
+        Assert.Empty(identity.FindFirst(OpenIddictConstants.Claims.Name)!.GetDestinations());
+        Assert.Empty(identity.FindFirst(OpenIddictConstants.Claims.Email)!.GetDestinations());
     }
 
     [Fact]

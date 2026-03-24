@@ -378,9 +378,17 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         using var accessPayload = ReadJwtPayload(accessToken!);
         using var idPayload = ReadJwtPayload(idToken!);
 
-        Assert.Equal("admin", GetFirstJsonStringValue(accessPayload.RootElement, OpenIddictConstants.Claims.Name, ClaimTypes.Name));
-        Assert.Equal("admin@bzscenter.local",
-            GetFirstJsonStringValue(accessPayload.RootElement, OpenIddictConstants.Claims.Email, ClaimTypes.Email));
+        var accessSubject = GetFirstJsonStringValue(accessPayload.RootElement,
+            OpenIddictConstants.Claims.Subject,
+            ClaimTypes.NameIdentifier);
+        var idSubject = GetFirstJsonStringValue(idPayload.RootElement,
+            OpenIddictConstants.Claims.Subject,
+            ClaimTypes.NameIdentifier);
+
+        Assert.False(string.IsNullOrWhiteSpace(accessSubject));
+        Assert.Equal(idSubject, accessSubject);
+        Assert.Null(GetFirstJsonStringValue(accessPayload.RootElement, OpenIddictConstants.Claims.Name, ClaimTypes.Name));
+        Assert.Null(GetFirstJsonStringValue(accessPayload.RootElement, OpenIddictConstants.Claims.Email, ClaimTypes.Email));
         Assert.Contains(IdentitySeedConstants.AdminRoleName,
             GetJsonStringValues(accessPayload.RootElement, OpenIddictConstants.Claims.Role, ClaimTypes.Role));
         Assert.Contains(PermissionConstants.UsersWrite,

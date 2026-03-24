@@ -68,16 +68,16 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
                 string.Equals(claim.Type, ClaimTypes.Name, StringComparison.OrdinalIgnoreCase))
             {
                 return grantedScopes.Contains(OpenIddictConstants.Scopes.Profile)
-                    ? [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken]
-                    : [OpenIddictConstants.Destinations.AccessToken];
+                    ? [OpenIddictConstants.Destinations.IdentityToken]
+                    : [];
             }
 
             if (string.Equals(claim.Type, OpenIddictConstants.Claims.Email, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(claim.Type, ClaimTypes.Email, StringComparison.OrdinalIgnoreCase))
             {
                 return grantedScopes.Contains(OpenIddictConstants.Scopes.Email)
-                    ? [OpenIddictConstants.Destinations.AccessToken, OpenIddictConstants.Destinations.IdentityToken]
-                    : [OpenIddictConstants.Destinations.AccessToken];
+                    ? [OpenIddictConstants.Destinations.IdentityToken]
+                    : [];
             }
 
             if (string.Equals(claim.Type, OpenIddictConstants.Claims.Role, StringComparison.OrdinalIgnoreCase) ||

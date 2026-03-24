@@ -88,6 +88,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-build-outputs
+          include-hidden-files: true
           path: |
             src/**/bin/Release/**
             src/**/obj/Release/**

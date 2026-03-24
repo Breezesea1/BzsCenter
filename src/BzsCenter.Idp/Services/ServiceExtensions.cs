@@ -35,6 +35,12 @@ internal static class ServiceExtensions
         sc.AddBzsCache(configuration);
 
         var connectionString = configuration.GetConnectionString("DefaultConnection");
+
+        if (string.IsNullOrWhiteSpace(connectionString) && configuration.IsSmokeTestingEnabled())
+        {
+            connectionString = "Data Source=smoke-idp.db";
+        }
+
         ArgumentException.ThrowIfNullOrEmpty(connectionString);
 
         sc.AddInfraServices(connectionString);

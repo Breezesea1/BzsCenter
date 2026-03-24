@@ -9,6 +9,7 @@ internal sealed class IdentitySeeder(
     IPermissionScopeService permissionScopeService,
     IUserService userService,
     IOptions<IdentitySeedOptions> identityOptions,
+    IConfiguration configuration,
     ILogger<IdentitySeeder> logger)
 {
     /// <summary>
@@ -18,7 +19,9 @@ internal sealed class IdentitySeeder(
     /// <returns>执行结果。</returns>
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        var options = identityOptions.Value;
+        var options = SmokeIdentitySeedProfile.Resolve(
+            configuration.IsSmokeTestingEnabled(),
+            identityOptions.Value);
         var adminUserName = options.Admin.UserName?.Trim();
         var adminPassword = options.Admin.Password?.Trim();
 

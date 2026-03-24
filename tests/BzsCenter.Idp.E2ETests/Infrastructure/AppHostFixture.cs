@@ -88,7 +88,7 @@ public sealed class AppHostFixture : IAsyncLifetime
 
         if (!_aspireProcess.Start())
         {
-            throw new InvalidOperationException("Failed to start 'aspire run' for E2E tests.");
+            throw new InvalidOperationException("Failed to start 'dotnet run --no-build' for E2E tests.");
         }
 
         _aspireProcess.BeginOutputReadLine();
@@ -98,12 +98,13 @@ public sealed class AppHostFixture : IAsyncLifetime
         await Task.Delay(TimeSpan.FromSeconds(2));
     }
 
-    internal static ProcessStartInfo CreateAppHostStartInfo()
+    internal static ProcessStartInfo CreateAppHostStartInfo(string? baseDirectory = null)
     {
+        var configuration = ResolveBuildConfiguration(baseDirectory ?? AppContext.BaseDirectory);
         var startInfo = new ProcessStartInfo
         {
             FileName = "dotnet",
-            Arguments = "run --no-build --project \"src/BzsCenter.AppHost/BzsCenter.AppHost.csproj\"",
+            Arguments = $"run --no-build -c {configuration} --project \"src/BzsCenter.AppHost/BzsCenter.AppHost.csproj\"",
             WorkingDirectory = GetRepositoryRoot(),
             RedirectStandardOutput = true,
             RedirectStandardError = true,
@@ -117,6 +118,26 @@ public sealed class AppHostFixture : IAsyncLifetime
         startInfo.Environment["Testing__E2E__Enabled"] = "true";
 
         return startInfo;
+    }
+
+    internal static string ResolveBuildConfiguration(string baseDirectory)
+    {
+        var segments = baseDirectory.Split(['\\', '/'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        foreach (var segment in segments)
+        {
+            if (string.Equals(segment, "Release", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Release";
+            }
+
+            if (string.Equals(segment, "Debug", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Debug";
+            }
+        }
+
+        return "Debug";
     }
 
     private async Task WaitForIdpAsync()

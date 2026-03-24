@@ -6,7 +6,6 @@ namespace BzsCenter.Idp.E2ETests.Infrastructure;
 
 public sealed class AppHostFixture : IAsyncLifetime
 {
-    private static readonly TimeSpan StartupTimeout = TimeSpan.FromMinutes(5);
     private DistributedApplication? _app;
 
     public HttpClient IdpClient { get; private set; } = null!;
@@ -20,25 +19,36 @@ public sealed class AppHostFixture : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        using var cancellationTokenSource = new CancellationTokenSource(StartupTimeout);
-        var cancellationToken = cancellationTokenSource.Token;
+        var runningInCi = IsRunningInCi();
+        using var startupCancellationTokenSource = new CancellationTokenSource(ResolveAspireStartupTimeout(runningInCi));
+        var startupCancellationToken = startupCancellationTokenSource.Token;
 
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.BzsCenter_AppHost>(
             ["Testing:E2E:Enabled=true"]);
 
-        _app = await appHost.BuildAsync(cancellationToken);
-        await _app.StartAsync(cancellationToken);
+        _app = await appHost.BuildAsync(startupCancellationToken);
+
+        try
+        {
+            await _app.StartAsync(startupCancellationToken);
+        }
+        catch (OperationCanceledException) when (startupCancellationToken.IsCancellationRequested)
+        {
+            throw new TimeoutException(
+                $"Aspire.Hosting.Testing did not start the distributed application within {ResolveAspireStartupTimeout(runningInCi)}. " +
+                "On cold CI runners, Postgres/Redis container startup and migrator completion can take longer than local runs.");
+        }
 
         await _app.ResourceNotifications.WaitForResourceAsync(
             "idp",
             notification =>
                 notification.Snapshot.State?.Text == KnownResourceStates.Running
                 && notification.Snapshot.Urls.Length > 0,
-            cancellationToken);
+            startupCancellationToken);
 
         IdpBaseUri = _app.GetEndpoint("idp", "https");
         IdpClient = CreateClient(IdpBaseUri);
-        await WaitForIdpAsync();
+        await WaitForIdpAsync(ResolveIdpReadinessTimeout(runningInCi));
     }
 
     public async Task DisposeAsync()
@@ -80,9 +90,9 @@ public sealed class AppHostFixture : IAsyncLifetime
         }
     }
 
-    private async Task WaitForIdpAsync()
+    private async Task WaitForIdpAsync(TimeSpan readinessTimeout)
     {
-        var timeoutAt = DateTimeOffset.UtcNow.Add(StartupTimeout);
+        var timeoutAt = DateTimeOffset.UtcNow.Add(readinessTimeout);
 
         while (DateTimeOffset.UtcNow < timeoutAt)
         {
@@ -94,7 +104,22 @@ public sealed class AppHostFixture : IAsyncLifetime
             await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        throw new TimeoutException($"The IDP did not become ready within {StartupTimeout} after Aspire.Hosting.Testing started the AppHost.");
+        throw new TimeoutException($"The IDP did not become ready within {readinessTimeout} after Aspire.Hosting.Testing started the AppHost.");
+    }
+
+    internal static TimeSpan ResolveAspireStartupTimeout(bool isCi)
+    {
+        return isCi ? TimeSpan.FromMinutes(20) : TimeSpan.FromMinutes(5);
+    }
+
+    internal static TimeSpan ResolveIdpReadinessTimeout(bool isCi)
+    {
+        return TimeSpan.FromMinutes(5);
+    }
+
+    internal static bool IsRunningInCi()
+    {
+        return string.Equals(Environment.GetEnvironmentVariable("CI"), bool.TrueString, StringComparison.OrdinalIgnoreCase);
     }
 
     internal static Uri ResolveIdpBaseUri(HttpClient client)

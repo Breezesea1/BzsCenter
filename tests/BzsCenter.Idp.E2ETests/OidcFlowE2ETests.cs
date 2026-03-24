@@ -14,6 +14,7 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
     private const string CodeVerifier = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
 
     [Fact]
+    [Trait("Category", "Smoke")]
     public async Task AuthorizationCodeFlow_CanIssueTokensAndUserInfoForInteractiveClient()
     {
         var clientId = $"oidc-ui-{Guid.NewGuid():N}"[..16];

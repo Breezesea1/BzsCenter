@@ -8,6 +8,7 @@ namespace BzsCenter.Idp.E2ETests;
 public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
 {
     [Fact]
+    [Trait("Category", "Smoke")]
     public async Task DashboardAndAdminPages_RenderAfterAdminLogin()
     {
         await AppUi.LoginAsAdminAsync(this, fixture);

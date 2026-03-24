@@ -72,6 +72,8 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
     }
 
     [Fact]
+    [Trait("Category", "Smoke")]
+    [Trait("Category", "Startup")]
     public async Task PublicPages_RenderExpectedServerOwnedShells()
     {
         await Page.GotoAsync(fixture.BuildUrl("/login"));

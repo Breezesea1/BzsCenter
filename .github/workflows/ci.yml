@@ -24,6 +24,8 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: true
   NUGET_PACKAGES: ${{ github.workspace }}/.nuget/packages
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  E2E_SMOKE_FILTER: Category=Smoke
+  E2E_STARTUP_FILTER: Category=Startup
 
 jobs:
   build-test:
@@ -82,11 +84,12 @@ jobs:
             tests/BzsCenter.Idp.UnitTests/TestResults/**/*.trx
             tests/BzsCenter.Idp.IntegrationTests/TestResults/**/*.trx
 
-  e2e:
-    name: End-to-end tests
+  e2e-smoke:
+    name: E2E smoke tests
     runs-on: ubuntu-latest
     needs: build-test
     timeout-minutes: 45
+    if: github.event_name == 'pull_request'
 
     steps:
       - name: Checkout
@@ -116,11 +119,63 @@ jobs:
         run: npm ci
         working-directory: src/BzsCenter.Idp
 
-      - name: Install Aspire CLI
-        shell: bash
-        run: |
-          curl -fsSL https://aspire.dev/install.sh | bash
-          echo "$HOME/.aspire/bin" >> "$GITHUB_PATH"
+      - name: Restore solution
+        run: dotnet restore BzsCenter.sln
+
+      - name: Build E2E tests
+        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+
+      - name: Install Playwright browsers
+        run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
+
+      - name: Run E2E smoke tests
+        env:
+          CI: true
+        run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --filter "${{ env.E2E_SMOKE_FILTER }}" --logger "trx;LogFileName=e2e-smoke-tests.trx"
+
+      - name: Upload E2E smoke artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-smoke-test-results
+          path: |
+            tests/BzsCenter.Idp.E2ETests/TestResults/**/*.trx
+            test-results/**
+
+  app-startup:
+    name: Application startup smoke
+    runs-on: ubuntu-latest
+    needs: build-test
+    timeout-minutes: 30
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/BzsCenter.Idp
 
       - name: Restore solution
         run: dotnet restore BzsCenter.sln
@@ -131,12 +186,70 @@ jobs:
       - name: Install Playwright browsers
         run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
 
-      - name: Run E2E tests
+      - name: Run application startup smoke test
+        env:
+          CI: true
+        run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --filter "${{ env.E2E_STARTUP_FILTER }}" --logger "trx;LogFileName=app-startup-tests.trx"
+
+      - name: Upload application startup artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-startup-test-results
+          path: |
+            tests/BzsCenter.Idp.E2ETests/TestResults/**/*.trx
+            test-results/**
+
+  e2e-full:
+    name: Full E2E suite
+    runs-on: ubuntu-latest
+    needs: build-test
+    timeout-minutes: 45
+    if: github.event_name == 'workflow_dispatch'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.NUGET_PACKAGES }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/BzsCenter.Idp
+
+      - name: Restore solution
+        run: dotnet restore BzsCenter.sln
+
+      - name: Build E2E tests
+        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+
+      - name: Install Playwright browsers
+        run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
+
+      - name: Run full E2E tests
         env:
           CI: true
         run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --logger "trx;LogFileName=e2e-tests.trx"
 
-      - name: Upload E2E artifacts
+      - name: Upload full E2E artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -150,7 +263,6 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-test
-      - e2e
 
     steps:
       - name: Checkout

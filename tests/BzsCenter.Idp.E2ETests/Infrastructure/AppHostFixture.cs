@@ -24,7 +24,7 @@ public sealed class AppHostFixture : IAsyncLifetime
         var startupCancellationToken = startupCancellationTokenSource.Token;
 
         var appHost = await DistributedApplicationTestingBuilder.CreateAsync<Projects.BzsCenter_AppHost>(
-            ["Testing:E2E:Enabled=true"]);
+            ResolveAppHostArgs(IsSmokeProfileEnabled()));
 
         _app = await appHost.BuildAsync(startupCancellationToken);
 
@@ -90,6 +90,22 @@ public sealed class AppHostFixture : IAsyncLifetime
         }
     }
 
+    private async Task<string> GetIdpReadinessDiagnosticAsync()
+    {
+        try
+        {
+            using var response = await IdpClient.GetAsync("/login");
+            var body = await response.Content.ReadAsStringAsync();
+            var snippet = body.Length > 400 ? body[..400] : body;
+
+            return $"Last /login probe returned {(int)response.StatusCode} {response.StatusCode}.{Environment.NewLine}{snippet}";
+        }
+        catch (Exception exception)
+        {
+            return $"Last /login probe failed with {exception.GetType().Name}: {exception.Message}";
+        }
+    }
+
     private async Task WaitForIdpAsync(TimeSpan readinessTimeout)
     {
         var timeoutAt = DateTimeOffset.UtcNow.Add(readinessTimeout);
@@ -104,7 +120,8 @@ public sealed class AppHostFixture : IAsyncLifetime
             await Task.Delay(TimeSpan.FromSeconds(2));
         }
 
-        throw new TimeoutException($"The IDP did not become ready within {readinessTimeout} after Aspire.Hosting.Testing started the AppHost.");
+        var diagnostic = await GetIdpReadinessDiagnosticAsync();
+        throw new TimeoutException($"The IDP did not become ready within {readinessTimeout} after Aspire.Hosting.Testing started the AppHost.{Environment.NewLine}{diagnostic}");
     }
 
     internal static TimeSpan ResolveAspireStartupTimeout(bool isCi)
@@ -120,6 +137,18 @@ public sealed class AppHostFixture : IAsyncLifetime
     internal static bool IsRunningInCi()
     {
         return string.Equals(Environment.GetEnvironmentVariable("CI"), bool.TrueString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static bool IsSmokeProfileEnabled()
+    {
+        return string.Equals(Environment.GetEnvironmentVariable("TESTING__SMOKE__ENABLED"), bool.TrueString, StringComparison.OrdinalIgnoreCase);
+    }
+
+    internal static string[] ResolveAppHostArgs(bool smokeEnabled)
+    {
+        return smokeEnabled
+            ? ["Testing:E2E:Enabled=true", "Testing:Smoke:Enabled=true"]
+            : ["Testing:E2E:Enabled=true"];
     }
 
     internal static Uri ResolveIdpBaseUri(HttpClient client)

@@ -20,6 +20,22 @@ public sealed class AppHostFixtureTests
         Assert.Equal(TimeSpan.FromMinutes(expectedMinutes), AppHostFixture.ResolveIdpReadinessTimeout(isCi));
     }
 
+    [Theory]
+    [InlineData(true, 2)]
+    [InlineData(false, 1)]
+    public void ResolveAppHostArgs_IncludesSmokeFlagOnlyWhenEnabled(bool smokeEnabled, int expectedCount)
+    {
+        var args = AppHostFixture.ResolveAppHostArgs(smokeEnabled);
+
+        Assert.Equal(expectedCount, args.Length);
+        Assert.Contains("Testing:E2E:Enabled=true", args, StringComparer.Ordinal);
+
+        if (smokeEnabled)
+        {
+            Assert.Contains("Testing:Smoke:Enabled=true", args, StringComparer.Ordinal);
+        }
+    }
+
     [Fact]
     public void ResolveIdpBaseUri_WhenClientHasBaseAddress_ReturnsBaseAddress()
     {

@@ -19,6 +19,25 @@ public sealed class CiWorkflowArtifactTests
         Assert.Contains("include-hidden-files: true", uploadStep, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void FullE2EJob_RunsOnWorkflowDispatchAndMainPush()
+    {
+        var workflowPath = ResolveWorkflowPath();
+        var workflow = File.ReadAllText(workflowPath);
+
+        var jobStart = workflow.IndexOf("  e2e-full:", StringComparison.Ordinal);
+        Assert.True(jobStart >= 0, "The CI workflow must define the full E2E job.");
+
+        var nextJobStart = workflow.IndexOf("  container-images:", jobStart, StringComparison.Ordinal);
+        Assert.True(nextJobStart > jobStart, "The full E2E job should appear before the container image job.");
+
+        var jobBlock = workflow[jobStart..nextJobStart];
+
+        Assert.Contains("github.event_name == 'workflow_dispatch'", jobBlock, StringComparison.Ordinal);
+        Assert.Contains("github.event_name == 'push'", jobBlock, StringComparison.Ordinal);
+        Assert.Contains("github.ref == 'refs/heads/main'", jobBlock, StringComparison.Ordinal);
+    }
+
     private static string ResolveWorkflowPath()
     {
         var current = new DirectoryInfo(AppContext.BaseDirectory);

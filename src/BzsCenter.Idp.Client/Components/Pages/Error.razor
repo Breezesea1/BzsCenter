@@ -8,24 +8,71 @@
 
 <PageTitle>@L["PageTitle"]</PageTitle>
 
-<h1 class="text-danger">@L["Heading"]</h1>
-<h2 class="text-danger">@L["Subheading"]</h2>
+<section class="error-shell">
+    <div class="error-card">
+        <div class="error-copy">
+            <div class="error-copy-surface">
+                <div class="error-copy-header">
+                    <span class="error-kicker">@L["StatusKicker"]</span>
 
-@if (ShowRequestId)
-{
-    <p>
-        <strong>@L["RequestIdLabel"]:</strong> <code>@RequestId</code>
-    </p>
-}
+                    <div class="error-brand" aria-label="OIDC">
+                        <span class="error-brand-mark" aria-hidden="true">
+                            <img src="/oidc-brand.jpg" alt="" width="44" height="44" />
+                        </span>
+                        <span class="error-brand-text">OIDC</span>
+                    </div>
+                </div>
 
-<h3>@L["DevelopmentModeHeading"]</h3>
-<p>
-    @DevelopmentModeIntroMarkup
-</p>
-<p>
-    <strong>@L["DevelopmentModeWarning"]</strong>
-    @DevelopmentModeDetailsMarkup
-</p>
+                <div class="error-copy-main">
+                    <div class="error-code-inline" aria-hidden="true">500</div>
+                    <h1>@L["Heading"]</h1>
+                    <p class="error-lead">@L["Subheading"]</p>
+                </div>
+
+                <div class="error-actions-panel">
+                    <a class="error-primary-link" href="/login" data-enhance-nav="false">
+                        <span>@L["ErrorPrimaryAction"]</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            <path d="m12 5 7 7-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </a>
+
+                    <a class="error-secondary-link" href="/">@L["ErrorSecondaryAction"]</a>
+                </div>
+            </div>
+        </div>
+
+        <aside class="error-aside" aria-label="@L["TechnicalDetailsAria"]">
+            <div class="error-code-panel" aria-hidden="true">
+                <div class="error-code">
+                    <span>5</span>
+                    <span>0</span>
+                    <span>0</span>
+                </div>
+            </div>
+
+            <div class="error-panel">
+                <p class="error-panel-label">@L["TechnicalDetailsHeading"]</p>
+                <p class="error-panel-copy">@L["TechnicalDetailsLead"]</p>
+
+                @if (ShowRequestId)
+                {
+                    <div class="error-request-id">
+                        <span class="error-request-id__label">@L["RequestIdLabel"]</span>
+                        <code>@RequestId</code>
+                    </div>
+                }
+
+                <div class="error-tip">
+                    <strong>@L["DevelopmentModeHeading"]</strong>
+                    <span>@DevelopmentModeIntroMarkup</span>
+                    <span>@L["DevelopmentModeWarning"] @DevelopmentModeDetailsMarkup</span>
+                </div>
+            </div>
+        </aside>
+    </div>
+</section>
 
 @code {
     private string? RequestId { get; set; }

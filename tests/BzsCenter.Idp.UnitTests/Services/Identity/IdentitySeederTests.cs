@@ -1,6 +1,7 @@
 using BzsCenter.Idp.Models;
 using BzsCenter.Idp.Services.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
@@ -25,6 +26,7 @@ public sealed class IdentitySeederTests
                 Password = "Passw0rd!",
             },
         });
+        var configuration = new ConfigurationBuilder().Build();
 
         var sut = new IdentitySeeder(
             roleService,
@@ -32,6 +34,7 @@ public sealed class IdentitySeederTests
             permissionScopeService,
             userService,
             options,
+            configuration,
             NullLogger<IdentitySeeder>.Instance);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => sut.SeedAsync());
@@ -80,6 +83,7 @@ public sealed class IdentitySeederTests
                 ["users.read.self"] = ["api"],
             },
         });
+        var configuration = new ConfigurationBuilder().Build();
 
         var sut = new IdentitySeeder(
             roleService,
@@ -87,6 +91,7 @@ public sealed class IdentitySeederTests
             permissionScopeService,
             userService,
             options,
+            configuration,
             NullLogger<IdentitySeeder>.Instance);
 
         await sut.SeedAsync();
@@ -148,6 +153,7 @@ public sealed class IdentitySeederTests
                 ["users.read.self"] = ["api"],
             },
         });
+        var configuration = new ConfigurationBuilder().Build();
 
         var sut = new IdentitySeeder(
             roleService,
@@ -155,6 +161,7 @@ public sealed class IdentitySeederTests
             permissionScopeService,
             userService,
             options,
+            configuration,
             NullLogger<IdentitySeeder>.Instance);
 
         await sut.SeedAsync();

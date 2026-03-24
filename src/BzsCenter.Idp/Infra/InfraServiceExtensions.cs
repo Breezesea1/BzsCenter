@@ -8,7 +8,15 @@ internal static class InfraServiceExtensions
     internal static void ConfigureIdentityDb(this DbContextOptionsBuilder opt,
         string connectionString)
     {
-        opt.UseNpgsql(connectionString, sql => { sql.EnableRetryOnFailure(); });
+        if (connectionString.StartsWith("Data Source=", StringComparison.OrdinalIgnoreCase))
+        {
+            opt.UseSqlite(connectionString);
+        }
+        else
+        {
+            opt.UseNpgsql(connectionString, sql => { sql.EnableRetryOnFailure(); });
+        }
+
         opt.UseOpenIddict();
     }
 

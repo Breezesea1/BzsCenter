@@ -84,6 +84,16 @@ jobs:
             tests/BzsCenter.Idp.UnitTests/TestResults/**/*.trx
             tests/BzsCenter.Idp.IntegrationTests/TestResults/**/*.trx
 
+      - name: Upload Release build outputs for E2E jobs
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-build-outputs
+          path: |
+            src/**/bin/Release/**
+            src/**/obj/Release/**
+            tests/**/bin/Release/**
+            tests/**/obj/Release/**
+
   e2e-smoke:
     name: E2E smoke tests
     runs-on: ubuntu-latest
@@ -95,35 +105,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Cache NuGet packages
+      - name: Download Release build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build-outputs
+          path: .
+
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
-          path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: src/BzsCenter.Idp
-
-      - name: Restore solution
-        run: dotnet restore BzsCenter.sln
-
-      - name: Build E2E tests
-        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj') }}
 
       - name: Install Playwright browsers
         run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
@@ -131,6 +128,7 @@ jobs:
       - name: Run E2E smoke tests
         env:
           CI: true
+          TESTING__SMOKE__ENABLED: true
         run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --filter "${{ env.E2E_SMOKE_FILTER }}" --logger "trx;LogFileName=e2e-smoke-tests.trx"
 
       - name: Upload E2E smoke artifacts
@@ -153,35 +151,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Cache NuGet packages
+      - name: Download Release build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build-outputs
+          path: .
+
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
-          path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: src/BzsCenter.Idp
-
-      - name: Restore solution
-        run: dotnet restore BzsCenter.sln
-
-      - name: Build E2E tests
-        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj') }}
 
       - name: Install Playwright browsers
         run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps
@@ -189,6 +174,7 @@ jobs:
       - name: Run application startup smoke test
         env:
           CI: true
+          TESTING__SMOKE__ENABLED: true
         run: dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-build --filter "${{ env.E2E_STARTUP_FILTER }}" --logger "trx;LogFileName=app-startup-tests.trx"
 
       - name: Upload application startup artifacts
@@ -211,35 +197,22 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: npm
-          cache-dependency-path: src/BzsCenter.Idp/package-lock.json
-
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Cache NuGet packages
+      - name: Download Release build outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: release-build-outputs
+          path: .
+
+      - name: Cache Playwright browsers
         uses: actions/cache@v4
         with:
-          path: ${{ env.NUGET_PACKAGES }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.props', '**/*.targets', 'global.json') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Install frontend dependencies
-        run: npm ci
-        working-directory: src/BzsCenter.Idp
-
-      - name: Restore solution
-        run: dotnet restore BzsCenter.sln
-
-      - name: Build E2E tests
-        run: dotnet build tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj -c Release --no-restore
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj') }}
 
       - name: Install Playwright browsers
         run: pwsh tests/BzsCenter.Idp.E2ETests/bin/Release/net10.0/playwright.ps1 install --with-deps

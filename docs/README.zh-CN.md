@@ -1,25 +1,25 @@
-# BzsCenter
+# BzsOIDC
 
 [English](./README.en.md) | [仓库根目录 README](../README.md)
 
-BzsCenter 是一个基于 `.NET 10` 的身份平台解决方案，核心应用为 `BzsCenter.Idp`。它使用 ASP.NET Core、Blazor、OpenIddict、EF Core、Redis、PostgreSQL，并通过 .NET Aspire 编排本地开发环境。
+BzsOIDC 是一个基于 `.NET 10` 的身份平台解决方案，核心应用为 `BzsOIDC.Idp`。它使用 ASP.NET Core、Blazor、OpenIddict、EF Core、Redis、PostgreSQL，并通过 .NET Aspire 编排本地开发环境。
 
 ## 仓库结构
 
 ```text
-BzsCenter/
+BzsOIDC/
 ├── src/
-│   ├── BzsCenter.AppHost/                 # Aspire 本地编排入口
-│   ├── BzsCenter.AppHost.ServiceDefaults/ # 服务默认配置 / OTEL / 健康检查
-│   ├── BzsCenter.Idp/                     # 主 Web 应用
-│   ├── BzsCenter.Idp.Client/              # 客户端 / 共享 UI 服务
-│   ├── BzsCenter.Idp.Migrator/            # 数据库迁移可执行项目
+│   ├── BzsOIDC.AppHost/                 # Aspire 本地编排入口
+│   ├── BzsOIDC.AppHost.ServiceDefaults/ # 服务默认配置 / OTEL / 健康检查
+│   ├── BzsOIDC.Idp/                     # 主 Web 应用
+│   ├── BzsOIDC.Idp.Client/              # 客户端 / 共享 UI 服务
+│   ├── BzsOIDC.Idp.Migrator/            # 数据库迁移可执行项目
 │   └── Shared/
-│       └── BzsCenter.Shared.Infrastructure/
+│       └── BzsOIDC.Shared.Infrastructure/
 └── tests/
-    ├── BzsCenter.Idp.UnitTests/
-    ├── BzsCenter.Idp.IntegrationTests/
-    └── BzsCenter.Idp.E2ETests/
+    ├── BzsOIDC.Idp.UnitTests/
+    ├── BzsOIDC.Idp.IntegrationTests/
+    └── BzsOIDC.Idp.E2ETests/
 ```
 
 ## 技术栈
@@ -35,12 +35,12 @@ BzsCenter/
 
 ## 本地运行方式
 
-`src/BzsCenter.AppHost/AppHost.cs` 定义了本地开发时的运行拓扑：
+`src/BzsOIDC.AppHost/AppHost.cs` 定义了本地开发时的运行拓扑：
 
 - PostgreSQL（带数据卷）
 - Redis
-- `BzsCenter.Idp`
-- `BzsCenter.Idp.Migrator`
+- `BzsOIDC.Idp`
+- `BzsOIDC.Idp.Migrator`
 
 AppHost 会把配置注入应用，并在 migrator 完成后再让主 IDP 服务进入就绪状态。
 
@@ -61,8 +61,8 @@ AppHost 会把配置注入应用，并在 migrator 完成后再让主 IDP 服务
 ### 还原与构建
 
 ```bash
-dotnet restore BzsCenter.sln
-dotnet build BzsCenter.sln
+dotnet restore BzsOIDC.sln
+dotnet build BzsOIDC.sln
 ```
 
 ### 启动完整本地环境
@@ -74,12 +74,12 @@ aspire run
 ### 仅启动 IDP 应用
 
 ```bash
-dotnet run --project src/BzsCenter.Idp/BzsCenter.Idp.csproj
+dotnet run --project src/BzsOIDC.Idp/BzsOIDC.Idp.csproj
 ```
 
 ### 前端资源命令
 
-在 `src/BzsCenter.Idp/` 目录中按需执行：
+在 `src/BzsOIDC.Idp/` 目录中按需执行：
 
 ```bash
 npm install
@@ -88,11 +88,11 @@ npm run css:watch
 npm run gsap:copy
 ```
 
-`BzsCenter.Idp.csproj` 已经会在 `Build` 和 `Publish` 前自动执行 `css:build` 与 `gsap:copy`。但当 `package-lock.json` 已存在时，`npm install` 不会自动重新执行，因此首次拉取或依赖变更后请手动运行。
+`BzsOIDC.Idp.csproj` 已经会在 `Build` 和 `Publish` 前自动执行 `css:build` 与 `gsap:copy`。但当 `package-lock.json` 已存在时，`npm install` 不会自动重新执行，因此首次拉取或依赖变更后请手动运行。
 
 ### 数据库迁移
 
-在 `src/BzsCenter.Idp/` 目录执行：
+在 `src/BzsOIDC.Idp/` 目录执行：
 
 ```bash
 dotnet ef migrations add <MigrationName> --context IdpDbContext
@@ -104,22 +104,22 @@ dotnet ef database update --context IdpDbContext
 ### 运行全部测试
 
 ```bash
-dotnet test BzsCenter.sln
+dotnet test BzsOIDC.sln
 ```
 
 ### 运行单个测试项目
 
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj
-dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj
+dotnet test tests/BzsOIDC.Idp.IntegrationTests/BzsOIDC.Idp.IntegrationTests.csproj
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj
 ```
 
 ### 运行单个测试
 
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
 ```
 
 ### 测试分层
@@ -137,4 +137,4 @@ dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter 
 
 ## 部署说明
 
-当前仓库更偏向使用 Aspire 进行本地开发编排。已提交的 `docs/github-cicd-ubuntu-docker-plan.md` 建议在生产环境中部署 `BzsCenter.Idp` 与 `BzsCenter.Idp.Migrator`，而不是直接把 AppHost 原样搬到生产环境。
+当前仓库更偏向使用 Aspire 进行本地开发编排。已提交的 `docs/github-cicd-ubuntu-docker-plan.md` 建议在生产环境中部署 `BzsOIDC.Idp` 与 `BzsOIDC.Idp.Migrator`，而不是直接把 AppHost 原样搬到生产环境。

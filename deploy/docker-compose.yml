@@ -4,11 +4,11 @@ x-logging: &default-logging
     max-size: "10m"
     max-file: "5"
 
-name: ${COMPOSE_PROJECT_NAME:-bzscenter}
+name: ${COMPOSE_PROJECT_NAME:-bzsoidc}
 
 services:
   idp-migrator:
-    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzscenter-idp-migrator:${IMAGE_TAG:?IMAGE_TAG is required}
+    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzsoidc-idp-migrator:${IMAGE_TAG:?IMAGE_TAG is required}
     pull_policy: always
     restart: "no"
     environment:
@@ -17,8 +17,8 @@ services:
       Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
       Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
       IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
-      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
-      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsOIDC.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzsoidc/idp-dpkeys}
       DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
       Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
       Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
@@ -30,8 +30,8 @@ services:
       Authentication__GitHub__ClientSecret: ${Authentication__GitHub__ClientSecret:-}
       Authentication__GitHub__CallbackPath: ${Authentication__GitHub__CallbackPath:-/signin-github}
     volumes:
-      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
-      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
+      - ${DATA_PROTECTION_PATH:-/opt/bzsoidc/data-protection}:/var/lib/bzsoidc/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzsoidc/certs}:/certs:ro
     security_opt:
       - no-new-privileges:true
     logging: *default-logging
@@ -39,7 +39,7 @@ services:
       - edge
 
   idp:
-    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzscenter-idp:${IMAGE_TAG:?IMAGE_TAG is required}
+    image: ${GHCR_IMAGE_PREFIX:?GHCR_IMAGE_PREFIX is required}/bzsoidc-idp:${IMAGE_TAG:?IMAGE_TAG is required}
     pull_policy: always
     restart: unless-stopped
     depends_on:
@@ -56,8 +56,8 @@ services:
       Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
       Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
       IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
-      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
-      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsOIDC.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzsoidc/idp-dpkeys}
       DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
       Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
       Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
@@ -69,8 +69,8 @@ services:
       Authentication__GitHub__ClientSecret: ${Authentication__GitHub__ClientSecret:-}
       Authentication__GitHub__CallbackPath: ${Authentication__GitHub__CallbackPath:-/signin-github}
     volumes:
-      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
-      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
+      - ${DATA_PROTECTION_PATH:-/opt/bzsoidc/data-protection}:/var/lib/bzsoidc/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzsoidc/certs}:/certs:ro
     security_opt:
       - no-new-privileges:true
     stop_grace_period: 45s

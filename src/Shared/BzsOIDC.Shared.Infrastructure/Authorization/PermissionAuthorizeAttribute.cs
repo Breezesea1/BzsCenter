@@ -1,0 +1,22 @@
+using Microsoft.AspNetCore.Authorization;
+
+namespace BzsOIDC.Shared.Infrastructure.Authorization;
+
+public sealed class PermissionAuthorizeAttribute : AuthorizeAttribute
+{
+    public const string DefaultPolicyPrefix = "perm:";
+
+    /// <summary>
+    /// 初始化实例。
+    /// </summary>
+    /// <param name="permission">参数permission。</param>
+    public PermissionAuthorizeAttribute(string permission)
+    {
+        if (string.IsNullOrWhiteSpace(permission))
+        {
+            throw new ArgumentException("Permission cannot be empty.", nameof(permission));
+        }
+
+        Policy = $"{DefaultPolicyPrefix}{permission.Trim()}";
+    }
+}

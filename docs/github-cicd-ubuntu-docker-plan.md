@@ -1,11 +1,11 @@
-# BzsCenter IDP GitHub CI/CD 与 Ubuntu Docker 部署方案
+# BzsOIDC IDP GitHub CI/CD 与 Ubuntu Docker 部署方案
 
 ## 目标
 
-为当前 `BzsCenter` 仓库设计一套适合本地 Ubuntu 服务器的 GitHub CI/CD 方案，实现以下目标：
+为当前 `BzsOIDC` 仓库设计一套适合本地 Ubuntu 服务器的 GitHub CI/CD 方案，实现以下目标：
 
 - GitHub 上自动执行构建、格式检查、测试
-- 自动构建并推送 `BzsCenter.Idp` 容器镜像
+- 自动构建并推送 `BzsOIDC.Idp` 容器镜像
 - 自动部署到本地 Ubuntu 机器上的 Docker
 - 将数据库迁移与种子初始化纳入发布流程
 - 支持版本化发布与失败回滚
@@ -18,11 +18,11 @@
 
 当前仓库里与部署直接相关的部分如下：
 
-- `src/BzsCenter.AppHost/AppHost.cs`
+- `src/BzsOIDC.AppHost/AppHost.cs`
   - 当前用 Aspire 在本地编排 `postgres`、`redis`、`idp`、`idp-migrator`
-- `src/BzsCenter.Idp/`
+- `src/BzsOIDC.Idp/`
   - 实际长期运行的 IDP Web 应用
-- `src/BzsCenter.Idp.Migrator/`
+- `src/BzsOIDC.Idp.Migrator/`
   - 启动后执行数据库迁移和 `IdentitySeeder`
 
 当前已确认的事实：
@@ -30,7 +30,7 @@
 - 仓库里**还没有** Dockerfile
 - 仓库里**还没有** `docker-compose.yml`
 - 仓库里**还没有** GitHub Actions workflow
-- `BzsCenter.Idp.csproj` 在 `Build/Publish` 前会自动执行前端资源构建：
+- `BzsOIDC.Idp.csproj` 在 `Build/Publish` 前会自动执行前端资源构建：
   - `npm run css:build`
   - `npm run gsap:copy`
 
@@ -42,7 +42,7 @@
 
 ### 结论
 
-**生产环境只部署 `BzsCenter.Idp` 和 `BzsCenter.Idp.Migrator`，不要把 Aspire AppHost 原样搬到生产。**
+**生产环境只部署 `BzsOIDC.Idp` 和 `BzsOIDC.Idp.Migrator`，不要把 Aspire AppHost 原样搬到生产。**
 
 ### 原因
 
@@ -57,7 +57,7 @@
 建议 Ubuntu 上运行以下组件：
 
 - `reverse-proxy`：Nginx 或 Caddy
-- `idp`：`BzsCenter.Idp` 主应用
+- `idp`：`BzsOIDC.Idp` 主应用
 - `postgres`：数据库
 - `redis`：缓存
 - `idp-migrator`：一次性迁移任务，不常驻
@@ -71,7 +71,7 @@
 
 ## 三、为什么必须把 Migrator 纳入发布流程
 
-`src/BzsCenter.Idp.Migrator/Program.cs` 已明确说明：
+`src/BzsOIDC.Idp.Migrator/Program.cs` 已明确说明：
 
 - 它会执行数据库迁移
 - 它会执行 `IdentitySeeder().SeedAsync()`
@@ -160,11 +160,11 @@
 1. Checkout
 2. 安装 .NET 10 SDK
 3. 安装 Node.js
-4. `dotnet restore BzsCenter.sln`
-5. `dotnet build BzsCenter.sln -c Release`
-6. `dotnet format BzsCenter.sln --verify-no-changes --verbosity minimal`
-7. `dotnet test BzsCenter.sln -c Release`
-8. 构建 `BzsCenter.Idp` 容器镜像
+4. `dotnet restore BzsOIDC.sln`
+5. `dotnet build BzsOIDC.sln -c Release`
+6. `dotnet format BzsOIDC.sln --verify-no-changes --verbosity minimal`
+7. `dotnet test BzsOIDC.sln -c Release`
+8. 构建 `BzsOIDC.Idp` 容器镜像
 9. 若为 `main` 分支，则推送到 GHCR
 
 ### 2. `deploy.yml`
@@ -201,8 +201,8 @@
 
 建议至少准备两个镜像：
 
-- `bzscenter-idp`
-- `bzscenter-idp-migrator`
+- `bzsoidc-idp`
+- `bzsoidc-idp-migrator`
 
 这样部署流程会更清晰：
 
@@ -224,8 +224,8 @@
 
 例如：
 
-- `ghcr.io/<owner>/bzscenter-idp:latest`
-- `ghcr.io/<owner>/bzscenter-idp:sha-abc1234`
+- `ghcr.io/<owner>/bzsoidc-idp:latest`
+- `ghcr.io/<owner>/bzsoidc-idp:sha-abc1234`
 
 部署时优先使用 `sha-*`，这样可以明确回滚到某个发布版本。
 
@@ -236,7 +236,7 @@
 建议在 Ubuntu 服务器上固定部署目录：
 
 ```text
-/opt/bzscenter/
+/opt/bzsoidc/
   docker-compose.yml
   .env
   deploy.sh
@@ -310,7 +310,7 @@
 部署时：
 
 ```bash
-docker run --rm ... bzscenter-idp-migrator:sha-xxxx
+docker run --rm ... bzsoidc-idp-migrator:sha-xxxx
 ```
 
 ### 方式 B：Compose 中定义 service，但不常驻
@@ -443,7 +443,7 @@ docker compose up -d idp
 
 对于当前仓库，最合适的方案可以概括为一句话：
 
-> 使用 GitHub Actions 做 CI 和镜像发布，使用 GHCR 做镜像仓库，使用 Ubuntu 上的 Docker Compose 管理 `postgres`、`redis`、`idp`，并在每次发布时先执行 `BzsCenter.Idp.Migrator`，成功后再切换 `idp` 服务。
+> 使用 GitHub Actions 做 CI 和镜像发布，使用 GHCR 做镜像仓库，使用 Ubuntu 上的 Docker Compose 管理 `postgres`、`redis`、`idp`，并在每次发布时先执行 `BzsOIDC.Idp.Migrator`，成功后再切换 `idp` 服务。
 
 这套方案和当前仓库结构匹配度高，复杂度可控，后续也方便继续升级成更完整的自动化交付体系。
 
@@ -453,8 +453,8 @@ docker compose up -d idp
 
 下一步可以直接在仓库中补齐以下文件：
 
-- `Dockerfile`（`src/BzsCenter.Idp/`）
-- `Dockerfile`（`src/BzsCenter.Idp.Migrator/`）
+- `Dockerfile`（`src/BzsOIDC.Idp/`）
+- `Dockerfile`（`src/BzsOIDC.Idp.Migrator/`）
 - `docker-compose.yml`
 - `.github/workflows/ci.yml`
 - `.github/workflows/deploy.yml`

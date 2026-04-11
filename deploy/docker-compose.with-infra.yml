@@ -10,14 +10,14 @@ services:
     pull_policy: always
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-bzscenter}
-      POSTGRES_USER: ${POSTGRES_USER:-bzscenter}
+      POSTGRES_DB: ${POSTGRES_DB:-bzsoidc}
+      POSTGRES_USER: ${POSTGRES_USER:-bzsoidc}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       PGDATA: /var/lib/postgresql/data/pgdata
     volumes:
-      - ${POSTGRES_DATA_PATH:-/opt/bzscenter/postgres}:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_PATH:-/opt/bzsoidc/postgres}:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bzscenter} -d ${POSTGRES_DB:-bzscenter}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-bzsoidc} -d ${POSTGRES_DB:-bzsoidc}"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -32,7 +32,7 @@ services:
     restart: unless-stopped
     command: ["redis-server", "--appendonly", "yes"]
     volumes:
-      - ${REDIS_DATA_PATH:-/opt/bzscenter/redis}:/data
+      - ${REDIS_DATA_PATH:-/opt/bzsoidc/redis}:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -52,7 +52,7 @@ services:
       idp-migrator:
         condition: service_completed_successfully
     environment:
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzsoidc};Username=${POSTGRES_USER:-bzsoidc};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       ConnectionStrings__redis: redis:6379
     networks:
       - default
@@ -66,13 +66,13 @@ services:
         condition: service_healthy
     environment:
       DOTNET_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
-      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzscenter};Username=${POSTGRES_USER:-bzscenter};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      ConnectionStrings__DefaultConnection: Host=postgres;Port=5432;Database=${POSTGRES_DB:-bzsoidc};Username=${POSTGRES_USER:-bzsoidc};Password=${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
       ConnectionStrings__redis: redis:6379
       Identity__Admin__UserName: ${Identity__Admin__UserName:?Identity__Admin__UserName is required}
       Identity__Admin__Password: ${Identity__Admin__Password:?Identity__Admin__Password is required}
       IdpIssuer: ${IdpIssuer:?IdpIssuer is required}
-      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsCenter.Idp}
-      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzscenter/idp-dpkeys}
+      DataProtection__ApplicationName: ${DataProtection__ApplicationName:-BzsOIDC.Idp}
+      DataProtection__StorageDirectory: ${DataProtection__StorageDirectory:-/var/lib/bzsoidc/idp-dpkeys}
       DataProtection__KeyLifetimeDays: ${DataProtection__KeyLifetimeDays:-90}
       Oidc__SigningCertificatePath__0: ${Oidc__SigningCertificatePath__0:?Oidc__SigningCertificatePath__0 is required}
       Oidc__SigningCertificatePassword__0: ${Oidc__SigningCertificatePassword__0:?Oidc__SigningCertificatePassword__0 is required}
@@ -81,8 +81,8 @@ services:
       ForwardedHeaders__KnownProxies__0: ${ForwardedHeaders__KnownProxies__0:-}
       ForwardedHeaders__KnownIpNetworks__0: ${ForwardedHeaders__KnownIpNetworks__0:-}
     volumes:
-      - ${DATA_PROTECTION_PATH:-/opt/bzscenter/data-protection}:/var/lib/bzscenter/idp-dpkeys
-      - ${CERTS_PATH:-/opt/bzscenter/certs}:/certs:ro
+      - ${DATA_PROTECTION_PATH:-/opt/bzsoidc/data-protection}:/var/lib/bzsoidc/idp-dpkeys
+      - ${CERTS_PATH:-/opt/bzsoidc/certs}:/certs:ro
     networks:
       - default
       - edge

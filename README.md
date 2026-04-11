@@ -1,8 +1,8 @@
-# BzsCenter
+# BzsOIDC
 
 [English Guide](./docs/README.en.md) | [中文文档](./docs/README.zh-CN.md)
 
-`BzsCenter` 是一个基于 **.NET 10** 的身份平台仓库，核心应用是 `BzsCenter.Idp`。
+`BzsOIDC` 是一个基于 **.NET 10** 的身份平台仓库，核心应用是 `BzsOIDC.Idp`。
 它把 **ASP.NET Core + Blazor + OpenIddict + EF Core + PostgreSQL + Redis + .NET Aspire** 组合成一套可本地编排、可测试、可容器化部署的 OIDC / 身份系统。
 
 ## 这是一个什么项目
@@ -20,19 +20,19 @@
 
 ### 登录页
 
-![BzsCenter 登录页](./docs/login-page.png)
+![BzsOIDC 登录页](./docs/login-page.png)
 
 ### 首页 / 概览页
 
-![BzsCenter 首页概览](./docs/home-page.png)
+![BzsOIDC 首页概览](./docs/home-page.png)
 
 ### 用户管理页
 
-![BzsCenter 用户管理](./docs/user-management-page.png)
+![BzsOIDC 用户管理](./docs/user-management-page.png)
 
 ### 客户端管理页
 
-![BzsCenter 客户端管理](./docs/client-management-page.png)
+![BzsOIDC 客户端管理](./docs/client-management-page.png)
 
 ## 本地运行时长什么样
 
@@ -56,9 +56,9 @@ flowchart LR
 
 简单理解：
 
-- `src/BzsCenter.AppHost` 负责本地编排
-- `src/BzsCenter.Idp` 是主 Web 应用
-- `src/BzsCenter.Idp.Migrator` 负责迁移和种子数据
+- `src/BzsOIDC.AppHost` 负责本地编排
+- `src/BzsOIDC.Idp` 是主 Web 应用
+- `src/BzsOIDC.Idp.Migrator` 负责迁移和种子数据
 - PostgreSQL / Redis 作为依赖资源由 Aspire 一起管理
 
 ## 快速开始
@@ -73,8 +73,8 @@ flowchart LR
 ### 安装与构建
 
 ```bash
-dotnet restore BzsCenter.sln
-dotnet build BzsCenter.sln
+dotnet restore BzsOIDC.sln
+dotnet build BzsOIDC.sln
 ```
 
 ### 启动整套本地环境
@@ -98,19 +98,19 @@ aspire run
 ## 这个仓库里有什么
 
 ```text
-BzsCenter/
+BzsOIDC/
 ├── src/
-│   ├── BzsCenter.AppHost/                 # Aspire 编排入口
-│   ├── BzsCenter.AppHost.ServiceDefaults/ # 服务默认配置
-│   ├── BzsCenter.Idp/                     # 身份平台主站
-│   ├── BzsCenter.Idp.Client/              # 共享客户端/UI 组件
-│   ├── BzsCenter.Idp.Migrator/            # 数据库迁移与种子
+│   ├── BzsOIDC.AppHost/                 # Aspire 编排入口
+│   ├── BzsOIDC.AppHost.ServiceDefaults/ # 服务默认配置
+│   ├── BzsOIDC.Idp/                     # 身份平台主站
+│   ├── BzsOIDC.Idp.Client/              # 共享客户端/UI 组件
+│   ├── BzsOIDC.Idp.Migrator/            # 数据库迁移与种子
 │   └── Shared/
-│       └── BzsCenter.Shared.Infrastructure/
+│       └── BzsOIDC.Shared.Infrastructure/
 ├── tests/
-│   ├── BzsCenter.Idp.UnitTests/
-│   ├── BzsCenter.Idp.IntegrationTests/
-│   └── BzsCenter.Idp.E2ETests/
+│   ├── BzsOIDC.Idp.UnitTests/
+│   ├── BzsOIDC.Idp.IntegrationTests/
+│   └── BzsOIDC.Idp.E2ETests/
 ├── deploy/
 ├── docs/
 └── .github/workflows/
@@ -127,15 +127,15 @@ BzsCenter/
 常用命令：
 
 ```bash
-dotnet test BzsCenter.sln
+dotnet test BzsOIDC.sln
 ```
 
 如果只想跑某一层：
 
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj
-dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj
+dotnet test tests/BzsOIDC.Idp.IntegrationTests/BzsOIDC.Idp.IntegrationTests.csproj
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj
 ```
 
 ## 生产部署相关
@@ -156,7 +156,7 @@ dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj
 
 ## 一句话总结
 
-`BzsCenter` 现在是一套偏完整的 **身份平台 / OIDC 管理后台** 仓库：
+`BzsOIDC` 现在是一套偏完整的 **身份平台 / OIDC 管理后台** 仓库：
 
 - 本地用 Aspire 一键拉起
 - 页面已经覆盖登录、概览、用户和客户端管理

@@ -1,28 +1,28 @@
 # AGENTS.md
-Repository-specific guidance for coding agents working in **BzsCenter**.
+Repository-specific guidance for coding agents working in **BzsOIDC**.
 Favor small, verifiable changes and match existing local patterns.
 
 ## 1. Repository shape
 ```text
-BzsCenter/
+BzsOIDC/
 ├── src/
-│   ├── BzsCenter.AppHost/                 # Aspire AppHost
-│   ├── BzsCenter.AppHost.ServiceDefaults/ # OTEL, health, defaults
-│   ├── BzsCenter.Idp/                     # ASP.NET Core + Blazor IDP
-│   ├── BzsCenter.Idp.Client/              # client/shared UI services
-│   ├── BzsCenter.Idp.Migrator/            # DB migration executable
+│   ├── BzsOIDC.AppHost/                 # Aspire AppHost
+│   ├── BzsOIDC.AppHost.ServiceDefaults/ # OTEL, health, defaults
+│   ├── BzsOIDC.Idp/                     # ASP.NET Core + Blazor IDP
+│   ├── BzsOIDC.Idp.Client/              # client/shared UI services
+│   ├── BzsOIDC.Idp.Migrator/            # DB migration executable
 │   └── Shared/
-│       └── BzsCenter.Shared.Infrastructure/
+│       └── BzsOIDC.Shared.Infrastructure/
 ├── tests/
-│   ├── BzsCenter.Idp.UnitTests/           # xUnit + NSubstitute + bUnit
-│   ├── BzsCenter.Idp.IntegrationTests/    # xUnit + TestHost + SQLite
-│   └── BzsCenter.Idp.E2ETests/            # xUnit + Playwright + Aspire
-└── BzsCenter.sln
+│   ├── BzsOIDC.Idp.UnitTests/           # xUnit + NSubstitute + bUnit
+│   ├── BzsOIDC.Idp.IntegrationTests/    # xUnit + TestHost + SQLite
+│   └── BzsOIDC.Idp.E2ETests/            # xUnit + Playwright + Aspire
+└── BzsOIDC.sln
 ```
 - Target framework: `net10.0`
 - `Nullable=enable`, `ImplicitUsings=enable`
 - Main stack: ASP.NET Core, Blazor, OpenIddict, EF Core, Aspire
-- Frontend assets live in `src/BzsCenter.Idp/` and use Tailwind CLI + GSAP copy script
+- Frontend assets live in `src/BzsOIDC.Idp/` and use Tailwind CLI + GSAP copy script
 
 ## 2. Rule files
 Present: `AGENTS.md`
@@ -39,15 +39,15 @@ Run from the repo root unless noted otherwise.
 
 ### 3.1 Restore / build
 ```bash
-dotnet restore BzsCenter.sln
-dotnet build BzsCenter.sln
-dotnet build BzsCenter.sln -c Release
+dotnet restore BzsOIDC.sln
+dotnet build BzsOIDC.sln
+dotnet build BzsOIDC.sln -c Release
 ```
 
 ### 3.2 Format / lint verification
 ```bash
-dotnet format BzsCenter.sln --verify-no-changes --verbosity minimal
-dotnet format BzsCenter.sln --verbosity minimal
+dotnet format BzsOIDC.sln --verify-no-changes --verbosity minimal
+dotnet format BzsOIDC.sln --verbosity minimal
 ```
 
 ### 3.3 Run the app
@@ -59,22 +59,22 @@ This is also what the E2E fixture launches.
 
 Run only the IDP directly:
 ```bash
-dotnet run --project src/BzsCenter.Idp/BzsCenter.Idp.csproj
+dotnet run --project src/BzsOIDC.Idp/BzsOIDC.Idp.csproj
 ```
 
 ### 3.4 Frontend asset commands
-Run in `src/BzsCenter.Idp/` when needed:
+Run in `src/BzsOIDC.Idp/` when needed:
 ```bash
 npm install
 npm run css:build
 npm run css:watch
 npm run gsap:copy
 ```
-`BzsCenter.Idp.csproj` already runs `css:build` and `gsap:copy` before `Build` and `Publish`.
+`BzsOIDC.Idp.csproj` already runs `css:build` and `gsap:copy` before `Build` and `Publish`.
 `npm install` is not automatically re-run when `package-lock.json` already exists, so run it manually after dependency changes or on a fresh machine.
 
 ### 3.5 Database migrations
-From `src/BzsCenter.Idp/`:
+From `src/BzsOIDC.Idp/`:
 ```bash
 dotnet ef migrations add <MigrationName> --context IdpDbContext
 dotnet ef database update --context IdpDbContext
@@ -83,28 +83,28 @@ dotnet ef database update --context IdpDbContext
 ## 4. Test commands
 ### 4.1 Run all tests
 ```bash
-dotnet test BzsCenter.sln
-dotnet test BzsCenter.sln --no-build
+dotnet test BzsOIDC.sln
+dotnet test BzsOIDC.sln --no-build
 ```
 
 ### 4.2 Run one test project
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj
-dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj
+dotnet test tests/BzsOIDC.Idp.IntegrationTests/BzsOIDC.Idp.IntegrationTests.csproj
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj
 ```
 
 ### 4.3 Run a single test
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
 ```
 
 ### 4.4 Run a class or subset
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj --filter "FullyQualifiedName~PermissionScopesControllerTests"
-dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj --filter "FullyQualifiedName~ConnectControllerIntegrationTests"
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter "FullyQualifiedName~AuthExperienceE2ETests"
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj --filter "FullyQualifiedName~PermissionScopesControllerTests"
+dotnet test tests/BzsOIDC.Idp.IntegrationTests/BzsOIDC.Idp.IntegrationTests.csproj --filter "FullyQualifiedName~ConnectControllerIntegrationTests"
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj --filter "FullyQualifiedName~AuthExperienceE2ETests"
 ```
 
 ### 4.5 Test notes
@@ -157,7 +157,7 @@ Follow the surrounding file before applying generic .NET preferences.
 - Register services through `IServiceCollection` helpers instead of scattering setup inline
 - Follow patterns like `AddOptions<T>().Bind(...)`
 - Keep `AddDbContext` and `AddDbContextFactory` aligned with current IDP registration
-- Check `src/Shared/BzsCenter.Shared.Infrastructure/` before adding new infra helpers
+- Check `src/Shared/BzsOIDC.Shared.Infrastructure/` before adding new infra helpers
 
 ### 5.8 Error handling and logging
 - Prefer descriptive exceptions; `InvalidOperationException` with clear context is common
@@ -176,13 +176,13 @@ If you touch auth, OIDC, migrations, startup wiring, or UI flows, add or run int
 
 ## 6. Agent workflow for this repo
 1. Read the target area first; do not guess how services are wired.
-2. Reuse helpers from `src/Shared/BzsCenter.Shared.Infrastructure/` before creating new infra code.
+2. Reuse helpers from `src/Shared/BzsOIDC.Shared.Infrastructure/` before creating new infra code.
 3. After edits, verify with the smallest relevant set first:
 ```bash
-dotnet build BzsCenter.sln
-dotnet format BzsCenter.sln --verify-no-changes --verbosity minimal
+dotnet build BzsOIDC.sln
+dotnet format BzsOIDC.sln --verify-no-changes --verbosity minimal
 dotnet test <affected project or filtered test>
 ```
-4. For broader changes, finish with `dotnet test BzsCenter.sln`.
-5. If you changed frontend assets or UI classes under `src/BzsCenter.Idp/`, make sure the CSS/asset pipeline still works.
+4. For broader changes, finish with `dotnet test BzsOIDC.sln`.
+5. If you changed frontend assets or UI classes under `src/BzsOIDC.Idp/`, make sure the CSS/asset pipeline still works.
 Keep this file synchronized with the repo whenever projects, test layers, or rule files change.

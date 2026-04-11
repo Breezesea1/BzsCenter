@@ -1,0 +1,183 @@
+@using BzsOIDC.Idp.Services.Oidc
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<ClientManagement> L
+
+<AdminDialogShell IsOpen="@IsOpen"
+                  IsBusy="@IsBusy"
+                  Title="@DialogTitle"
+                  Lead="@DialogLead"
+                  CloseLabel="@L["Close"]"
+                  InitialFocusSelector="@InitialFocusSelector"
+                  OnClose="OnClose">
+    <ChildContent>
+        @if (FormErrors.Count > 0)
+        {
+            <div class="admin-feedback is-error">
+                <strong>@L["CouldNotSaveClient"]</strong>
+                <ul>
+                    @foreach (var error in FormErrors)
+                    {
+                        <li>@error</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <div class="admin-form-grid">
+            <NeoField Label="@L["ClientId"]" ForId="editor-client-id">
+                <input id="editor-client-id"
+                       class="neo-input"
+                       type="text"
+                       value="@ClientId"
+                       @oninput="HandleClientIdInput"
+                       disabled="@IsEditing"
+                       placeholder="@L["LeaveEmptyToAutoGenerate"]"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
+            </NeoField>
+
+            <NeoField Label="@L["DisplayName"]" ForId="editor-display-name">
+                <input id="editor-display-name"
+                       class="neo-input"
+                       type="text"
+                       value="@DisplayName"
+                       @oninput="HandleDisplayNameInput"
+                       autocomplete="off"
+                       autocapitalize="off"
+                       autocorrect="off"
+                       spellcheck="false" />
+            </NeoField>
+
+            <NeoField Label="@L["Profile"]" ForId="editor-profile" Hint="@L["ProfileHelp"]">
+                <NeoSelect TValue="OidcClientProfile"
+                           Id="editor-profile"
+                           AriaLabel="@L["Profile"]"
+                           Value="Profile"
+                           ValueChanged="ProfileChanged"
+                           Options="@ProfileOptions" />
+            </NeoField>
+
+            <NeoField Label="@L["Scopes"]" ForId="editor-scopes" Hint="@L["ScopesHelp"]">
+                <textarea id="editor-scopes"
+                          class="neo-textarea"
+                          rows="4"
+                          value="@ScopesText"
+                          @oninput="HandleScopesInput"
+                          placeholder="@L["ScopesPlaceholder"]"
+                          autocomplete="off"
+                          autocapitalize="off"
+                          autocorrect="off"
+                          spellcheck="false"></textarea>
+            </NeoField>
+
+            @if (Profile == OidcClientProfile.FirstPartyInteractive)
+            {
+                <NeoField Label="@L["RedirectUris"]" ForId="editor-redirect-uris">
+                    <textarea id="editor-redirect-uris"
+                              class="neo-textarea"
+                              rows="4"
+                              value="@RedirectUrisText"
+                              @oninput="HandleRedirectUrisInput"
+                              placeholder="@L["RedirectUrisPlaceholder"]"
+                              autocomplete="off"
+                              autocapitalize="off"
+                              autocorrect="off"
+                              spellcheck="false"></textarea>
+                </NeoField>
+
+                <NeoField Label="@L["PostLogoutRedirectUris"]" ForId="editor-post-logout-uris">
+                    <textarea id="editor-post-logout-uris"
+                              class="neo-textarea"
+                              rows="3"
+                              value="@PostLogoutRedirectUrisText"
+                              @oninput="HandlePostLogoutRedirectUrisInput"
+                              placeholder="@L["RedirectUrisPlaceholder"]"
+                              autocomplete="off"
+                              autocapitalize="off"
+                              autocorrect="off"
+                              spellcheck="false"></textarea>
+                </NeoField>
+
+                <NeoPanel Class="admin-helper-card"
+                          Title="@L["ProfileBehavior"]"
+                          Description="@L["InteractiveProfileBehavior"]" />
+            }
+            else
+            {
+                <NeoField Label="@L["ClientSecret"]" ForId="editor-client-secret">
+                    <input id="editor-client-secret"
+                           class="neo-input"
+                           type="text"
+                           value="@ClientSecret"
+                           @oninput="HandleClientSecretInput"
+                           placeholder="@L["LeaveEmptyToAutoGenerate"]"
+                           autocomplete="new-password"
+                           autocapitalize="off"
+                           autocorrect="off"
+                           spellcheck="false" />
+                </NeoField>
+
+                <NeoPanel Class="admin-helper-card"
+                          Title="@L["ProfileBehavior"]"
+                          Description="@L["MachineProfileBehavior"]" />
+            }
+        </div>
+    </ChildContent>
+
+    <Actions>
+        <button type="button" class="admin-ghost-button" @onclick="OnReset" disabled="@IsBusy">
+            @L["Reset"]
+        </button>
+        <button type="button" class="admin-primary-button" @onclick="OnSave" disabled="@IsBusy">
+            @(IsBusy ? L["Saving"] : IsEditing ? L["SaveChanges"] : L["RegisterClient"])
+        </button>
+    </Actions>
+</AdminDialogShell>
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public bool IsEditing { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public string ClientId { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ClientIdChanged { get; set; }
+    [Parameter] public string ClientSecret { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ClientSecretChanged { get; set; }
+    [Parameter] public string DisplayName { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> DisplayNameChanged { get; set; }
+    [Parameter] public OidcClientProfile Profile { get; set; }
+    [Parameter] public EventCallback<OidcClientProfile> ProfileChanged { get; set; }
+    [Parameter] public string ScopesText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ScopesTextChanged { get; set; }
+    [Parameter] public string RedirectUrisText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> RedirectUrisTextChanged { get; set; }
+    [Parameter] public string PostLogoutRedirectUrisText { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> PostLogoutRedirectUrisTextChanged { get; set; }
+    [Parameter] public IReadOnlyList<string> FormErrors { get; set; } = [];
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public EventCallback OnReset { get; set; }
+    [Parameter] public EventCallback OnSave { get; set; }
+
+    private string DialogLead => IsEditing ? L["EditClientLead"] : L["RegisterClientLead"];
+    private string InitialFocusSelector => IsEditing ? "#editor-display-name" : "#editor-client-id";
+    private string DialogTitle => IsEditing ? L["EditClient"] : L["RegisterClient"];
+    private IReadOnlyList<NeoSelectOption<OidcClientProfile>> ProfileOptions =>
+    [
+        new(OidcClientProfile.FirstPartyInteractive, L["FirstPartyInteractive"]),
+        new(OidcClientProfile.FirstPartyMachine, L["FirstPartyMachine"]),
+    ];
+
+    private Task HandleClientIdInput(ChangeEventArgs args) => ClientIdChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleClientSecretInput(ChangeEventArgs args) => ClientSecretChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleDisplayNameInput(ChangeEventArgs args) => DisplayNameChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandlePostLogoutRedirectUrisInput(ChangeEventArgs args) => PostLogoutRedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleRedirectUrisInput(ChangeEventArgs args) => RedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task HandleScopesInput(ChangeEventArgs args) => ScopesTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+}

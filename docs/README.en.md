@@ -1,25 +1,25 @@
-# BzsCenter
+# BzsOIDC
 
 [简体中文](./README.zh-CN.md) | [Repository README](../README.md)
 
-BzsCenter is a `.NET 10` solution for an identity platform centered on `BzsCenter.Idp`, an ASP.NET Core + Blazor application that uses OpenIddict, EF Core, Redis, PostgreSQL, and .NET Aspire for local orchestration.
+BzsOIDC is a `.NET 10` solution for an identity platform centered on `BzsOIDC.Idp`, an ASP.NET Core + Blazor application that uses OpenIddict, EF Core, Redis, PostgreSQL, and .NET Aspire for local orchestration.
 
 ## Repository structure
 
 ```text
-BzsCenter/
+BzsOIDC/
 ├── src/
-│   ├── BzsCenter.AppHost/                 # Aspire entrypoint
-│   ├── BzsCenter.AppHost.ServiceDefaults/ # service defaults / OTEL / health
-│   ├── BzsCenter.Idp/                     # main web app
-│   ├── BzsCenter.Idp.Client/              # client-side/shared UI services
-│   ├── BzsCenter.Idp.Migrator/            # database migration executable
+│   ├── BzsOIDC.AppHost/                 # Aspire entrypoint
+│   ├── BzsOIDC.AppHost.ServiceDefaults/ # service defaults / OTEL / health
+│   ├── BzsOIDC.Idp/                     # main web app
+│   ├── BzsOIDC.Idp.Client/              # client-side/shared UI services
+│   ├── BzsOIDC.Idp.Migrator/            # database migration executable
 │   └── Shared/
-│       └── BzsCenter.Shared.Infrastructure/
+│       └── BzsOIDC.Shared.Infrastructure/
 └── tests/
-    ├── BzsCenter.Idp.UnitTests/
-    ├── BzsCenter.Idp.IntegrationTests/
-    └── BzsCenter.Idp.E2ETests/
+    ├── BzsOIDC.Idp.UnitTests/
+    ├── BzsOIDC.Idp.IntegrationTests/
+    └── BzsOIDC.Idp.E2ETests/
 ```
 
 ## Tech stack
@@ -35,12 +35,12 @@ BzsCenter/
 
 ## How the app runs locally
 
-`src/BzsCenter.AppHost/AppHost.cs` defines the local runtime graph:
+`src/BzsOIDC.AppHost/AppHost.cs` defines the local runtime graph:
 
 - PostgreSQL with a persistent data volume
 - Redis
-- `BzsCenter.Idp`
-- `BzsCenter.Idp.Migrator`
+- `BzsOIDC.Idp`
+- `BzsOIDC.Idp.Migrator`
 
 The AppHost wires configuration into the app and waits for the migrator to complete before the main IDP service is considered ready.
 
@@ -61,8 +61,8 @@ In development, the AppHost provides default admin credentials when they are not
 ### Restore and build
 
 ```bash
-dotnet restore BzsCenter.sln
-dotnet build BzsCenter.sln
+dotnet restore BzsOIDC.sln
+dotnet build BzsOIDC.sln
 ```
 
 ### Run the full local stack
@@ -74,12 +74,12 @@ aspire run
 ### Run only the IDP app
 
 ```bash
-dotnet run --project src/BzsCenter.Idp/BzsCenter.Idp.csproj
+dotnet run --project src/BzsOIDC.Idp/BzsOIDC.Idp.csproj
 ```
 
 ### Frontend assets
 
-Run these from `src/BzsCenter.Idp/` when needed:
+Run these from `src/BzsOIDC.Idp/` when needed:
 
 ```bash
 npm install
@@ -88,11 +88,11 @@ npm run css:watch
 npm run gsap:copy
 ```
 
-`BzsCenter.Idp.csproj` already runs `css:build` and `gsap:copy` before `Build` and `Publish`. `npm install` is not automatically re-run when `package-lock.json` already exists, so run it manually after dependency changes or on a fresh machine.
+`BzsOIDC.Idp.csproj` already runs `css:build` and `gsap:copy` before `Build` and `Publish`. `npm install` is not automatically re-run when `package-lock.json` already exists, so run it manually after dependency changes or on a fresh machine.
 
 ### Database migrations
 
-From `src/BzsCenter.Idp/`:
+From `src/BzsOIDC.Idp/`:
 
 ```bash
 dotnet ef migrations add <MigrationName> --context IdpDbContext
@@ -104,22 +104,22 @@ dotnet ef database update --context IdpDbContext
 ### Run all tests
 
 ```bash
-dotnet test BzsCenter.sln
+dotnet test BzsOIDC.sln
 ```
 
 ### Run one test project
 
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj
-dotnet test tests/BzsCenter.Idp.IntegrationTests/BzsCenter.Idp.IntegrationTests.csproj
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj
+dotnet test tests/BzsOIDC.Idp.IntegrationTests/BzsOIDC.Idp.IntegrationTests.csproj
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj
 ```
 
 ### Run a single test
 
 ```bash
-dotnet test tests/BzsCenter.Idp.UnitTests/BzsCenter.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
-dotnet test tests/BzsCenter.Idp.E2ETests/BzsCenter.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsCenter.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
+dotnet test tests/BzsOIDC.Idp.UnitTests/BzsOIDC.Idp.UnitTests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.UnitTests.Controllers.PermissionScopesControllerTests.GetByPermission_WhenPermissionEmpty_ReturnsValidationProblem"
+dotnet test tests/BzsOIDC.Idp.E2ETests/BzsOIDC.Idp.E2ETests.csproj --filter "FullyQualifiedName=BzsOIDC.Idp.E2ETests.AuthExperienceE2ETests.LoginPage_AllowsThemeAndLanguageSwitching"
 ```
 
 ### Test layers

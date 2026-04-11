@@ -86,6 +86,29 @@ public sealed class LoginTests
         Assert.Equal("true", toggleButton.GetAttribute("aria-pressed"));
     }
 
+    [Theory]
+    [InlineData("external_login_expired", "ErrorExternalLoginExpired")]
+    [InlineData("external_login_access_denied", "ErrorExternalLoginAccessDenied")]
+    public void Login_WhenExternalErrorProvided_RendersMappedErrorMessage(string errorCode, string expectedText)
+    {
+        using var context = new BunitContext();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+        context.Services.AddSingleton<AuthenticationStateProvider>(
+            new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity())));
+        context.Services.AddSingleton<IStringLocalizer<Login>, TestStringLocalizer<Login>>();
+        context.Services.AddSingleton<IStringLocalizer<AuthPreferences>, TestStringLocalizer<AuthPreferences>>();
+        context.Services.AddSingleton<AntiforgeryStateProvider, TestAntiforgeryStateProvider>();
+        context.Services.AddSingleton<IExternalLoginProviderStore>(new EmptyExternalLoginProviderStore());
+
+        var navigationManager = context.Services.GetRequiredService<NavigationManager>();
+        navigationManager.NavigateTo($"/login?error={Uri.EscapeDataString(errorCode)}");
+
+        var cut = context.Render<CascadingAuthenticationState>(parameters => parameters
+            .AddChildContent<Login>());
+
+        Assert.Contains(expectedText, cut.Markup, StringComparison.Ordinal);
+    }
+
     private sealed class TestAuthenticationStateProvider(ClaimsPrincipal user) : AuthenticationStateProvider
     {
         private readonly AuthenticationState _state = new(user);

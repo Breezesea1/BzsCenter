@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace BzsCenter.Idp.Services.Identity;
 
@@ -41,6 +42,20 @@ internal static class ExternalAuthenticationServiceCollectionExtensions
                 gitHubOptions.Scope.Add("user:email");
                 gitHubOptions.ClaimActions.MapJsonKey("urn:github:name", "name");
                 gitHubOptions.ClaimActions.MapJsonKey(ClaimTypes.Email, "email");
+                gitHubOptions.Events.OnRemoteFailure = context =>
+                {
+                    var loggerFactory = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>();
+                    var logger = loggerFactory.CreateLogger("GitHubAuthentication");
+                    logger.LogWarning(context.Failure, "GitHub remote authentication failed.");
+
+                    var redirectPath = ExternalAuthenticationFailureResponseBuilder.BuildLoginRedirectPath(
+                        context.Failure,
+                        context.Properties?.RedirectUri);
+
+                    context.Response.Redirect(redirectPath);
+                    context.HandleResponse();
+                    return Task.CompletedTask;
+                };
             });
         }
 

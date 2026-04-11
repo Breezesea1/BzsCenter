@@ -23,4 +23,6 @@
   <data name="ErrorInvalidCredentials" xml:space="preserve"><value>Invalid account or password.</value></data>
   <data name="ErrorValidation" xml:space="preserve"><value>Please provide both account and password.</value></data>
   <data name="ErrorExternalLoginFailed" xml:space="preserve"><value>GitHub sign-in could not be completed. Please try again.</value></data>
+  <data name="ErrorExternalLoginExpired" xml:space="preserve"><value>Your GitHub sign-in session expired. Please start again.</value></data>
+  <data name="ErrorExternalLoginAccessDenied" xml:space="preserve"><value>You canceled GitHub authorization. Try again or use another sign-in method.</value></data>
 </root>

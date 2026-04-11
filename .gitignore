@@ -16,6 +16,7 @@
 
 # Logs
 *.log
+*.db
 
 # User-specific files
 *.user

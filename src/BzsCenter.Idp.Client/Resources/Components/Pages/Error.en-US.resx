@@ -15,6 +15,12 @@
   <data name="PageTitle" xml:space="preserve"><value>Something went wrong</value></data>
   <data name="Heading" xml:space="preserve"><value>Something went wrong.</value></data>
   <data name="Subheading" xml:space="preserve"><value>We ran into a problem while processing your request.</value></data>
+  <data name="StatusKicker" xml:space="preserve"><value>Recovery available</value></data>
+  <data name="ErrorPrimaryAction" xml:space="preserve"><value>Return to sign-in</value></data>
+  <data name="ErrorSecondaryAction" xml:space="preserve"><value>Go back home</value></data>
+  <data name="TechnicalDetailsAria" xml:space="preserve"><value>Technical details</value></data>
+  <data name="TechnicalDetailsHeading" xml:space="preserve"><value>Technical details</value></data>
+  <data name="TechnicalDetailsLead" xml:space="preserve"><value>Use the request ID below when you need help investigating this incident.</value></data>
   <data name="RequestIdLabel" xml:space="preserve"><value>Request ID</value></data>
   <data name="DevelopmentModeHeading" xml:space="preserve"><value>Development details</value></data>
   <data name="DevelopmentModeName" xml:space="preserve"><value>Development</value></data>

@@ -1,3 +1,4 @@
+@using System.Security.Claims
 @using ApexCharts
 @using BzsCenter.Idp.Client.Services.Dashboard
 @using Microsoft.AspNetCore.Components.Authorization
@@ -284,6 +285,7 @@ else
 @code {
     private readonly List<DashboardChartPoint> _clientMixSeries = [];
     private readonly List<DonutSlice> _userRoleSeries = [];
+    private const string AdminRoleName = "admin";
     private bool _isLoading = true;
     private AdminDashboardSummaryModel? _summary;
     private ApexChartOptions<DashboardChartPoint> _clientMixOptions = new();
@@ -306,6 +308,14 @@ else
                 });
 
             NavigationManager.NavigateTo(loginPath, forceLoad: true);
+            _isLoading = false;
+            return;
+        }
+
+        if (!authState.User.Claims.Any(claim =>
+                string.Equals(claim.Type, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(claim.Value, AdminRoleName, StringComparison.OrdinalIgnoreCase)))
+        {
             _isLoading = false;
             return;
         }

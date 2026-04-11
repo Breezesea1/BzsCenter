@@ -44,7 +44,7 @@ var idp = builder.AddProject<Projects.BzsCenter_Idp>("idp")
     .WithEnvironment("DOTNET_ENVIRONMENT", environmentName)
     .WithEnvironment("Identity__Admin__UserName", adminUserName)
     .WithEnvironment("Identity__Admin__Password", adminPassword)
-    .WithEnvironment("CacheOptions__CacheType", AppHostModelSettings.ResolveCacheType(e2eTestingEnabled));
+    .WithEnvironment("CacheOptions__CacheType", AppHostModelSettings.ResolveCacheType(e2eTestingEnabled, smokeTestingEnabled));
 
 if (!string.IsNullOrWhiteSpace(smokeTestingEnabled))
 {
@@ -61,7 +61,7 @@ if (idpDatabase is not null)
     idp = idp.WithReference(idpDatabase);
 }
 
-if (redis is not null && string.Equals(AppHostModelSettings.ResolveCacheType(e2eTestingEnabled), "Redis", StringComparison.Ordinal))
+if (redis is not null && string.Equals(AppHostModelSettings.ResolveCacheType(e2eTestingEnabled, smokeTestingEnabled), "Redis", StringComparison.Ordinal))
 {
     idp = idp.WithReference(redis);
 }
@@ -106,7 +106,7 @@ idp = idp
     .WaitFor(postgres!)
     .WaitForCompletion(idpMigrator);
 
-if (redis is not null && string.Equals(AppHostModelSettings.ResolveCacheType(e2eTestingEnabled), "Redis", StringComparison.Ordinal))
+if (redis is not null && string.Equals(AppHostModelSettings.ResolveCacheType(e2eTestingEnabled, smokeTestingEnabled), "Redis", StringComparison.Ordinal))
 {
     idp = idp.WaitFor(redis);
 }

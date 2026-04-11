@@ -7,13 +7,15 @@ namespace BzsCenter.Idp.E2ETests.Infrastructure;
 public sealed class AppHostE2EOptimizationTests
 {
     [Theory]
-    [InlineData("true", "Memory")]
-    [InlineData("TRUE", "Memory")]
-    [InlineData(null, "Redis")]
-    [InlineData("", "Redis")]
-    public void ResolveCacheType_UsesMemoryForE2EMode(string? e2eEnabled, string expected)
+    [InlineData("true", null, "Memory")]
+    [InlineData("TRUE", null, "Memory")]
+    [InlineData(null, "true", "Memory")]
+    [InlineData(null, "TRUE", "Memory")]
+    [InlineData(null, null, "Redis")]
+    [InlineData("", "", "Redis")]
+    public void ResolveCacheType_UsesMemoryForE2EAndSmokeModes(string? e2eEnabled, string? smokeEnabled, string expected)
     {
-        Assert.Equal(expected, AppHostModelSettings.ResolveCacheType(e2eEnabled));
+        Assert.Equal(expected, AppHostModelSettings.ResolveCacheType(e2eEnabled, smokeEnabled));
     }
 
     [Theory]

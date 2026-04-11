@@ -39,6 +39,7 @@ public sealed class HomePageTests
             new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity(
             [
                 new Claim(ClaimTypes.Name, "admin"),
+                new Claim(ClaimTypes.Role, "admin"),
             ], "TestAuth"))));
         context.Services.AddSingleton<IStringLocalizer<Home>, TestDoubles.TestStringLocalizer<Home>>();
         context.Services.AddSingleton<IStringLocalizer<Dashboard>, TestDoubles.TestStringLocalizer<Dashboard>>();
@@ -73,6 +74,36 @@ public sealed class HomePageTests
         context.Render<Home>();
 
         Assert.Equal("http://localhost/login?returnUrl=%2F", navigationManager.Uri);
+        dashboardClient.DidNotReceive().GetSummaryAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public void Home_WhenAuthenticatedWithoutAdminRole_ShowsAccessLimitedWithoutCallingDashboardApi()
+    {
+        using var context = new BunitContext();
+        context.Services.AddApexCharts();
+        context.JSInterop.Mode = JSRuntimeMode.Loose;
+
+        var dashboardClient = Substitute.For<IAdminDashboardClient>();
+        context.Services.AddSingleton(dashboardClient);
+        context.Services.AddSingleton<AuthenticationStateProvider>(
+            new TestAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity(
+            [
+                new Claim(ClaimTypes.Name, "github-user"),
+                new Claim(ClaimTypes.Email, "github-user@example.com"),
+                new Claim(ClaimTypes.Role, "user"),
+            ], "TestAuth"))));
+        context.Services.AddSingleton<IStringLocalizer<Home>, TestDoubles.TestStringLocalizer<Home>>();
+        context.Services.AddSingleton<IStringLocalizer<Dashboard>, TestDoubles.TestStringLocalizer<Dashboard>>();
+
+        var cut = context.Render<Home>();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains("AccessLimitedTitle", cut.Markup, StringComparison.Ordinal);
+            Assert.DoesNotContain("TotalUsers", cut.Markup, StringComparison.Ordinal);
+        });
+
         dashboardClient.DidNotReceive().GetSummaryAsync(Arg.Any<CancellationToken>());
     }
 

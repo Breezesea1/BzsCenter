@@ -15,6 +15,12 @@
   <data name="PageTitle" xml:space="preserve"><value>发生错误</value></data>
   <data name="Heading" xml:space="preserve"><value>抱歉，出错了。</value></data>
   <data name="Subheading" xml:space="preserve"><value>处理你的请求时遇到问题。</value></data>
+  <data name="StatusKicker" xml:space="preserve"><value>可恢复错误</value></data>
+  <data name="ErrorPrimaryAction" xml:space="preserve"><value>返回登录</value></data>
+  <data name="ErrorSecondaryAction" xml:space="preserve"><value>返回首页</value></data>
+  <data name="TechnicalDetailsAria" xml:space="preserve"><value>技术细节</value></data>
+  <data name="TechnicalDetailsHeading" xml:space="preserve"><value>技术细节</value></data>
+  <data name="TechnicalDetailsLead" xml:space="preserve"><value>如果需要继续排查，请将下面的请求 ID 提供给维护人员。</value></data>
   <data name="RequestIdLabel" xml:space="preserve"><value>请求 ID</value></data>
   <data name="DevelopmentModeHeading" xml:space="preserve"><value>开发环境说明</value></data>
   <data name="DevelopmentModeName" xml:space="preserve"><value>Development</value></data>

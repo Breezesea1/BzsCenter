@@ -7,9 +7,10 @@ public static class AppHostModelSettings
         return string.Equals(smokeEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase);
     }
 
-    public static string ResolveCacheType(string? e2eTestingEnabled)
+    public static string ResolveCacheType(string? e2eTestingEnabled, string? smokeEnabled)
     {
         return string.Equals(e2eTestingEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase)
+               || IsSmokeProfileEnabled(smokeEnabled)
             ? "Memory"
             : "Redis";
     }

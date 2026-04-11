@@ -18,7 +18,10 @@ internal static class ServiceExtensions
     /// <param name="builder">参数builder。</param>
     internal static void EnrichFromAspire(this WebApplicationBuilder builder)
     {
-        builder.EnrichNpgsqlDbContext<IdpDbContext>();
+        if (builder.Configuration.ShouldEnrichIdpDbFromAspire())
+        {
+            builder.EnrichNpgsqlDbContext<IdpDbContext>();
+        }
     }
 
 

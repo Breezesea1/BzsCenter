@@ -46,11 +46,13 @@ internal static class ExternalAuthenticationFailureResponseBuilder
             return null;
         }
 
-        var uri = Uri.TryCreate(redirectUri, UriKind.Absolute, out var absoluteUri)
-            ? absoluteUri
-            : new Uri($"https://localhost{redirectUri}", UriKind.Absolute);
+        var queryString = ExtractQueryString(redirectUri);
+        if (string.IsNullOrWhiteSpace(queryString))
+        {
+            return null;
+        }
 
-        var query = QueryHelpers.ParseQuery(uri.Query);
+        var query = QueryHelpers.ParseQuery(queryString);
         if (!query.TryGetValue("returnUrl", out var returnUrl))
         {
             return null;
@@ -58,6 +60,20 @@ internal static class ExternalAuthenticationFailureResponseBuilder
 
         var candidate = returnUrl.ToString();
         return IsSafeLocalUrl(candidate) ? candidate : null;
+    }
+
+    private static string? ExtractQueryString(string redirectUri)
+    {
+        var queryStartIndex = redirectUri.IndexOf('?');
+        if (queryStartIndex < 0)
+        {
+            return null;
+        }
+
+        var fragmentStartIndex = redirectUri.IndexOf('#', queryStartIndex);
+        return fragmentStartIndex >= 0
+            ? redirectUri[queryStartIndex..fragmentStartIndex]
+            : redirectUri[queryStartIndex..];
     }
 
     private static bool IsSafeLocalUrl(string? returnUrl)

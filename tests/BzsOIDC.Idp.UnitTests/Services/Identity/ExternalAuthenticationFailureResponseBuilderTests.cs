@@ -26,4 +26,14 @@ public sealed class ExternalAuthenticationFailureResponseBuilderTests
 
         Assert.Equal("/login?error=external_login_expired", redirectPath);
     }
+
+    [Fact]
+    public void BuildLoginRedirectPath_WhenRedirectUriContainsFragment_PreservesReturnUrlFromQuery()
+    {
+        var redirectPath = ExternalAuthenticationFailureResponseBuilder.BuildLoginRedirectPath(
+            new InvalidOperationException("Correlation failed."),
+            "/account/external-login/callback?returnUrl=%2Fadmin%2Fusers#provider-error");
+
+        Assert.Equal("/login?error=external_login_expired&returnUrl=%2Fadmin%2Fusers", redirectPath);
+    }
 }

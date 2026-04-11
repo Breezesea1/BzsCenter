@@ -16,7 +16,7 @@ public sealed class ClientManagementDialogTests
         using var context = CreateContext();
         var cut = context.Render<ClientManagementDialog>(parameters => parameters
             .Add(x => x.IsOpen, true)
-            .Add(x => x.Profile, OidcClientProfile.FirstPartyInteractive));
+            .Add(x => x.AuthFlow, OidcClientAuthFlow.AuthorizationCode));
 
         Assert.NotNull(cut.Find("#editor-redirect-uris"));
         Assert.NotNull(cut.Find("#editor-post-logout-uris"));
@@ -24,20 +24,20 @@ public sealed class ClientManagementDialogTests
     }
 
     [Fact]
-    public void ProfileChange_WhenValid_InvokesProfileChanged()
+    public void AuthFlowChange_WhenValid_InvokesAuthFlowChanged()
     {
         using var context = CreateContext();
-        var changedTo = OidcClientProfile.FirstPartyInteractive;
+        var changedTo = OidcClientAuthFlow.AuthorizationCode;
 
         var cut = context.Render<ClientManagementDialog>(parameters => parameters
             .Add(x => x.IsOpen, true)
-            .Add(x => x.Profile, OidcClientProfile.FirstPartyInteractive)
-            .Add(x => x.ProfileChanged, EventCallback.Factory.Create<OidcClientProfile>(new object(), value => changedTo = value)));
+            .Add(x => x.AuthFlow, OidcClientAuthFlow.AuthorizationCode)
+            .Add(x => x.AuthFlowChanged, EventCallback.Factory.Create<OidcClientAuthFlow>(new object(), value => changedTo = value)));
 
-        cut.Find("#editor-profile").Click();
+        cut.Find("#editor-auth-flow").Click();
         cut.Find("[data-neo-select-index='1']").Click();
 
-        Assert.Equal(OidcClientProfile.FirstPartyMachine, changedTo);
+        Assert.Equal(OidcClientAuthFlow.ClientCredentials, changedTo);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class ClientManagementDialogTests
         var cut = context.Render<ClientManagementDialog>(parameters => parameters
             .Add(x => x.IsOpen, true)
             .Add(x => x.IsEditing, true)
-            .Add(x => x.Profile, OidcClientProfile.FirstPartyMachine));
+            .Add(x => x.AuthFlow, OidcClientAuthFlow.ClientCredentials));
 
         Assert.NotNull(cut.Find("#editor-client-id[disabled]"));
         Assert.Contains("SaveChanges", cut.Markup, StringComparison.Ordinal);

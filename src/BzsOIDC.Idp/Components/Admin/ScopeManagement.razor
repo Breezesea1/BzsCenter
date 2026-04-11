@@ -1,0 +1,524 @@
+@page "/admin/scopes"
+@rendermode InteractiveServer
+@using BzsOIDC.Idp.Services.Identity
+@using BzsOIDC.Idp.Services.Oidc
+@using BzsOIDC.Shared.Infrastructure.Authorization
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.Extensions.Localization
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IOidcScopeService ScopeService
+@inject IStringLocalizer<ScopeManagement> L
+@inject NavigationManager NavigationManager
+@layout BzsOIDC.Idp.Client.Components.Layout.MainLayout
+
+<PageTitle>@L["PageTitle"]</PageTitle>
+
+@if (!_hasAccess)
+{
+    <div class="admin-loading-shell">
+        <div class="admin-loading-card">
+            <span class="admin-loading-kicker">@L["AdminArea"]</span>
+            <h1>@L["CheckingAccess"]</h1>
+            <p>@L["CheckingAccessLead"]</p>
+        </div>
+    </div>
+}
+else
+{
+    <section class="admin-page-shell">
+        <header class="admin-hero">
+            <div>
+                <p class="admin-breadcrumb">@L["Overview"] &gt; @L["AppAccess"]</p>
+                <h1>@L["PageTitle"]</h1>
+                <p>@L["HeroLead"]</p>
+            </div>
+
+            <div class="admin-hero-actions">
+                <button type="button" class="admin-primary-button" @onclick="BeginCreate" disabled="@_isBusy">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    @L["NewScope"]
+                </button>
+            </div>
+        </header>
+
+        @if (!string.IsNullOrWhiteSpace(_statusMessage))
+        {
+            <div class="admin-feedback @(_statusIsError ? "is-error" : "is-success")" role="status" aria-live="polite">
+                @_statusMessage
+            </div>
+        }
+
+        <div class="admin-grid-toolbar">
+            <div class="admin-search-stack">
+                <div class="admin-search-icon-field">
+                    <svg class="admin-search-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                    </svg>
+                    <input id="scope-search"
+                           class="neo-input admin-search-input"
+                           name="scope-search"
+                           type="search"
+                           placeholder="@L["SearchPlaceholder"]"
+                           value="@_searchTerm"
+                           @oninput="HandleSearchInput"
+                           autocomplete="off"
+                           autocapitalize="off"
+                           autocorrect="off"
+                           spellcheck="false"
+                           aria-label="@L["Search"]" />
+                </div>
+                <span class="admin-grid-summary">@FilteredSummary</span>
+            </div>
+
+            <div class="admin-grid-toolbar-actions">
+                <button type="button" class="admin-ghost-button admin-toolbar-button" @onclick="LoadScopesAsync" disabled="@_isBusy">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <path d="M7 10l5 5 5-5" />
+                        <path d="M12 15V3" />
+                    </svg>
+                    @L["Refresh"]
+                </button>
+            </div>
+        </div>
+
+        <div class="admin-table-shell">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>@L["ScopeName"]</th>
+                        <th>@L["DisplayName"]</th>
+                        <th>@L["Resources"]</th>
+                        <th>@L["Description"]</th>
+                        <th class="admin-actions-header">@L["Actions"]</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_filteredScopes.Count == 0)
+                    {
+                        <tr class="admin-empty-row">
+                            <td colspan="5">
+                                <div class="admin-empty-state">
+                                    <strong>@L["NoMatchingScopes"]</strong>
+                                    <p>@L["NoMatchingScopesLead"]</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @foreach (var scope in _filteredScopes)
+                        {
+                            <tr class="admin-table-row" @key="scope.Name">
+                                <td class="admin-cell-primary">
+                                    <div class="admin-client-primary-cell">
+                                        <strong>@scope.Name</strong>
+                                    </div>
+                                </td>
+                                <td data-label='@L["DisplayName"].Value'>
+                                    <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(scope.DisplayName) ? "—" : scope.DisplayName)</span>
+                                </td>
+                                <td data-label='@L["Resources"].Value'>
+                                    <div class="admin-token-list">
+                                        @foreach (var resource in GetPreviewItems(scope.Resources))
+                                        {
+                                            <span class="admin-token">@resource</span>
+                                        }
+                                        @if (GetOverflowCount(scope.Resources) > 0)
+                                        {
+                                            <span class="admin-token admin-token-overflow">+@GetOverflowCount(scope.Resources)</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td data-label='@L["Description"].Value'>
+                                    <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(scope.Description) ? "—" : scope.Description)</span>
+                                </td>
+                                <td data-label='@L["Actions"].Value'>
+                                    <div class="admin-actions-column">
+                                        <button type="button"
+                                                class="admin-icon-button"
+                                                title="@L["Edit"]"
+                                                aria-label="@L["Edit"]"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => BeginEdit(scope)">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M12 20h9" />
+                                                <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                                            </svg>
+                                        </button>
+                                        <button type="button"
+                                                class="admin-icon-button danger"
+                                                title="@L["Delete"]"
+                                                aria-label="@L["Delete"]"
+                                                @onclick:stopPropagation="true"
+                                                @onclick="() => DeleteScopeAsync(scope.Name)"
+                                                disabled="@_isBusy">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                                <path d="M3 6h18" />
+                                                <path d="M8 6V4h8v2" />
+                                                <path d="M19 6l-1 14H6L5 6" />
+                                                <path d="M10 11v6" />
+                                                <path d="M14 11v6" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <ScopeManagementDialog IsOpen="@_isEditorOpen"
+                               IsEditing="@_isEditing"
+                               IsBusy="@_isBusy"
+                               Name="@_editor.Name"
+                               NameChanged="HandleNameChanged"
+                               DisplayName="@_editor.DisplayName"
+                               DisplayNameChanged="HandleDisplayNameChanged"
+                               Description="@_editor.Description"
+                               DescriptionChanged="HandleDescriptionChanged"
+                               ResourcesText="@_editor.ResourcesText"
+                               ResourcesTextChanged="HandleResourcesTextChanged"
+                               FormErrors="@_formErrors"
+                               OnClose="CloseEditor"
+                               OnReset="ResetEditor"
+                               OnSave="SaveAsync" />
+    </section>
+}
+
+@code {
+    private readonly List<OidcScopeResponse> _scopes = [];
+    private readonly List<OidcScopeResponse> _filteredScopes = [];
+    private readonly List<string> _formErrors = [];
+
+    private ScopeEditor _editor = new();
+    private bool _hasAccess;
+    private bool _isBusy;
+    private bool _isEditing;
+    private bool _isEditorOpen;
+    private string _searchTerm = string.Empty;
+    private string? _statusMessage;
+    private bool _statusIsError;
+
+    private string FilteredSummary => _filteredScopes.Count == 0
+        ? L["SearchResultSummaryEmpty"].Value
+        : L["SearchResultSummary", _filteredScopes.Count].Value;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!EnsureAdminAccess())
+        {
+            return;
+        }
+
+        await LoadScopesAsync();
+    }
+
+    private bool EnsureAdminAccess()
+    {
+        var user = HttpContextAccessor.HttpContext?.User;
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            var loginPath = QueryHelpers.AddQueryString("/login", new Dictionary<string, string?>
+            {
+                ["returnUrl"] = "/admin/scopes",
+            });
+
+            NavigationManager.NavigateTo(loginPath, forceLoad: true);
+            return false;
+        }
+
+        if (!user.IsInRole(IdentitySeedConstants.AdminRoleName))
+        {
+            NavigationManager.NavigateTo("/account/denied", forceLoad: true);
+            return false;
+        }
+
+        _hasAccess = true;
+        return true;
+    }
+
+    private async Task LoadScopesAsync()
+    {
+        _isBusy = true;
+
+        try
+        {
+            _scopes.Clear();
+            _scopes.AddRange(await ScopeService.GetAllAsync());
+            ApplyFilter();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void ApplyFilter()
+    {
+        _filteredScopes.Clear();
+
+        IEnumerable<OidcScopeResponse> query = _scopes;
+        if (!string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            var term = _searchTerm.Trim();
+            query = query.Where(scope =>
+                scope.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                (!string.IsNullOrWhiteSpace(scope.DisplayName) && scope.DisplayName.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                (!string.IsNullOrWhiteSpace(scope.Description) && scope.Description.Contains(term, StringComparison.OrdinalIgnoreCase)) ||
+                scope.Resources.Any(resource => resource.Contains(term, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        _filteredScopes.AddRange(query.OrderBy(static scope => scope.Name, StringComparer.OrdinalIgnoreCase));
+    }
+
+    private void BeginCreate()
+    {
+        _editor = new ScopeEditor();
+        _isEditing = false;
+        _isEditorOpen = true;
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void BeginEdit(OidcScopeResponse scope)
+    {
+        _editor = new ScopeEditor
+        {
+            Name = scope.Name,
+            DisplayName = scope.DisplayName ?? string.Empty,
+            Description = scope.Description ?? string.Empty,
+            ResourcesText = string.Join(Environment.NewLine, scope.Resources),
+        };
+        _isEditing = true;
+        _isEditorOpen = true;
+        _formErrors.Clear();
+        ClearStatus();
+    }
+
+    private void ResetEditor()
+    {
+        if (_isEditing)
+        {
+            var current = _scopes.FirstOrDefault(scope => string.Equals(scope.Name, _editor.Name, StringComparison.Ordinal));
+            if (current is not null)
+            {
+                BeginEdit(current);
+                return;
+            }
+        }
+
+        BeginCreate();
+    }
+
+    private void CloseEditor()
+    {
+        if (_isBusy)
+        {
+            return;
+        }
+
+        _isEditorOpen = false;
+        _isEditing = false;
+        _editor = new ScopeEditor();
+        _formErrors.Clear();
+    }
+
+    private async Task SaveAsync()
+    {
+        _formErrors.Clear();
+        ClearStatus();
+
+        if (string.IsNullOrWhiteSpace(_editor.Name))
+        {
+            _formErrors.Add(L["ScopeNameRequired"].Value);
+            return;
+        }
+
+        _isBusy = true;
+
+        try
+        {
+            var request = new OidcScopeUpsertRequest
+            {
+                Name = _editor.Name.Trim(),
+                DisplayName = string.IsNullOrWhiteSpace(_editor.DisplayName) ? null : _editor.DisplayName.Trim(),
+                Description = string.IsNullOrWhiteSpace(_editor.Description) ? null : _editor.Description.Trim(),
+                Resources = ParseLines(_editor.ResourcesText),
+            };
+
+            if (_isEditing)
+            {
+                var result = await ScopeService.UpdateAsync(_editor.Name, request);
+                if (result.Status != OidcScopeCommandStatus.Success)
+                {
+                    AddCommandErrors(result);
+                    return;
+                }
+
+                _statusMessage = L["UpdatedStatus", _editor.Name].Value;
+            }
+            else
+            {
+                var result = await ScopeService.RegisterAsync(request);
+                if (result.Status != OidcScopeCommandStatus.Success)
+                {
+                    AddCommandErrors(result);
+                    return;
+                }
+
+                _statusMessage = L["CreatedStatus", result.Value?.Name ?? _editor.Name].Value;
+            }
+
+            _statusIsError = false;
+            await LoadScopesAsync();
+            _isEditorOpen = false;
+            _isEditing = false;
+            _editor = new ScopeEditor();
+            _formErrors.Clear();
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private async Task DeleteScopeAsync(string name)
+    {
+        ClearStatus();
+        _isBusy = true;
+
+        try
+        {
+            var deleted = await ScopeService.DeleteAsync(name);
+            if (!deleted)
+            {
+                _statusMessage = L["ScopeDeleteFailedStatus", name].Value;
+                _statusIsError = true;
+                return;
+            }
+
+            await LoadScopesAsync();
+            _statusMessage = L["DeletedStatus", name].Value;
+            _statusIsError = false;
+        }
+        finally
+        {
+            _isBusy = false;
+        }
+    }
+
+    private void AddCommandErrors<T>(OidcScopeCommandResult<T> result)
+    {
+        if (result.Errors.Length > 0)
+        {
+            _formErrors.AddRange(result.Errors.Select(LocalizeCommandError));
+            return;
+        }
+
+        _formErrors.Add(result.Status switch
+        {
+            OidcScopeCommandStatus.Conflict => L["ScopeAlreadyExists"].Value,
+            OidcScopeCommandStatus.NotFound => L["ScopeNotFound"].Value,
+            _ => L["RequestFailedWithStatus", result.Status].Value,
+        });
+    }
+
+    private string LocalizeCommandError(string error)
+    {
+        if (string.IsNullOrWhiteSpace(error))
+        {
+            return L["UnknownScopeError"].Value;
+        }
+
+        if (error.StartsWith("Scope '", StringComparison.Ordinal) && error.EndsWith("' already exists.", StringComparison.Ordinal))
+        {
+            var name = error[7..^17];
+            return L["ScopeAlreadyExistsForName", name].Value;
+        }
+
+        if (error.StartsWith("Scope '", StringComparison.Ordinal) && error.EndsWith("' is reserved and cannot be managed here.", StringComparison.Ordinal))
+        {
+            var name = error[7..^41];
+            return L["ReservedScopeError", name].Value;
+        }
+
+        return error switch
+        {
+            "Scope name is required." => L["ScopeNameRequired"].Value,
+            "At least one resource is required." => L["ResourcesRequired"].Value,
+            _ => L["UnknownScopeError"].Value,
+        };
+    }
+
+    private void ClearStatus()
+    {
+        _statusMessage = null;
+        _statusIsError = false;
+    }
+
+    private void HandleSearchInput(ChangeEventArgs args)
+    {
+        _searchTerm = args.Value?.ToString() ?? string.Empty;
+        ApplyFilter();
+    }
+
+    private Task HandleNameChanged(string value)
+    {
+        _editor.Name = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDisplayNameChanged(string value)
+    {
+        _editor.DisplayName = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleDescriptionChanged(string value)
+    {
+        _editor.Description = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleResourcesTextChanged(string value)
+    {
+        _editor.ResourcesText = value;
+        return Task.CompletedTask;
+    }
+
+    private static string[] ParseLines(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        return raw
+            .Split([',', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> GetPreviewItems(IReadOnlyList<string> values)
+    {
+        return values.Take(2).ToArray();
+    }
+
+    private static int GetOverflowCount(IReadOnlyList<string> values)
+    {
+        return Math.Max(0, values.Count - 2);
+    }
+
+    private sealed class ScopeEditor
+    {
+        public string Name { get; set; } = string.Empty;
+        public string DisplayName { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string ResourcesText { get; set; } = string.Empty;
+    }
+}

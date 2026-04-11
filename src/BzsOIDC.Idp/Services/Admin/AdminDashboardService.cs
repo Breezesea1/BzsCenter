@@ -49,8 +49,8 @@ internal sealed class AdminDashboardService(
             AdminUsers = adminUsers,
             StandardUsers = Math.Max(0, users.Count - adminUsers),
             TotalClients = clients.Count,
-            InteractiveClients = clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyInteractive),
-            MachineClients = clients.Count(static client => client.Profile == OidcClientProfile.FirstPartyMachine),
+            InteractiveClients = clients.Count(static client => client.AuthFlow == OidcClientAuthFlow.AuthorizationCode),
+            MachineClients = clients.Count(static client => client.AuthFlow == OidcClientAuthFlow.ClientCredentials),
             TotalPermissionMappings = permissionMappings.Count,
             TotalConfiguredScopes = permissionMappings.Sum(static mapping => mapping.Scopes.Length),
         };

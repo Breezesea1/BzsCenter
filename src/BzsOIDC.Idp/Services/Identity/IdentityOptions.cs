@@ -27,6 +27,8 @@ public sealed class IdentitySeedOptions
             [PermissionConstants.RolesWrite] = [PermissionConstants.ScopeApi],
             [PermissionConstants.ClientsRead] = [PermissionConstants.ScopeApi],
             [PermissionConstants.ClientsWrite] = [PermissionConstants.ScopeApi],
+            [PermissionConstants.ScopesRead] = [PermissionConstants.ScopeApi],
+            [PermissionConstants.ScopesWrite] = [PermissionConstants.ScopeApi],
         };
 
     public string[] AdditionalScopes { get; init; } = [PermissionConstants.ScopeApi];

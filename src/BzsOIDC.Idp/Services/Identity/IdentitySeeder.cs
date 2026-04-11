@@ -1,3 +1,4 @@
+using BzsOIDC.Idp.Services.Oidc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 
@@ -7,6 +8,7 @@ internal sealed class IdentitySeeder(
     IRoleService roleService,
     IRolePermissionService rolePermissionService,
     IPermissionScopeService permissionScopeService,
+    IOidcScopeService oidcScopeService,
     IUserService userService,
     IOptions<IdentitySeedOptions> identityOptions,
     IConfiguration configuration,
@@ -63,6 +65,7 @@ internal sealed class IdentitySeeder(
         }
 
         await permissionScopeService.InitializeDefaultsIfEmptyAsync(options.PermissionScopes, cancellationToken);
+        await oidcScopeService.InitializeDefaultsIfMissingAsync(options.AdditionalScopes, cancellationToken);
         await SeedRolePermissionsAsync(options, cancellationToken);
 
         var adminUser = await userService.GetByNameAsync(adminUserName, cancellationToken);

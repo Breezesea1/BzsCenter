@@ -23,7 +23,7 @@ public sealed class ClientManagementPageTests
             {
                 ClientId = $"client-{index:00}",
                 DisplayName = $"Client {index:00}",
-                Profile = index % 2 == 0 ? OidcClientProfile.FirstPartyInteractive : OidcClientProfile.FirstPartyMachine,
+                AuthFlow = index % 2 == 0 ? OidcClientAuthFlow.AuthorizationCode : OidcClientAuthFlow.ClientCredentials,
                 GrantTypes = [index % 2 == 0 ? "authorization_code" : "client_credentials"],
                 Scopes = [$"scope-{index:00}"],
                 RedirectUris = index % 2 == 0 ? [$"https://app{index:00}.example.com/signin"] : []

@@ -60,6 +60,7 @@ internal static class ServiceExtensions
         sc.AddScoped<IPermissionScopeService, PermissionScopeService>();
         sc.AddScoped<IOidcPrincipalFactory, OidcPrincipalFactory>();
         sc.AddScoped<IOidcClientService, OidcClientService>();
+        sc.AddScoped<IOidcScopeService, OidcScopeService>();
         sc.AddScoped<IAdminDashboardService, AdminDashboardService>();
         sc.AddScoped<IdentitySeeder>();
 

@@ -11,6 +11,8 @@ public static class PermissionConstants
     public const string RolesWrite = "roles.write";
     public const string ClientsRead = "clients.read";
     public const string ClientsWrite = "clients.write";
+    public const string ScopesRead = "scopes.read";
+    public const string ScopesWrite = "scopes.write";
 
     public const string ScopeApi = "api";
 }

@@ -66,7 +66,7 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
                 ClientId = descriptor.ClientId!,
                 ClientSecret = descriptor.ClientSecret,
                 DisplayName = descriptor.DisplayName ?? descriptor.ClientId!,
-                Profile = OidcClientDescriptorFactory.ResolveProfile(request, out _)!.Value,
+                AuthFlow = OidcClientDescriptorFactory.ResolveAuthFlow(request, out _)!.Value,
             },
         };
     }
@@ -180,7 +180,7 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
         {
             ClientId = await applicationManager.GetClientIdAsync(application, cancellationToken) ?? string.Empty,
             DisplayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken),
-            Profile = ResolveProfile(permissions,
+            AuthFlow = ResolveAuthFlow(permissions,
                 await applicationManager.GetClientTypeAsync(application, cancellationToken),
                 redirectUris),
             PublicClient = string.Equals(
@@ -211,7 +211,7 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
     /// <param name="clientType">参数clientType。</param>
     /// <param name="redirectUris">参数redirectUris。</param>
     /// <returns>执行结果。</returns>
-    private static OidcClientProfile ResolveProfile(
+    private static OidcClientAuthFlow ResolveAuthFlow(
         IReadOnlyCollection<string> permissions,
         string? clientType,
         IReadOnlyCollection<string> redirectUris)
@@ -228,9 +228,9 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
                 string.Equals(grantType, OpenIddictConstants.GrantTypes.AuthorizationCode, StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(grantType, OpenIddictConstants.GrantTypes.RefreshToken, StringComparison.OrdinalIgnoreCase)))
         {
-            return OidcClientProfile.FirstPartyInteractive;
+            return OidcClientAuthFlow.AuthorizationCode;
         }
 
-        return OidcClientProfile.FirstPartyMachine;
+        return OidcClientAuthFlow.ClientCredentials;
     }
 }

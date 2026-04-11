@@ -11,7 +11,7 @@ public class OidcClientDescriptorFactoryTests
         var request = new OidcClientUpsertRequest
         {
             DisplayName = "Test Confidential Client",
-            Profile = OidcClientProfile.FirstPartyMachine,
+            AuthFlow = OidcClientAuthFlow.ClientCredentials,
             PublicClient = false,
             ClientSecret = null,
             GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
@@ -111,11 +111,11 @@ public class OidcClientDescriptorFactoryTests
         var errors = OidcClientDescriptorFactory.ValidateRequest(request);
 
         Assert.Contains(errors,
-            static e => e.Contains("Current onboarding only supports first-party interactive", StringComparison.OrdinalIgnoreCase));
+            static e => e.Contains("Current onboarding only supports Authorization Code Flow", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
-    public void ResolveProfile_InfersInteractiveAndMachineProfiles()
+    public void ResolveAuthFlow_InfersAuthorizationCodeAndClientCredentialsFlows()
     {
         var interactive = new OidcClientUpsertRequest
         {
@@ -132,12 +132,12 @@ public class OidcClientDescriptorFactoryTests
             GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
         };
 
-        var interactiveProfile = OidcClientDescriptorFactory.ResolveProfile(interactive, out var interactiveError);
-        var machineProfile = OidcClientDescriptorFactory.ResolveProfile(machine, out var machineError);
+        var interactiveProfile = OidcClientDescriptorFactory.ResolveAuthFlow(interactive, out var interactiveError);
+        var machineProfile = OidcClientDescriptorFactory.ResolveAuthFlow(machine, out var machineError);
 
-        Assert.Equal(OidcClientProfile.FirstPartyInteractive, interactiveProfile);
+        Assert.Equal(OidcClientAuthFlow.AuthorizationCode, interactiveProfile);
         Assert.Null(interactiveError);
-        Assert.Equal(OidcClientProfile.FirstPartyMachine, machineProfile);
+        Assert.Equal(OidcClientAuthFlow.ClientCredentials, machineProfile);
         Assert.Null(machineError);
     }
 
@@ -147,7 +147,7 @@ public class OidcClientDescriptorFactoryTests
         var request = new OidcClientUpsertRequest
         {
             DisplayName = "Interactive Client",
-            Profile = OidcClientProfile.FirstPartyInteractive,
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
             PublicClient = true,
             RequireProofKeyForCodeExchange = false,
             GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
@@ -166,7 +166,7 @@ public class OidcClientDescriptorFactoryTests
         var request = new OidcClientUpsertRequest
         {
             DisplayName = "Machine Client",
-            Profile = OidcClientProfile.FirstPartyMachine,
+            AuthFlow = OidcClientAuthFlow.ClientCredentials,
             PublicClient = false,
             GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
             RedirectUris = ["https://localhost/callback"],

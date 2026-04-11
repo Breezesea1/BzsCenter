@@ -26,14 +26,14 @@ public sealed class AdminDashboardServiceTests
                 {
                     ClientId = "web-portal",
                     DisplayName = "Web Portal",
-                    Profile = OidcClientProfile.FirstPartyInteractive,
+                    AuthFlow = OidcClientAuthFlow.AuthorizationCode,
                     Scopes = ["api"]
                 },
                 new OidcClientResponse
                 {
                     ClientId = "jobs-daemon",
                     DisplayName = "Jobs Daemon",
-                    Profile = OidcClientProfile.FirstPartyMachine,
+                    AuthFlow = OidcClientAuthFlow.ClientCredentials,
                     Scopes = ["api", "jobs"]
                 }
             ]);

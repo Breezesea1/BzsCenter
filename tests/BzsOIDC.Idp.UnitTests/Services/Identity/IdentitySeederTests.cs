@@ -1,5 +1,6 @@
 using BzsOIDC.Idp.Models;
 using BzsOIDC.Idp.Services.Identity;
+using BzsOIDC.Idp.Services.Oidc;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,6 +17,7 @@ public sealed class IdentitySeederTests
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
         var options = Options.Create(new IdentitySeedOptions
@@ -32,6 +34,7 @@ public sealed class IdentitySeederTests
             roleService,
             rolePermissionService,
             permissionScopeService,
+            oidcScopeService,
             userService,
             options,
             configuration,
@@ -46,6 +49,7 @@ public sealed class IdentitySeederTests
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -89,6 +93,7 @@ public sealed class IdentitySeederTests
             roleService,
             rolePermissionService,
             permissionScopeService,
+            oidcScopeService,
             userService,
             options,
             configuration,
@@ -98,6 +103,8 @@ public sealed class IdentitySeederTests
 
         await permissionScopeService.Received(1)
             .InitializeDefaultsIfEmptyAsync(options.Value.PermissionScopes, Arg.Any<CancellationToken>());
+        await oidcScopeService.Received(1)
+            .InitializeDefaultsIfMissingAsync(options.Value.AdditionalScopes, Arg.Any<CancellationToken>());
         await userService.Received(1)
             .EnsurePasswordAsync(existingAdmin.Id, "Passw0rd!", Arg.Any<CancellationToken>());
         await userService.DidNotReceive()
@@ -112,6 +119,7 @@ public sealed class IdentitySeederTests
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -159,6 +167,7 @@ public sealed class IdentitySeederTests
             roleService,
             rolePermissionService,
             permissionScopeService,
+            oidcScopeService,
             userService,
             options,
             configuration,

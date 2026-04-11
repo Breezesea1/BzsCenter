@@ -454,7 +454,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         var created = await createResponse.Content.ReadFromJsonAsync<OidcClientRegistrationResponse>();
         Assert.NotNull(created);
         Assert.Equal("interactive-client", created.ClientId);
-        Assert.Equal(OidcClientProfile.FirstPartyInteractive, created.Profile);
+        Assert.Equal(OidcClientAuthFlow.AuthorizationCode, created.AuthFlow);
 
         using var getResponse = await _client.GetAsync($"/api/oidc/clients/{created.ClientId}");
         getResponse.EnsureSuccessStatusCode();
@@ -463,7 +463,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.NotNull(client);
         Assert.Equal("interactive-client", client.ClientId);
         Assert.Equal("Interactive Client", client.DisplayName);
-        Assert.Equal(OidcClientProfile.FirstPartyInteractive, client.Profile);
+        Assert.Equal(OidcClientAuthFlow.AuthorizationCode, client.AuthFlow);
         Assert.Contains(OpenIddictConstants.GrantTypes.AuthorizationCode, client.GrantTypes);
         Assert.Contains(PermissionConstants.ScopeApi, client.Scopes);
     }
@@ -477,7 +477,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         {
             ClientId = "machine-client-managed",
             DisplayName = "Managed Machine Client",
-            Profile = OidcClientProfile.FirstPartyMachine,
+            AuthFlow = OidcClientAuthFlow.ClientCredentials,
             PublicClient = false,
             GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
             Scopes = [PermissionConstants.ScopeApi],
@@ -488,7 +488,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var created = await createResponse.Content.ReadFromJsonAsync<OidcClientRegistrationResponse>();
         Assert.NotNull(created);
-        Assert.Equal(OidcClientProfile.FirstPartyMachine, created.Profile);
+        Assert.Equal(OidcClientAuthFlow.ClientCredentials, created.AuthFlow);
         Assert.False(string.IsNullOrWhiteSpace(created.ClientSecret));
 
         using var getResponse = await _client.GetAsync($"/api/oidc/clients/{created.ClientId}");
@@ -496,7 +496,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var client = await getResponse.Content.ReadFromJsonAsync<OidcClientResponse>();
         Assert.NotNull(client);
-        Assert.Equal(OidcClientProfile.FirstPartyMachine, client.Profile);
+        Assert.Equal(OidcClientAuthFlow.ClientCredentials, client.AuthFlow);
         Assert.False(client.PublicClient);
         Assert.Equal([OpenIddictConstants.GrantTypes.ClientCredentials], client.GrantTypes);
     }
@@ -567,7 +567,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.NotNull(payload);
         Assert.Contains(nameof(OidcClientUpsertRequest), payload.Errors.Keys);
         Assert.Contains(payload.Errors[nameof(OidcClientUpsertRequest)],
-            static error => error.Contains("first-party interactive", StringComparison.OrdinalIgnoreCase));
+            static error => error.Contains("Authorization Code Flow", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]
@@ -597,7 +597,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         {
             ClientId = "interactive-client-update",
             DisplayName = "Interactive Client",
-            Profile = OidcClientProfile.FirstPartyInteractive,
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
             PublicClient = true,
             GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
             Scopes = [OpenIddictConstants.Scopes.OpenId, PermissionConstants.ScopeApi],
@@ -611,7 +611,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         {
             ClientId = "interactive-client-update",
             DisplayName = "Updated Interactive Client",
-            Profile = OidcClientProfile.FirstPartyInteractive,
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
             PublicClient = true,
             GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
             Scopes = [OpenIddictConstants.Scopes.OpenId],
@@ -625,7 +625,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.NotNull(updated);
         Assert.Equal("interactive-client-update", updated.ClientId);
         Assert.Equal("Updated Interactive Client", updated.DisplayName);
-        Assert.Equal(OidcClientProfile.FirstPartyInteractive, updated.Profile);
+        Assert.Equal(OidcClientAuthFlow.AuthorizationCode, updated.AuthFlow);
         Assert.Equal([OpenIddictConstants.GrantTypes.AuthorizationCode], updated.GrantTypes);
         Assert.Equal(["https://localhost/interactive/updated-callback"], updated.RedirectUris);
     }
@@ -648,7 +648,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         {
             ClientId = "interactive-client-delete",
             DisplayName = "Interactive Client",
-            Profile = OidcClientProfile.FirstPartyInteractive,
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
             PublicClient = true,
             GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
             Scopes = [OpenIddictConstants.Scopes.OpenId],
@@ -712,6 +712,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
         builder.Services.AddScoped<IOidcPrincipalFactory, OidcPrincipalFactory>();
         builder.Services.AddScoped<IOidcClientService, OidcClientService>();
+        builder.Services.AddScoped<IOidcScopeService, OidcScopeService>();
         builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
         builder.Services.AddScoped<IdentitySeeder>();
         builder.Services.AddSingleton<IAuthorizationHandler, PermissionAuthorizationHandler>();

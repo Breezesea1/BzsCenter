@@ -13,11 +13,11 @@ public static class OidcClientDescriptorFactory
     public static IReadOnlyList<string> ValidateRequest(OidcClientUpsertRequest request)
     {
         var errors = new List<string>();
-        var profile = ResolveProfile(request, out var profileError);
+        var authFlow = ResolveAuthFlow(request, out var authFlowError);
 
-        if (profileError is not null)
+        if (authFlowError is not null)
         {
-            errors.Add(profileError);
+            errors.Add(authFlowError);
         }
 
         if (string.IsNullOrWhiteSpace(request.DisplayName))
@@ -50,11 +50,11 @@ public static class OidcClientDescriptorFactory
             errors.Add("Authorization code clients must provide at least one redirect URI.");
         }
 
-        if (profile is OidcClientProfile.FirstPartyInteractive)
+        if (authFlow is OidcClientAuthFlow.AuthorizationCode)
         {
             if (!request.PublicClient)
             {
-                errors.Add("First-party interactive clients must be public clients.");
+                errors.Add("Authorization Code Flow clients must be public clients in the current onboarding.");
             }
 
             if (!grantTypes.All(static grantType =>
@@ -63,37 +63,37 @@ public static class OidcClientDescriptorFactory
                     string.Equals(grantType, OpenIddictConstants.GrantTypes.RefreshToken,
                         StringComparison.OrdinalIgnoreCase)))
             {
-                errors.Add("First-party interactive clients only support authorization_code and refresh_token grants.");
+                errors.Add("Authorization Code Flow clients only support authorization_code and refresh_token grants.");
             }
 
             if (!request.RequireProofKeyForCodeExchange)
             {
-                errors.Add("First-party interactive clients must require PKCE.");
+                errors.Add("Authorization Code Flow clients must require PKCE.");
             }
         }
 
-        if (profile is OidcClientProfile.FirstPartyMachine)
+        if (authFlow is OidcClientAuthFlow.ClientCredentials)
         {
             if (request.PublicClient)
             {
-                errors.Add("First-party machine clients must be confidential clients.");
+                errors.Add("Client Credentials Flow clients must be confidential clients.");
             }
 
             if (grantTypes.Length != 1 ||
                 !string.Equals(grantTypes[0], OpenIddictConstants.GrantTypes.ClientCredentials,
                     StringComparison.OrdinalIgnoreCase))
             {
-                errors.Add("First-party machine clients only support the client_credentials grant.");
+                errors.Add("Client Credentials Flow clients only support the client_credentials grant.");
             }
 
             if (request.RedirectUris.Any(static uri => !string.IsNullOrWhiteSpace(uri)))
             {
-                errors.Add("First-party machine clients must not configure redirect URIs.");
+                errors.Add("Client Credentials Flow clients must not configure redirect URIs.");
             }
 
             if (request.PostLogoutRedirectUris.Any(static uri => !string.IsNullOrWhiteSpace(uri)))
             {
-                errors.Add("First-party machine clients must not configure post logout redirect URIs.");
+                errors.Add("Client Credentials Flow clients must not configure post logout redirect URIs.");
             }
         }
 
@@ -118,7 +118,7 @@ public static class OidcClientDescriptorFactory
     /// <returns>执行结果。</returns>
     public static OpenIddictApplicationDescriptor CreateDescriptor(OidcClientUpsertRequest request, string clientId)
     {
-        var profile = ResolveProfile(request, out _);
+        var authFlow = ResolveAuthFlow(request, out _);
 
         var descriptor = new OpenIddictApplicationDescriptor
         {
@@ -127,10 +127,10 @@ public static class OidcClientDescriptorFactory
             ClientType = request.PublicClient
                 ? OpenIddictConstants.ClientTypes.Public
                 : OpenIddictConstants.ClientTypes.Confidential,
-            ConsentType = profile switch
+            ConsentType = authFlow switch
             {
-                OidcClientProfile.FirstPartyInteractive => OpenIddictConstants.ConsentTypes.Implicit,
-                OidcClientProfile.FirstPartyMachine => OpenIddictConstants.ConsentTypes.External,
+                OidcClientAuthFlow.AuthorizationCode => OpenIddictConstants.ConsentTypes.Implicit,
+                OidcClientAuthFlow.ClientCredentials => OpenIddictConstants.ConsentTypes.External,
                 _ => OpenIddictConstants.ConsentTypes.Explicit,
             },
         };
@@ -231,12 +231,12 @@ public static class OidcClientDescriptorFactory
     /// <param name="request">参数request。</param>
     /// <param name="error">参数error。</param>
     /// <returns>执行结果。</returns>
-    public static OidcClientProfile? ResolveProfile(OidcClientUpsertRequest request, out string? error)
+    public static OidcClientAuthFlow? ResolveAuthFlow(OidcClientUpsertRequest request, out string? error)
     {
-        if (request.Profile is not null)
+        if (request.AuthFlow is not null)
         {
             error = null;
-            return request.Profile.Value;
+            return request.AuthFlow.Value;
         }
 
         var grantTypes = request.GrantTypes
@@ -254,7 +254,7 @@ public static class OidcClientDescriptorFactory
         if (isInteractive)
         {
             error = null;
-            return OidcClientProfile.FirstPartyInteractive;
+            return OidcClientAuthFlow.AuthorizationCode;
         }
 
         var isMachine = !request.PublicClient &&
@@ -265,10 +265,10 @@ public static class OidcClientDescriptorFactory
         if (isMachine)
         {
             error = null;
-            return OidcClientProfile.FirstPartyMachine;
+            return OidcClientAuthFlow.ClientCredentials;
         }
 
-        error = "Current onboarding only supports first-party interactive (public + auth code/refresh token + PKCE) and first-party machine (confidential + client_credentials) clients.";
+        error = "Current onboarding only supports Authorization Code Flow (public + auth code/refresh token + PKCE) and Client Credentials Flow (confidential + client_credentials) clients.";
         return null;
     }
 

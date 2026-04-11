@@ -327,8 +327,6 @@
     flex-direction: column;
     background: var(--app-bg);
     position: relative;
-    z-index: 1;
-    isolation: isolate;
 }
 
 .layout-topbar {

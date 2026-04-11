@@ -10,6 +10,7 @@
   <data name="Login" xml:space="preserve"><value>登录</value></data>
   <data name="Users" xml:space="preserve"><value>用户</value></data>
   <data name="Clients" xml:space="preserve"><value>客户端</value></data>
+  <data name="Scopes" xml:space="preserve"><value>Scopes</value></data>
   <data name="OpenUserMenu" xml:space="preserve"><value>打开用户菜单</value></data>
   <data name="QuickActions" xml:space="preserve"><value>快捷操作</value></data>
   <data name="LogOut" xml:space="preserve"><value>退出登录</value></data>

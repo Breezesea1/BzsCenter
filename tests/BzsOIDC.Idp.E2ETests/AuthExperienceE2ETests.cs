@@ -119,6 +119,21 @@ public sealed class AuthExperienceE2ETests(AppHostFixture fixture) : E2EPageTest
     }
 
     [Fact]
+    public async Task LoginPage_WithPassword_RendersAdminDashboardImmediatelyAfterRedirect()
+    {
+        await AppUi.LoginWithPasswordAsync(
+            this,
+            fixture,
+            TestCredentials.AdminUserName,
+            TestCredentials.AdminPassword,
+            "/");
+
+        await Expect(Page).ToHaveURLAsync(new Regex(@"/$"), new() { Timeout = 30000 });
+        await Expect(Page.Locator(".dashboard-hero-actions a[href='/admin/users']")).ToBeVisibleAsync(new() { Timeout = 30000 });
+        await Expect(Page.Locator(".dashboard-hero-actions a[href='/login']")).ToHaveCountAsync(0);
+    }
+
+    [Fact]
     public async Task SidebarAvatar_WhenClicked_OpensUserMenu()
     {
         await AppUi.LoginAsAdminAsync(this, fixture);

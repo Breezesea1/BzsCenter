@@ -1,3 +1,4 @@
+@implements IDisposable
 @using System.Security.Claims
 @using ApexCharts
 @using BzsOIDC.Idp.Client.Services.Dashboard
@@ -295,9 +296,33 @@ else
         ? "0%"
         : $"{Math.Round((_summary.AdminUsers / (double)_summary.TotalUsers) * 100)}%";
 
+    protected override void OnInitialized()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged += HandleAuthenticationStateChanged;
+    }
+
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        await RefreshDashboardAsync(await AuthenticationStateProvider.GetAuthenticationStateAsync());
+    }
+
+    private void HandleAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await RefreshDashboardAsync(await authenticationStateTask);
+            StateHasChanged();
+        });
+    }
+
+    private async Task RefreshDashboardAsync(AuthenticationState authState)
+    {
+        ArgumentNullException.ThrowIfNull(authState);
+
+        _summary = null;
+        _clientMixSeries.Clear();
+        _userRoleSeries.Clear();
+
         if (authState.User.Identity?.IsAuthenticated != true)
         {
             var loginPath = QueryHelpers.AddQueryString(
@@ -320,9 +345,15 @@ else
             return;
         }
 
+        _isLoading = true;
         _summary = await DashboardClient.GetSummaryAsync();
         ConfigureCharts();
         _isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        AuthenticationStateProvider.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
     }
 
     private void ConfigureCharts()

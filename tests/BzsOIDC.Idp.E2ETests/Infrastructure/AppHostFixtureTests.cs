@@ -37,6 +37,40 @@ public sealed class AppHostFixtureTests
     }
 
     [Fact]
+    public void IsSmokeProfileEnabled_WhenEnvironmentVariableMissing_DefaultsToTrue()
+    {
+        var originalValue = Environment.GetEnvironmentVariable("TESTING__SMOKE__ENABLED");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("TESTING__SMOKE__ENABLED", null);
+
+            Assert.True(AppHostFixture.IsSmokeProfileEnabled());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TESTING__SMOKE__ENABLED", originalValue);
+        }
+    }
+
+    [Fact]
+    public void IsSmokeProfileEnabled_WhenEnvironmentVariableFalse_ReturnsFalse()
+    {
+        var originalValue = Environment.GetEnvironmentVariable("TESTING__SMOKE__ENABLED");
+
+        try
+        {
+            Environment.SetEnvironmentVariable("TESTING__SMOKE__ENABLED", bool.FalseString);
+
+            Assert.False(AppHostFixture.IsSmokeProfileEnabled());
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("TESTING__SMOKE__ENABLED", originalValue);
+        }
+    }
+
+    [Fact]
     public void ResolveIdpBaseUri_WhenClientHasBaseAddress_ReturnsBaseAddress()
     {
         using var client = new HttpClient

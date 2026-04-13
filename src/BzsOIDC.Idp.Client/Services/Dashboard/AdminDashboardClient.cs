@@ -1,10 +1,11 @@
+using System.Net;
 using System.Net.Http.Json;
 
 namespace BzsOIDC.Idp.Client.Services.Dashboard;
 
 public interface IAdminDashboardClient
 {
-    Task<AdminDashboardSummaryModel?> GetSummaryAsync(CancellationToken cancellationToken = default);
+    Task<AdminDashboardSummaryResult> GetSummaryAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed class AdminDashboardSummaryModel
@@ -19,23 +20,89 @@ public sealed class AdminDashboardSummaryModel
     public int TotalConfiguredScopes { get; init; }
 }
 
+public enum AdminDashboardSummaryStatus
+{
+    Success,
+    RequiresLogin,
+    AccessDenied,
+    Unavailable
+}
+
+public sealed class AdminDashboardSummaryResult
+{
+    private AdminDashboardSummaryResult(AdminDashboardSummaryStatus status, AdminDashboardSummaryModel? summary)
+    {
+        Status = status;
+        Summary = summary;
+    }
+
+    public AdminDashboardSummaryStatus Status { get; }
+
+    public AdminDashboardSummaryModel? Summary { get; }
+
+    public static AdminDashboardSummaryResult Success(AdminDashboardSummaryModel summary)
+    {
+        ArgumentNullException.ThrowIfNull(summary);
+        return new AdminDashboardSummaryResult(AdminDashboardSummaryStatus.Success, summary);
+    }
+
+    public static AdminDashboardSummaryResult RequiresLogin()
+    {
+        return new AdminDashboardSummaryResult(AdminDashboardSummaryStatus.RequiresLogin, null);
+    }
+
+    public static AdminDashboardSummaryResult AccessDenied()
+    {
+        return new AdminDashboardSummaryResult(AdminDashboardSummaryStatus.AccessDenied, null);
+    }
+
+    public static AdminDashboardSummaryResult Unavailable()
+    {
+        return new AdminDashboardSummaryResult(AdminDashboardSummaryStatus.Unavailable, null);
+    }
+}
+
 internal sealed class AdminDashboardClient(HttpClient httpClient) : IAdminDashboardClient
 {
-    public async Task<AdminDashboardSummaryModel?> GetSummaryAsync(CancellationToken cancellationToken = default)
+    public async Task<AdminDashboardSummaryResult> GetSummaryAsync(CancellationToken cancellationToken = default)
     {
-        using var response = await httpClient.GetAsync("api/admin/dashboard/summary", cancellationToken);
-        if (!response.IsSuccessStatusCode)
+        try
         {
-            return null;
-        }
+            using var response = await httpClient.GetAsync("api/admin/dashboard/summary", cancellationToken);
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                return AdminDashboardSummaryResult.RequiresLogin();
+            }
 
-        var mediaType = response.Content.Headers.ContentType?.MediaType;
-        if (!string.Equals(mediaType, "application/json", StringComparison.OrdinalIgnoreCase) &&
-            !string.Equals(mediaType, "text/json", StringComparison.OrdinalIgnoreCase))
+            if (response.StatusCode == HttpStatusCode.Forbidden)
+            {
+                return AdminDashboardSummaryResult.AccessDenied();
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return AdminDashboardSummaryResult.Unavailable();
+            }
+
+            var mediaType = response.Content.Headers.ContentType?.MediaType;
+            if (!string.Equals(mediaType, "application/json", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(mediaType, "text/json", StringComparison.OrdinalIgnoreCase))
+            {
+                return AdminDashboardSummaryResult.Unavailable();
+            }
+
+            var summary = await response.Content.ReadFromJsonAsync<AdminDashboardSummaryModel>(cancellationToken: cancellationToken);
+            return summary is null
+                ? AdminDashboardSummaryResult.Unavailable()
+                : AdminDashboardSummaryResult.Success(summary);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            return null;
+            return AdminDashboardSummaryResult.Unavailable();
         }
-
-        return await response.Content.ReadFromJsonAsync<AdminDashboardSummaryModel>(cancellationToken: cancellationToken);
+        catch (HttpRequestException)
+        {
+            return AdminDashboardSummaryResult.Unavailable();
+        }
     }
 }

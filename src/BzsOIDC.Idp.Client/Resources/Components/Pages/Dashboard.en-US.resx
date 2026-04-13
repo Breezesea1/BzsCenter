@@ -43,6 +43,9 @@
   <data name="GuidanceThree" xml:space="preserve"><value>Verify redirect URIs, client secrets, and environment bindings.</value></data>
   <data name="AccessLimitedTitle" xml:space="preserve"><value>You don't have access to this authorization server overview.</value></data>
   <data name="AccessLimitedLead" xml:space="preserve"><value>Sign in with an administrative principal.</value></data>
+  <data name="UnavailableTitle" xml:space="preserve"><value>Dashboard data is still loading or temporarily unavailable.</value></data>
+  <data name="UnavailableLead" xml:space="preserve"><value>We could not confirm the latest overview data yet. Retry once your session and network are ready.</value></data>
+  <data name="RetryLoad" xml:space="preserve"><value>Retry loading</value></data>
   <data name="GoToLogin" xml:space="preserve"><value>Go to Login</value></data>
   <data name="VsLastMonth" xml:space="preserve"><value>vs last month</value></data>
   <data name="MonthlyGoals" xml:space="preserve"><value>Monthly targets</value></data>
@@ -60,4 +63,5 @@
   <data name="TimeYesterday" xml:space="preserve"><value>Yesterday</value></data>
   <data name="ActivitySystemBackup" xml:space="preserve"><value>Authorization server configuration backup completed</value></data>
   <data name="TimeTwoDaysAgo" xml:space="preserve"><value>2 days ago</value></data>
+  <data name="MoreActivity" xml:space="preserve"><value>View more activity</value></data>
 </root>

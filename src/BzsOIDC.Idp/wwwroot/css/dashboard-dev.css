@@ -59,6 +59,12 @@
     line-height: 1.58;
 }
 
+.dashboard-hero-copy,
+.dashboard-panel-copy,
+.dashboard-activity-content {
+    min-width: 0;
+}
+
 .dashboard-hero-actions {
     display: flex;
     flex-wrap: wrap;
@@ -126,6 +132,12 @@
     gap: 0.95rem;
 }
 
+.dashboard-section-primary,
+.dashboard-section-actions,
+.dashboard-section-secondary {
+    min-width: 0;
+}
+
 .dashboard-kpi-card {
     position: relative;
     overflow: hidden;
@@ -188,6 +200,23 @@
 
 .dashboard-panel {
     padding: 1rem;
+}
+
+.dashboard-chart-frame {
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.15rem;
+}
+
+.dashboard-chart-frame-compact {
+    display: flex;
+    justify-content: center;
+}
+
+.dashboard-chart-frame .apexcharts-canvas,
+.dashboard-chart-frame svg {
+    max-width: 100% !important;
 }
 
 .dashboard-panel-featured {
@@ -349,6 +378,14 @@
     margin-top: 0.5rem;
 }
 
+.dashboard-activity-disclosure {
+    display: contents;
+}
+
+.dashboard-activity-disclosure summary {
+    display: none;
+}
+
 .dashboard-activity-item {
     display: flex;
     align-items: flex-start;
@@ -485,6 +522,10 @@ a.dashboard-action-card:focus-visible {
 }
 
 @media (max-width: 640.98px) {
+    .dashboard-shell {
+        gap: 0.8rem;
+    }
+
     .dashboard-hero,
     .dashboard-kpi-card,
     .dashboard-panel {
@@ -495,6 +536,187 @@ a.dashboard-action-card:focus-visible {
     .dashboard-primary-action,
     .dashboard-secondary-action {
         width: 100%;
+    }
+
+    .dashboard-panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .dashboard-panel-header p {
+        max-width: none;
+    }
+
+    .dashboard-goal-label {
+        gap: 0.45rem;
+        flex-wrap: wrap;
+    }
+
+    .dashboard-goal-label span:last-child {
+        margin-left: auto;
+    }
+
+    .dashboard-chart-frame {
+        margin-inline: -0.15rem;
+        padding-inline: 0.15rem;
+    }
+
+    .dashboard-section-actions {
+        order: 2;
+    }
+
+    .dashboard-section-secondary {
+        order: 3;
+    }
+
+    .dashboard-detail-grid,
+    .dashboard-analytics-grid {
+        gap: 0.8rem;
+    }
+
+    .dashboard-action-list {
+        gap: 0.65rem;
+    }
+
+    .dashboard-chart-frame {
+        padding-bottom: 0;
+    }
+
+    .dashboard-chart-frame .apexcharts-title-text {
+        font-size: 0.9rem !important;
+    }
+
+    .dashboard-chart-frame .apexcharts-legend {
+        gap: 0.2rem;
+    }
+
+    .dashboard-chart-frame .apexcharts-legend-series {
+        margin: 0.1rem 0.4rem 0.1rem 0 !important;
+    }
+
+    .dashboard-chart-frame .apexcharts-legend-text,
+    .dashboard-chart-frame .apexcharts-xaxis-texts-g text,
+    .dashboard-chart-frame .apexcharts-yaxis-texts-g text {
+        font-size: 11px !important;
+    }
+
+    .dashboard-action-card {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 0.9rem;
+    }
+
+    .dashboard-action-card strong {
+        font-size: 0.92rem;
+    }
+
+    .dashboard-panel-analytics-main {
+        order: 1;
+    }
+
+    .dashboard-panel-analytics-support {
+        order: 2;
+    }
+
+    .dashboard-activity-panel {
+        order: 3;
+    }
+
+    .dashboard-activity-list {
+        gap: 0.95rem;
+    }
+
+    .dashboard-activity-disclosure {
+        display: block;
+        margin-top: -0.1rem;
+    }
+
+    .dashboard-activity-disclosure summary {
+        display: inline-flex;
+        align-items: center;
+        min-height: 2.75rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 0.85rem;
+        border: 1px solid var(--dashboard-border);
+        background: color-mix(in srgb, var(--surface-muted) 82%, white 18%);
+        color: var(--app-text);
+        font-size: 0.8rem;
+        font-weight: 600;
+        list-style: none;
+        cursor: pointer;
+    }
+
+    .dashboard-activity-disclosure summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .dashboard-activity-item-disclosed {
+        margin-top: 0.9rem;
+    }
+}
+
+@media (max-width: 480.98px) {
+    .dashboard-shell {
+        gap: 0.9rem;
+    }
+
+    .dashboard-hero {
+        gap: 1rem;
+    }
+
+    .dashboard-hero h1 {
+        font-size: 1.5rem;
+    }
+
+    .dashboard-hero p {
+        font-size: 0.84rem;
+    }
+
+    .dashboard-kpi-top {
+        gap: 0.7rem;
+    }
+
+    .dashboard-kpi-icon {
+        width: 2.35rem;
+        height: 2.35rem;
+    }
+
+    .dashboard-chart-frame .apexcharts-legend {
+        justify-content: flex-start !important;
+    }
+
+    .dashboard-kpi-card strong {
+        font-size: 1.34rem;
+    }
+
+    .dashboard-kpi-trend {
+        flex-wrap: wrap;
+    }
+
+    .dashboard-panel-header h2 {
+        font-size: 0.96rem;
+    }
+
+    .dashboard-chart-frame {
+        max-height: 18rem;
+        overflow-y: hidden;
+    }
+
+    .dashboard-chart-frame-compact {
+        max-height: 15rem;
+    }
+
+    .dashboard-panel-header p,
+    .dashboard-action-card span,
+    .dashboard-note-list,
+    .dashboard-activity-content strong,
+    .dashboard-activity-content span {
+        font-size: 0.76rem;
+    }
+
+    .dashboard-activity-disclosure summary {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.78rem;
     }
 }
 

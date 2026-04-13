@@ -10,12 +10,14 @@
 @inject IStringLocalizer<Dashboard> L
 @inject NavigationManager NavigationManager
 
-@if (_isLoading)
+@if (IsBusy)
 {
     <section class="dashboard-shell">
         <header class="dashboard-hero dashboard-skeleton-card">
-            <div class="dashboard-skeleton-line wide"></div>
-            <div class="dashboard-skeleton-line medium"></div>
+            <div class="dashboard-hero-copy">
+                <div class="dashboard-skeleton-line wide"></div>
+                <div class="dashboard-skeleton-line medium"></div>
+            </div>
         </header>
 
         <section class="dashboard-kpi-grid">
@@ -29,11 +31,11 @@
         </section>
     </section>
 }
-else if (_summary is null)
+else if (_viewState == DashboardViewState.AccessDenied)
 {
     <section class="dashboard-shell">
         <header class="dashboard-hero">
-            <div>
+            <div class="dashboard-hero-copy">
                 <span class="dashboard-kicker">@L["Kicker"]</span>
                 <h1>@L["AccessLimitedTitle"]</h1>
                 <p>@L["AccessLimitedLead"]</p>
@@ -45,11 +47,28 @@ else if (_summary is null)
         </header>
     </section>
 }
-else
+else if (_viewState == DashboardViewState.Unavailable)
 {
     <section class="dashboard-shell">
         <header class="dashboard-hero">
-            <div>
+            <div class="dashboard-hero-copy">
+                <span class="dashboard-kicker">@L["Kicker"]</span>
+                <h1>@L["UnavailableTitle"]</h1>
+                <p>@L["UnavailableLead"]</p>
+            </div>
+
+            <div class="dashboard-hero-actions">
+                <button class="dashboard-primary-action" type="button" @onclick="RefreshCurrentStateAsync">@L["RetryLoad"]</button>
+                <a class="dashboard-secondary-action" href="/admin/clients" data-enhance-nav="false">@L["ManageClients"]</a>
+            </div>
+        </header>
+    </section>
+}
+else if (_summary is not null)
+{
+    <section class="dashboard-shell">
+        <header class="dashboard-hero">
+            <div class="dashboard-hero-copy">
                 <span class="dashboard-kicker">@L["Kicker"]</span>
                 <h1>@L["Title"]</h1>
                 <p>@L["Lead"]</p>
@@ -61,7 +80,7 @@ else
             </div>
         </header>
 
-        <section class="dashboard-kpi-grid" aria-label="@L["Overview"]">
+        <section class="dashboard-kpi-grid dashboard-section-primary" aria-label="@L["Overview"]">
             <article class="dashboard-kpi-card dashboard-kpi-card-primary">
                 <div class="dashboard-kpi-top">
                     <span class="dashboard-kpi-label">@L["TotalUsers"]</span>
@@ -123,46 +142,50 @@ else
             </article>
         </section>
 
-        <section class="dashboard-analytics-grid">
-            <article class="dashboard-panel dashboard-panel-featured">
+        <section class="dashboard-analytics-grid dashboard-section-secondary">
+            <article class="dashboard-panel dashboard-panel-featured dashboard-panel-analytics-main">
                 <div class="dashboard-panel-header">
-                    <div>
+                    <div class="dashboard-panel-copy">
                         <span class="dashboard-panel-kicker">@L["ClientMix"]</span>
                         <h2>@L["ClientMixTitle"]</h2>
                     </div>
                     <p>@L["ClientMixLead"]</p>
                 </div>
 
-                <ApexChart TItem="DashboardChartPoint" Title="@L["ClientMixTitle"]" Options="_clientMixOptions">
-                    <ApexPointSeries TItem="DashboardChartPoint"
-                                     Items="_clientMixSeries"
-                                     Name="@L["Clients"]"
-                                     SeriesType="SeriesType.Bar"
-                                     XValue="point => point.Label"
-                                     YValue="point => point.Value" />
-                </ApexChart>
+                <div class="dashboard-chart-frame">
+                    <ApexChart TItem="DashboardChartPoint" Title="@L["ClientMixTitle"]" Options="_clientMixOptions">
+                        <ApexPointSeries TItem="DashboardChartPoint"
+                                         Items="_clientMixSeries"
+                                         Name="@L["Clients"]"
+                                         SeriesType="SeriesType.Bar"
+                                         XValue="point => point.Label"
+                                         YValue="point => point.Value" />
+                    </ApexChart>
+                </div>
             </article>
 
-            <article class="dashboard-panel">
+            <article class="dashboard-panel dashboard-panel-analytics-support">
                 <div class="dashboard-panel-header compact">
-                    <div>
+                    <div class="dashboard-panel-copy">
                         <span class="dashboard-panel-kicker">@L["RoleBalance"]</span>
                         <h2>@L["RoleBalanceTitle"]</h2>
                     </div>
                 </div>
 
-                <ApexChart TItem="DonutSlice" Options="_userRoleOptions">
-                    <ApexPointSeries TItem="DonutSlice"
-                                     Items="_userRoleSeries"
-                                     Name="@L["Users"]"
-                                     SeriesType="SeriesType.Donut"
-                                     XValue="slice => slice.Label"
-                                     YValue="slice => slice.Value" />
-                </ApexChart>
+                <div class="dashboard-chart-frame dashboard-chart-frame-compact">
+                    <ApexChart TItem="DonutSlice" Options="_userRoleOptions">
+                        <ApexPointSeries TItem="DonutSlice"
+                                         Items="_userRoleSeries"
+                                         Name="@L["Users"]"
+                                         SeriesType="SeriesType.Donut"
+                                         XValue="slice => slice.Label"
+                                         YValue="slice => slice.Value" />
+                    </ApexChart>
+                </div>
 
                 <div class="dashboard-goals-section">
                     <div class="dashboard-panel-header compact">
-                        <div>
+                        <div class="dashboard-panel-copy">
                             <span class="dashboard-panel-kicker">@(L["MonthlyGoals"].ResourceNotFound ? "Monthly Goals" : L["MonthlyGoals"])</span>
                             <h2>@(L["GoalsProgress"].ResourceNotFound ? "Progress" : L["GoalsProgress"])</h2>
                         </div>
@@ -201,7 +224,7 @@ else
 
             <article class="dashboard-panel dashboard-activity-panel">
                 <div class="dashboard-panel-header compact">
-                    <div>
+                    <div class="dashboard-panel-copy">
                         <span class="dashboard-panel-kicker">@(L["Timeline"].ResourceNotFound ? "Timeline" : L["Timeline"])</span>
                         <h2>@(L["RecentActivity"].ResourceNotFound ? "Recent Activity" : L["RecentActivity"])</h2>
                     </div>
@@ -222,28 +245,32 @@ else
                             <span>@(L["TimeTwoHoursAgo"].ResourceNotFound ? "2 hours ago" : L["TimeTwoHoursAgo"])</span>
                         </div>
                     </div>
-                    <div class="dashboard-activity-item">
-                        <div class="dashboard-activity-dot" style="background: #ca8a04;"></div>
-                        <div class="dashboard-activity-content">
-                            <strong>@(L["ActivityScopeAdded"].ResourceNotFound ? "New billing scope created" : L["ActivityScopeAdded"])</strong>
-                            <span>@(L["TimeYesterday"].ResourceNotFound ? "Yesterday" : L["TimeYesterday"])</span>
+
+                    <details class="dashboard-activity-disclosure">
+                        <summary>@(L["MoreActivity"].ResourceNotFound ? "View more activity" : L["MoreActivity"])</summary>
+                        <div class="dashboard-activity-item dashboard-activity-item-disclosed">
+                            <div class="dashboard-activity-dot" style="background: #ca8a04;"></div>
+                            <div class="dashboard-activity-content">
+                                <strong>@(L["ActivityScopeAdded"].ResourceNotFound ? "New billing scope created" : L["ActivityScopeAdded"])</strong>
+                                <span>@(L["TimeYesterday"].ResourceNotFound ? "Yesterday" : L["TimeYesterday"])</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="dashboard-activity-item">
-                        <div class="dashboard-activity-dot" style="background: #64748b;"></div>
-                        <div class="dashboard-activity-content">
-                            <strong>@(L["ActivitySystemBackup"].ResourceNotFound ? "System configuration backup completed" : L["ActivitySystemBackup"])</strong>
-                            <span>@(L["TimeTwoDaysAgo"].ResourceNotFound ? "2 days ago" : L["TimeTwoDaysAgo"])</span>
+                        <div class="dashboard-activity-item dashboard-activity-item-disclosed">
+                            <div class="dashboard-activity-dot" style="background: #64748b;"></div>
+                            <div class="dashboard-activity-content">
+                                <strong>@(L["ActivitySystemBackup"].ResourceNotFound ? "System configuration backup completed" : L["ActivitySystemBackup"])</strong>
+                                <span>@(L["TimeTwoDaysAgo"].ResourceNotFound ? "2 days ago" : L["TimeTwoDaysAgo"])</span>
+                            </div>
                         </div>
-                    </div>
+                    </details>
                 </div>
             </article>
         </section>
 
-        <section class="dashboard-detail-grid">
+        <section class="dashboard-detail-grid dashboard-section-actions">
             <article class="dashboard-panel">
                 <div class="dashboard-panel-header compact">
-                    <div>
+                    <div class="dashboard-panel-copy">
                         <span class="dashboard-panel-kicker">@L["QuickActions"]</span>
                         <h2>@L["QuickActionsTitle"]</h2>
                     </div>
@@ -267,7 +294,7 @@ else
 
             <article class="dashboard-panel dashboard-notes-panel">
                 <div class="dashboard-panel-header compact">
-                    <div>
+                    <div class="dashboard-panel-copy">
                         <span class="dashboard-panel-kicker">@L["Guidance"]</span>
                         <h2>@L["GuidanceTitle"]</h2>
                     </div>
@@ -287,10 +314,14 @@ else
     private readonly List<DashboardChartPoint> _clientMixSeries = [];
     private readonly List<DonutSlice> _userRoleSeries = [];
     private const string AdminRoleName = "admin";
-    private bool _isLoading = true;
     private AdminDashboardSummaryModel? _summary;
     private ApexChartOptions<DashboardChartPoint> _clientMixOptions = new();
     private ApexChartOptions<DonutSlice> _userRoleOptions = new();
+    private CancellationTokenSource? _refreshCts;
+    private DashboardViewState _viewState = DashboardViewState.Loading;
+    private int _refreshVersion;
+
+    private bool IsBusy => _viewState is DashboardViewState.Loading or DashboardViewState.Authorizing;
 
     private string AdminRatioDisplay => _summary is null || _summary.TotalUsers == 0
         ? "0%"
@@ -303,7 +334,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await RefreshDashboardAsync(await AuthenticationStateProvider.GetAuthenticationStateAsync());
+        await RefreshCurrentStateAsync();
     }
 
     private void HandleAuthenticationStateChanged(Task<AuthenticationState> authenticationStateTask)
@@ -315,45 +346,129 @@ else
         });
     }
 
+    private async Task RefreshCurrentStateAsync()
+    {
+        await RefreshDashboardAsync(await AuthenticationStateProvider.GetAuthenticationStateAsync());
+    }
+
     private async Task RefreshDashboardAsync(AuthenticationState authState)
     {
         ArgumentNullException.ThrowIfNull(authState);
 
-        _summary = null;
-        _clientMixSeries.Clear();
-        _userRoleSeries.Clear();
+        var refreshVersion = BeginRefresh();
+        var cancellationToken = _refreshCts?.Token ?? CancellationToken.None;
 
         if (authState.User.Identity?.IsAuthenticated != true)
         {
-            var loginPath = QueryHelpers.AddQueryString(
-                "/login",
-                new Dictionary<string, string?>
-                {
-                    ["returnUrl"] = "/",
-                });
-
-            NavigationManager.NavigateTo(loginPath, forceLoad: true);
-            _isLoading = false;
+            _viewState = DashboardViewState.Authorizing;
+            RedirectToLogin();
             return;
         }
 
-        if (!authState.User.Claims.Any(claim =>
-                string.Equals(claim.Type, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase)
-                && string.Equals(claim.Value, AdminRoleName, StringComparison.OrdinalIgnoreCase)))
+        if (!HasAdminRole(authState.User))
         {
-            _isLoading = false;
+            if (IsStale(refreshVersion, cancellationToken))
+            {
+                return;
+            }
+
+            _viewState = DashboardViewState.AccessDenied;
             return;
         }
 
-        _isLoading = true;
-        _summary = await DashboardClient.GetSummaryAsync();
-        ConfigureCharts();
-        _isLoading = false;
+        _viewState = DashboardViewState.Loading;
+
+        AdminDashboardSummaryResult summaryResult;
+
+        try
+        {
+            summaryResult = await DashboardClient.GetSummaryAsync(cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            return;
+        }
+
+        if (IsStale(refreshVersion, cancellationToken))
+        {
+            return;
+        }
+
+        switch (summaryResult.Status)
+        {
+            case AdminDashboardSummaryStatus.Success:
+                _summary = summaryResult.Summary;
+                ConfigureCharts();
+                _viewState = _summary is null ? DashboardViewState.Unavailable : DashboardViewState.Ready;
+                break;
+
+            case AdminDashboardSummaryStatus.RequiresLogin:
+                _viewState = DashboardViewState.Authorizing;
+                RedirectToLogin();
+                break;
+
+            case AdminDashboardSummaryStatus.AccessDenied:
+                _viewState = DashboardViewState.AccessDenied;
+                break;
+
+            default:
+                _viewState = DashboardViewState.Unavailable;
+                break;
+        }
     }
 
     public void Dispose()
     {
         AuthenticationStateProvider.AuthenticationStateChanged -= HandleAuthenticationStateChanged;
+        CancelRefresh();
+    }
+
+    private int BeginRefresh()
+    {
+        CancelRefresh();
+        _refreshCts = new CancellationTokenSource();
+        _refreshVersion++;
+        ResetDashboardData();
+        _viewState = DashboardViewState.Loading;
+        return _refreshVersion;
+    }
+
+    private void CancelRefresh()
+    {
+        _refreshCts?.Cancel();
+        _refreshCts?.Dispose();
+        _refreshCts = null;
+    }
+
+    private static bool HasAdminRole(ClaimsPrincipal user)
+    {
+        return user.Claims.Any(claim =>
+            string.Equals(claim.Type, ClaimTypes.Role, StringComparison.OrdinalIgnoreCase) &&
+            string.Equals(claim.Value, AdminRoleName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsStale(int refreshVersion, CancellationToken cancellationToken)
+    {
+        return cancellationToken.IsCancellationRequested || refreshVersion != _refreshVersion;
+    }
+
+    private void RedirectToLogin()
+    {
+        var loginPath = QueryHelpers.AddQueryString(
+            "/login",
+            new Dictionary<string, string?>
+            {
+                ["returnUrl"] = "/",
+            });
+
+        NavigationManager.NavigateTo(loginPath, forceLoad: true);
+    }
+
+    private void ResetDashboardData()
+    {
+        _summary = null;
+        _clientMixSeries.Clear();
+        _userRoleSeries.Clear();
     }
 
     private void ConfigureCharts()
@@ -435,5 +550,15 @@ else
     }
 
     private sealed record DashboardChartPoint(string Label, decimal Value);
+
     private sealed record DonutSlice(string Label, decimal Value);
+
+    private enum DashboardViewState
+    {
+        Authorizing,
+        Loading,
+        Ready,
+        AccessDenied,
+        Unavailable
+    }
 }

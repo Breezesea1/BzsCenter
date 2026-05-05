@@ -44,4 +44,6 @@
   <data name="PermissionCreated" xml:space="preserve"><value>已创建权限 “{0}”。</value></data>
   <data name="ReleaseScopesSaved" xml:space="preserve"><value>已保存 “{0}” 的发布 Scope。</value></data>
   <data name="RoleAssignmentsSaved" xml:space="preserve"><value>已保存角色分配。</value></data>
+  <data name="RoleAssignmentsReadOnlyLead" xml:space="preserve"><value>角色分配请在“角色”页面编辑；此处仅只读展示。</value></data>
+  <data name="NoAssignedRoles" xml:space="preserve"><value>暂无角色分配。</value></data>
 </root>

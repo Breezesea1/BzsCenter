@@ -5,12 +5,14 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using BzsOIDC.Idp.Controllers;
 using BzsOIDC.Idp.Infra;
+using BzsOIDC.Idp.Models;
 using BzsOIDC.Idp.Services.Authorization;
 using BzsOIDC.Idp.Services.Identity;
 using BzsOIDC.Shared.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
@@ -77,6 +79,62 @@ public sealed class PermissionCatalogApiIntegrationTests : IAsyncLifetime
         Assert.Contains(getPayload.Permissions, static permission => permission.Name == "orders.read");
     }
 
+    [Fact]
+    public async Task RoleManagement_WithValidRolePermissionClaims_WorksEndToEnd()
+    {
+        await SeedPermissionAsync(PermissionConstants.UsersReadAll);
+
+        using var createRequest = CreateAuthorizedRequest(
+            HttpMethod.Post,
+            "/api/roles",
+            new RoleUpsertRequest { Name = "operators" },
+            $"{PermissionConstants.RolesRead},{PermissionConstants.RolesWrite}");
+        using var createResponse = await _client.SendAsync(createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<RoleResponse>();
+        Assert.NotNull(created);
+        Assert.Equal("operators", created.Name);
+
+        using var updateRequest = CreateAuthorizedRequest(
+            HttpMethod.Put,
+            $"/api/roles/{created.Id}",
+            new RoleUpsertRequest { Name = "support" },
+            $"{PermissionConstants.RolesRead},{PermissionConstants.RolesWrite}");
+        using var updateResponse = await _client.SendAsync(updateRequest);
+        updateResponse.EnsureSuccessStatusCode();
+
+        var updated = await updateResponse.Content.ReadFromJsonAsync<RoleResponse>();
+        Assert.NotNull(updated);
+        Assert.Equal("support", updated.Name);
+
+        using var syncRequest = CreateAuthorizedRequest(
+            HttpMethod.Put,
+            $"/api/roles/{created.Id}/permissions",
+            new RolePermissionSyncRequest { Permissions = [PermissionConstants.UsersReadAll] },
+            $"{PermissionConstants.RolesRead},{PermissionConstants.RolesWrite}");
+        using var syncResponse = await _client.SendAsync(syncRequest);
+        Assert.Equal(HttpStatusCode.NoContent, syncResponse.StatusCode);
+
+        using var permissionsRequest = CreateAuthorizedRequest(
+            HttpMethod.Get,
+            $"/api/roles/{created.Id}/permissions",
+            permissions: PermissionConstants.RolesRead);
+        using var permissionsResponse = await _client.SendAsync(permissionsRequest);
+        permissionsResponse.EnsureSuccessStatusCode();
+
+        var permissions = await permissionsResponse.Content.ReadFromJsonAsync<string[]>();
+        Assert.NotNull(permissions);
+        Assert.Contains(PermissionConstants.UsersReadAll, permissions);
+
+        using var deleteRequest = CreateAuthorizedRequest(
+            HttpMethod.Delete,
+            $"/api/roles/{created.Id}",
+            permissions: PermissionConstants.RolesWrite);
+        using var deleteResponse = await _client.SendAsync(deleteRequest);
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+    }
+
     public async Task InitializeAsync()
     {
         _connection = new SqliteConnection("Data Source=:memory:");
@@ -100,7 +158,13 @@ public sealed class PermissionCatalogApiIntegrationTests : IAsyncLifetime
 
         builder.Services.AddMemoryCache();
         builder.Services.AddDbContext<IdpDbContext>(options => options.UseSqlite(_connection));
+        builder.Services.AddIdentityCore<BzsUser>()
+            .AddRoles<BzsRole>()
+            .AddEntityFrameworkStores<IdpDbContext>()
+            .AddDefaultTokenProviders();
         builder.Services.AddScoped<IPermissionCatalogService, PermissionCatalogService>();
+        builder.Services.AddScoped<RoleManagementPolicy>();
+        builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
 
         builder.Services
             .AddControllers()
@@ -130,11 +194,34 @@ public sealed class PermissionCatalogApiIntegrationTests : IAsyncLifetime
         await _connection.DisposeAsync();
     }
 
-    private static HttpRequestMessage CreateAuthorizedRequest(HttpMethod method, string url, object? content = null)
+    private async Task SeedPermissionAsync(string permissionName)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var catalogService = scope.ServiceProvider.GetRequiredService<IPermissionCatalogService>();
+        var resourceResult = await catalogService.UpsertResourceAsync(
+            PermissionConstants.ScopeApi,
+            new ProtectedResourceUpsertRequest { DisplayName = "BzsOIDC Admin API" });
+        Assert.Equal(PermissionCatalogCommandStatus.Success, resourceResult.Status);
+
+        var permissionResult = await catalogService.UpsertPermissionAsync(
+            PermissionConstants.ScopeApi,
+            permissionName,
+            new PermissionDefinitionUpsertRequest { DisplayName = permissionName });
+        Assert.Equal(PermissionCatalogCommandStatus.Success, permissionResult.Status);
+
+        var scopeResult = await catalogService.SyncReleaseScopesAsync(permissionName, [PermissionConstants.ScopeApi]);
+        Assert.Equal(PermissionCatalogCommandStatus.Success, scopeResult.Status);
+    }
+
+    private static HttpRequestMessage CreateAuthorizedRequest(
+        HttpMethod method,
+        string url,
+        object? content = null,
+        string permissions = "permissions.read,permissions.write")
     {
         var request = new HttpRequestMessage(method, url);
         request.Headers.Add(TestAuthHandler.UserHeader, "integration-user");
-        request.Headers.Add(TestAuthHandler.PermissionHeader, "permissions.read,permissions.write");
+        request.Headers.Add(TestAuthHandler.PermissionHeader, permissions);
 
         if (content is not null)
         {

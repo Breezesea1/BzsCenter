@@ -7,7 +7,7 @@ namespace BzsOIDC.Idp.Controllers;
 [ApiController]
 public sealed class PermissionCatalogController(
     IPermissionCatalogService permissionCatalogService,
-    IServiceProvider serviceProvider) : ControllerBase
+    IRoleManagementService roleManagementService) : ControllerBase
 {
     [HttpGet("~/api/permission-catalog/resources")]
     [PermissionAuthorize(PermissionConstants.PermissionsRead)]
@@ -95,13 +95,8 @@ public sealed class PermissionCatalogController(
     [PermissionAuthorize(PermissionConstants.PermissionsRead)]
     public async Task<ActionResult<IReadOnlyList<string>>> GetRolePermissions(Guid roleId, CancellationToken cancellationToken)
     {
-        var rolePermissionService = GetRolePermissionService();
-        if (rolePermissionService is null)
-        {
-            return Problem("Role permission service is unavailable.");
-        }
-
-        return Ok(await rolePermissionService.GetPermissionsAsync(roleId, cancellationToken));
+        var permissions = await roleManagementService.GetPermissionsAsync(roleId, cancellationToken);
+        return permissions is null ? NotFound() : Ok(permissions);
     }
 
     [HttpPut("~/api/permission-catalog/roles/{roleId:guid}/permissions")]
@@ -111,29 +106,23 @@ public sealed class PermissionCatalogController(
         [FromBody] RolePermissionSyncRequest request,
         CancellationToken cancellationToken)
     {
-        var rolePermissionService = GetRolePermissionService();
-        if (rolePermissionService is null)
-        {
-            return Problem("Role permission service is unavailable.");
-        }
-
-        var result = await rolePermissionService.SyncPermissionsAsync(roleId, request.Permissions, cancellationToken);
-        if (result.Succeeded)
+        var result = await roleManagementService.SyncPermissionsAsync(roleId, request.Permissions, cancellationToken);
+        if (result.Status == RoleManagementCommandStatus.Success)
         {
             return NoContent();
         }
 
+        if (result.Status == RoleManagementCommandStatus.NotFound)
+        {
+            return NotFound();
+        }
+
         foreach (var error in result.Errors)
         {
-            ModelState.AddModelError(error.Code, error.Description);
+            ModelState.AddModelError(nameof(RolePermissionSyncRequest), error);
         }
 
         return ValidationProblem(ModelState);
-    }
-
-    private IRolePermissionService? GetRolePermissionService()
-    {
-        return serviceProvider.GetService<IRolePermissionService>();
     }
 
     private ActionResult<T> ToActionResult<T>(PermissionCatalogCommandResult<T> result)
@@ -157,9 +146,4 @@ public sealed class PermissionCatalogController(
 
         return new ValidationProblemDetails(ModelState);
     }
-}
-
-public sealed record RolePermissionSyncRequest
-{
-    public string[] Permissions { get; init; } = [];
 }

@@ -7,8 +7,6 @@
 @using Microsoft.Extensions.Localization
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IPermissionCatalogService PermissionCatalogService
-@inject IRoleService RoleService
-@inject IRolePermissionService RolePermissionService
 @inject IStringLocalizer<PermissionManagement> L
 @inject NavigationManager NavigationManager
 @layout BzsOIDC.Idp.Client.Components.Layout.MainLayout
@@ -199,17 +197,15 @@ else
                         }
                         else
                         {
-                            <div class="admin-topology-list">
-                                @foreach (var role in _roles)
+                            <p class="admin-user-meta">@L["RoleAssignmentsReadOnlyLead"]</p>
+                            <div class="admin-token-list">
+                                @foreach (var role in SelectedPermission.AssignedRoles)
                                 {
-                                    var assigned = IsAssignedToRole(role.Id);
-                                    <label class="admin-topology-row admin-topology-button admin-role-row">
-                                        <input type="checkbox"
-                                               checked="@assigned"
-                                               @onchange="args => ToggleRolePermissionAsync(role.Id, args.Value is bool isChecked && isChecked)" />
-                                        <strong>@role.Name</strong>
-                                        <span class="admin-user-meta">@(assigned ? L["Assigned"] : L["NotAssigned"])</span>
-                                    </label>
+                                    <span class="admin-token">@role.RoleName</span>
+                                }
+                                @if (SelectedPermission.AssignedRoles.Length == 0)
+                                {
+                                    <span class="admin-user-meta">@L["NoAssignedRoles"]</span>
                                 }
                             </div>
                         }
@@ -269,7 +265,6 @@ else
 
 @code {
     private readonly List<ProtectedResourceResponse> _resources = [];
-    private readonly List<BzsOIDC.Idp.Models.BzsRole> _roles = [];
     private string? _selectedResourceKey;
     private string? _selectedPermissionName;
     private string _searchTerm = string.Empty;
@@ -333,8 +328,6 @@ else
         {
             _resources.Clear();
             _resources.AddRange(await PermissionCatalogService.GetResourcesAsync());
-            _roles.Clear();
-            _roles.AddRange(await RoleService.GetAllAsync());
             _selectedResourceKey ??= _resources.FirstOrDefault()?.Key;
             _selectedPermissionName ??= SelectedResource?.Permissions.FirstOrDefault()?.Name;
             SyncReleaseScopeEditor();
@@ -393,31 +386,6 @@ else
         await LoadAsync();
     }
 
-    private async Task ToggleRolePermissionAsync(Guid roleId, bool assigned)
-    {
-        if (SelectedPermission is null)
-        {
-            return;
-        }
-
-        var current = (await RolePermissionService.GetPermissionsAsync(roleId)).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if (assigned)
-        {
-            current.Add(SelectedPermission.Name);
-        }
-        else
-        {
-            current.Remove(SelectedPermission.Name);
-        }
-
-        var result = await RolePermissionService.SyncPermissionsAsync(roleId, current);
-        _statusIsError = !result.Succeeded;
-        _statusMessage = result.Succeeded
-            ? L["RoleAssignmentsSaved"].Value
-            : string.Join(Environment.NewLine, result.Errors.Select(static error => error.Description));
-        await LoadAsync();
-    }
-
     private void SelectResource(string resourceKey)
     {
         _selectedResourceKey = resourceKey;
@@ -446,11 +414,6 @@ else
     private bool IsSelectedPermission(PermissionDefinitionResponse permission)
     {
         return string.Equals(permission.Name, _selectedPermissionName, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool IsAssignedToRole(Guid roleId)
-    {
-        return SelectedPermission?.AssignedRoles.Any(role => role.RoleId == roleId) == true;
     }
 
     private void HandleSearchInput(ChangeEventArgs args)

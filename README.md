@@ -34,6 +34,14 @@
 
 ![BzsOIDC 客户端管理](./docs/client-management-page.png)
 
+### 角色与权限管理
+
+`BzsOIDC.Idp` 现在也包含完整的角色管理与权限中心：
+
+- 角色增删改查
+- 角色权限分配迁移到 `/admin/roles`
+- `/admin/permissions` 保持权限目录与角色分配拓扑的只读展示
+
 ## 本地运行时长什么样
 
 本仓库的本地开发不是单独跑一个 Web 项目，而是通过 Aspire 把整套依赖一起拉起来：
@@ -93,7 +101,9 @@ aspire run
 - 登录页：`/login`
 - 首页：`/`
 - 用户管理：`/admin/users`
+- 角色管理：`/admin/roles`
 - 客户端管理：`/admin/clients`
+- 权限中心：`/admin/permissions`
 
 ## 这个仓库里有什么
 

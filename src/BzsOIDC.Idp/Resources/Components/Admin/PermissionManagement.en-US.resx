@@ -44,4 +44,6 @@
   <data name="PermissionCreated" xml:space="preserve"><value>Created permission '{0}'.</value></data>
   <data name="ReleaseScopesSaved" xml:space="preserve"><value>Saved release scopes for '{0}'.</value></data>
   <data name="RoleAssignmentsSaved" xml:space="preserve"><value>Saved role assignments.</value></data>
+  <data name="RoleAssignmentsReadOnlyLead" xml:space="preserve"><value>Role assignments are edited from Roles. This panel is read-only.</value></data>
+  <data name="NoAssignedRoles" xml:space="preserve"><value>No roles assigned.</value></data>
 </root>

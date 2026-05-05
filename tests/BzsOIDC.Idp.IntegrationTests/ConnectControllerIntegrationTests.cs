@@ -331,6 +331,70 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task RoleManagement_WithAdminCookie_WorksEndToEnd()
+    {
+        await SignInAsAdminAsync();
+
+        var createRequest = new RoleUpsertRequest { Name = "operators" };
+        using var createResponse = await _client.PostAsJsonAsync("/api/roles", createRequest);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        var created = await createResponse.Content.ReadFromJsonAsync<RoleResponse>();
+        Assert.NotNull(created);
+        Assert.Equal("operators", created.Name);
+
+        using var updateResponse = await _client.PutAsJsonAsync($"/api/roles/{created.Id}", new RoleUpsertRequest { Name = "support" });
+        updateResponse.EnsureSuccessStatusCode();
+
+        var updated = await updateResponse.Content.ReadFromJsonAsync<RoleResponse>();
+        Assert.NotNull(updated);
+        Assert.Equal("support", updated.Name);
+
+        using var syncResponse = await _client.PutAsJsonAsync($"/api/roles/{created.Id}/permissions", new RolePermissionSyncRequest
+        {
+            Permissions = [PermissionConstants.UsersReadAll],
+        });
+        Assert.Equal(HttpStatusCode.NoContent, syncResponse.StatusCode);
+
+        using var permissionsResponse = await _client.GetAsync($"/api/roles/{created.Id}/permissions");
+        permissionsResponse.EnsureSuccessStatusCode();
+        var permissions = await permissionsResponse.Content.ReadFromJsonAsync<string[]>();
+        Assert.NotNull(permissions);
+        Assert.Contains(PermissionConstants.UsersReadAll, permissions);
+
+        using var shimResponse = await _client.GetAsync($"/api/permission-catalog/roles/{created.Id}/permissions");
+        shimResponse.EnsureSuccessStatusCode();
+        var shimPermissions = await shimResponse.Content.ReadFromJsonAsync<string[]>();
+        Assert.NotNull(shimPermissions);
+        Assert.Contains(PermissionConstants.UsersReadAll, shimPermissions);
+
+        using var deleteResponse = await _client.DeleteAsync($"/api/roles/{created.Id}");
+        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task RoleManagement_WhenPermissionInvalid_ReturnsBadRequestWithoutMutatingClaims()
+    {
+        await SignInAsAdminAsync();
+
+        using var createResponse = await _client.PostAsJsonAsync("/api/roles", new RoleUpsertRequest { Name = "auditors" });
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+        var created = await createResponse.Content.ReadFromJsonAsync<RoleResponse>();
+        Assert.NotNull(created);
+
+        using var invalidResponse = await _client.PutAsJsonAsync($"/api/roles/{created.Id}/permissions", new RolePermissionSyncRequest
+        {
+            Permissions = [PermissionConstants.UsersReadAll, "missing.permission"],
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, invalidResponse.StatusCode);
+
+        using var permissionsResponse = await _client.GetAsync($"/api/roles/{created.Id}/permissions");
+        permissionsResponse.EnsureSuccessStatusCode();
+        var permissions = await permissionsResponse.Content.ReadFromJsonAsync<string[]>();
+        Assert.NotNull(permissions);
+        Assert.Empty(permissions);
+    }
+    [Fact]
     public async Task AdminDashboardSummary_WithAdminCookie_ReturnsExpectedCounts()
     {
         await SignInAsAdminAsync();
@@ -710,6 +774,8 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
         builder.Services.AddScoped<IPermissionCatalogService, PermissionCatalogService>();
+        builder.Services.AddScoped<RoleManagementPolicy>();
+        builder.Services.AddScoped<IRoleManagementService, RoleManagementService>();
         builder.Services.AddScoped<IOidcPrincipalFactory, OidcPrincipalFactory>();
         builder.Services.AddScoped<IOidcClientService, OidcClientService>();
         builder.Services.AddScoped<IOidcScopeService, OidcScopeService>();
@@ -990,4 +1056,3 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         return values.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 }
-

@@ -1,7 +1,6 @@
 using System.Security.Claims;
 using Bunit;
 using BzsOIDC.Idp.Components.Admin;
-using BzsOIDC.Idp.Models;
 using BzsOIDC.Idp.Services.Identity;
 using BzsOIDC.Idp.UnitTests.TestDoubles;
 using Microsoft.AspNetCore.Http;
@@ -47,15 +46,7 @@ public sealed class PermissionManagementPageTests
                 },
             ]));
 
-        var roleService = Substitute.For<IRoleService>();
-        roleService.GetAllAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IReadOnlyList<BzsRole>>([
-                new BzsRole { Id = Guid.Parse("00000000-0000-0000-0000-000000000001"), Name = "admin" },
-            ]));
-
         context.Services.AddSingleton(catalogService);
-        context.Services.AddSingleton(roleService);
-        context.Services.AddSingleton(Substitute.For<IRolePermissionService>());
         context.Services.AddSingleton<IStringLocalizer<PermissionManagement>, TestStringLocalizer<PermissionManagement>>();
         context.Services.AddSingleton<IHttpContextAccessor>(CreateAdminHttpContextAccessor());
 
@@ -67,6 +58,9 @@ public sealed class PermissionManagementPageTests
             Assert.Contains("orders.read", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("ReleaseScopes", cut.Markup, StringComparison.Ordinal);
             Assert.Contains("RoleAssignments", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("RoleAssignmentsReadOnlyLead", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("admin", cut.Markup, StringComparison.Ordinal);
+            Assert.Empty(cut.FindAll("input[type='checkbox']"));
             Assert.Contains("Topology", cut.Markup, StringComparison.Ordinal);
         });
     }

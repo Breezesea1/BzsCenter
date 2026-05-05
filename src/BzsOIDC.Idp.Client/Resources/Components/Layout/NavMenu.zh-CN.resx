@@ -45,4 +45,5 @@
   <data name="Permissions" xml:space="preserve">
     <value>权限中心</value>
   </data>
+  <data name="Roles" xml:space="preserve"><value>角色</value></data>
 </root>

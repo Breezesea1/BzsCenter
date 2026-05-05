@@ -55,6 +55,8 @@ internal static class ServiceExtensions
         registrar.AddOidc();
 
         sc.AddScoped<IRoleService, RoleService>();
+        sc.AddScoped<RoleManagementPolicy>();
+        sc.AddScoped<IRoleManagementService, RoleManagementService>();
         sc.AddScoped<IUserService, UserService>();
         sc.AddScoped<IRolePermissionService, RolePermissionService>();
         sc.AddScoped<IPermissionCatalogService, PermissionCatalogService>();

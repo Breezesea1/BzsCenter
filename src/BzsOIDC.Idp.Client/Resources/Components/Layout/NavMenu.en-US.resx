@@ -45,4 +45,5 @@
   <data name="Permissions" xml:space="preserve">
     <value>Permissions</value>
   </data>
+  <data name="Roles" xml:space="preserve"><value>Roles</value></data>
 </root>

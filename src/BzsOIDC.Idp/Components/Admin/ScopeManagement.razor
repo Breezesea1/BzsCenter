@@ -6,6 +6,8 @@
 @using Microsoft.AspNetCore.WebUtilities
 @using Microsoft.Extensions.Localization
 @inject IHttpContextAccessor HttpContextAccessor
+@inject IOidcClientService ClientService
+@inject IPermissionCatalogService PermissionCatalogService
 @inject IOidcScopeService ScopeService
 @inject IStringLocalizer<ScopeManagement> L
 @inject NavigationManager NavigationManager
@@ -47,6 +49,85 @@ else
                 @_statusMessage
             </div>
         }
+
+        <div class="admin-overview-grid">
+            <section class="admin-overview-card">
+                <header class="admin-overview-card-header">
+                    <div>
+                        <h2>@L["TopologyOverview"]</h2>
+                        <p>@L["TopologyOverviewLead"]</p>
+                    </div>
+                </header>
+                <div class="admin-overview-stats">
+                    <span class="admin-user-meta">@L["ScopeCount", _filteredScopes.Count]</span>
+                    <span class="admin-user-meta">@L["ClientCount", _clients.Count]</span>
+                    <span class="admin-user-meta">@L["PermissionMappingCount", _permissionDefinitions.Count]</span>
+                </div>
+                <div class="admin-scope-topology" aria-label="@L["RelationMap"]">
+                    <div class="admin-scope-topology-lane">
+                        <span class="admin-scope-topology-label">@L["ClientsLabel"]</span>
+                        <strong>@_clients.Count</strong>
+                    </div>
+                    <span class="admin-scope-topology-link" aria-hidden="true"></span>
+                    <div class="admin-scope-topology-lane is-primary">
+                        <span class="admin-scope-topology-label">@L["ScopesLabel"]</span>
+                        <strong>@_filteredScopes.Count</strong>
+                    </div>
+                    <span class="admin-scope-topology-link" aria-hidden="true"></span>
+                    <div class="admin-scope-topology-lane">
+                        <span class="admin-scope-topology-label">@L["PermissionsLabel"]</span>
+                        <strong>@_permissionDefinitions.Count</strong>
+                    </div>
+                </div>
+                <div class="admin-scope-relation-preview">
+                    @foreach (var relation in GetFeaturedRelations())
+                    {
+                        <article class="admin-scope-relation-card" @key="relation.ScopeName">
+                            <div class="admin-scope-relation-node">
+                                <span>@L["ScopeNodeLabel"]</span>
+                                <strong>@relation.ScopeName</strong>
+                            </div>
+                            <div class="admin-scope-relation-branches">
+                                <div>
+                                    <span>@L["ClientNodeLabel", relation.Clients.Count]</span>
+                                    <div class="admin-token-list">
+                                        @foreach (var client in GetPreviewItems(relation.Clients))
+                                        {
+                                            <span class="admin-token">@client</span>
+                                        }
+                                        @if (GetOverflowCount(relation.Clients) > 0)
+                                        {
+                                            <span class="admin-token admin-token-overflow">+@GetOverflowCount(relation.Clients)</span>
+                                        }
+                                        @if (relation.Clients.Count == 0)
+                                        {
+                                            <span class="admin-user-meta">@L["NoMatchingClients"]</span>
+                                        }
+                                    </div>
+                                </div>
+                                <div>
+                                    <span>@L["PermissionNodeLabel", relation.Permissions.Count]</span>
+                                    <div class="admin-token-list">
+                                        @foreach (var permission in GetPreviewItems(relation.Permissions))
+                                        {
+                                            <span class="admin-token">@permission</span>
+                                        }
+                                        @if (GetOverflowCount(relation.Permissions) > 0)
+                                        {
+                                            <span class="admin-token admin-token-overflow">+@GetOverflowCount(relation.Permissions)</span>
+                                        }
+                                        @if (relation.Permissions.Count == 0)
+                                        {
+                                            <span class="admin-user-meta">@L["NoMatchingPermissions"]</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    }
+                </div>
+            </section>
+        </div>
 
         <div class="admin-grid-toolbar">
             <div class="admin-search-stack">
@@ -110,10 +191,14 @@ else
                     {
                         @foreach (var scope in _filteredScopes)
                         {
+                            var scopeClients = GetScopeClients(scope.Name);
+                            var scopePermissions = GetScopePermissions(scope.Name);
+
                             <tr class="admin-table-row" @key="scope.Name">
                                 <td class="admin-cell-primary">
                                     <div class="admin-client-primary-cell">
                                         <strong>@scope.Name</strong>
+                                        <span class="admin-user-meta">@L["ScopeUsage", scopeClients.Count, scopePermissions.Count]</span>
                                     </div>
                                 </td>
                                 <td data-label='@L["DisplayName"].Value'>
@@ -132,7 +217,40 @@ else
                                     </div>
                                 </td>
                                 <td data-label='@L["Description"].Value'>
-                                    <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(scope.Description) ? "—" : scope.Description)</span>
+                                    <div class="admin-client-text-stack">
+                                        <span class="admin-user-meta">@(string.IsNullOrWhiteSpace(scope.Description) ? "—" : scope.Description)</span>
+                                        <details class="admin-details-inline">
+                                            <summary>@L["ScopeUsageDetails"]</summary>
+                                            <div class="admin-details-stack">
+                                                <div>
+                                                    <strong>@L["UsedByClients"]</strong>
+                                                    <div class="admin-token-list">
+                                                        @foreach (var client in scopeClients)
+                                                        {
+                                                            <span class="admin-token">@client</span>
+                                                        }
+                                                        @if (scopeClients.Count == 0)
+                                                        {
+                                                            <span class="admin-user-meta">@L["NoMatchingClients"]</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <strong>@L["ReleaseScopeUsage"]</strong>
+                                                    <div class="admin-token-list">
+                                                        @foreach (var permission in scopePermissions)
+                                                        {
+                                                            <span class="admin-token">@permission</span>
+                                                        }
+                                                        @if (scopePermissions.Count == 0)
+                                                        {
+                                                            <span class="admin-user-meta">@L["NoMatchingPermissions"]</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </details>
+                                    </div>
                                 </td>
                                 <td data-label='@L["Actions"].Value'>
                                     <div class="admin-actions-column">
@@ -192,6 +310,8 @@ else
 @code {
     private readonly List<OidcScopeResponse> _scopes = [];
     private readonly List<OidcScopeResponse> _filteredScopes = [];
+    private readonly List<OidcClientResponse> _clients = [];
+    private readonly List<PermissionDefinitionResponse> _permissionDefinitions = [];
     private readonly List<string> _formErrors = [];
 
     private ScopeEditor _editor = new();
@@ -249,6 +369,10 @@ else
         {
             _scopes.Clear();
             _scopes.AddRange(await ScopeService.GetAllAsync());
+            _clients.Clear();
+            _clients.AddRange(await ClientService.GetAllAsync());
+            _permissionDefinitions.Clear();
+            _permissionDefinitions.AddRange((await PermissionCatalogService.GetResourcesAsync()).SelectMany(static resource => resource.Permissions));
             ApplyFilter();
         }
         finally
@@ -514,6 +638,42 @@ else
         return Math.Max(0, values.Count - 2);
     }
 
+    private IReadOnlyList<string> GetScopeClients(string scopeName)
+    {
+        return _clients
+            .Where(client => client.Scopes.Contains(scopeName, StringComparer.OrdinalIgnoreCase))
+            .Select(client => string.IsNullOrWhiteSpace(client.DisplayName) ? client.ClientId : client.DisplayName)
+            .OrderBy(static client => client, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private IReadOnlyList<string> GetScopePermissions(string scopeName)
+    {
+        return _permissionDefinitions
+            .Where(mapping => mapping.ReleaseScopes.Contains(scopeName, StringComparer.OrdinalIgnoreCase))
+            .Select(static mapping => mapping.Name)
+            .OrderBy(static permission => permission, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
+
+    private IReadOnlyList<ScopeRelationPreview> GetFeaturedRelations()
+    {
+        return _filteredScopes
+            .Select(scope => new ScopeRelationPreview(
+                scope.Name,
+                GetScopeClients(scope.Name),
+                GetScopePermissions(scope.Name)))
+            .OrderByDescending(static relation => relation.Clients.Count + relation.Permissions.Count)
+            .ThenBy(static relation => relation.ScopeName, StringComparer.OrdinalIgnoreCase)
+            .Take(3)
+            .ToArray();
+    }
+
+    private sealed record ScopeRelationPreview(
+        string ScopeName,
+        IReadOnlyList<string> Clients,
+        IReadOnlyList<string> Permissions);
+
     private sealed class ScopeEditor
     {
         public string Name { get; set; } = string.Empty;
@@ -522,3 +682,4 @@ else
         public string ResourcesText { get; set; } = string.Empty;
     }
 }
+

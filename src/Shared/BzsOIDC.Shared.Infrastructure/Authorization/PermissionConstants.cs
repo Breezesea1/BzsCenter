@@ -13,6 +13,8 @@ public static class PermissionConstants
     public const string ClientsWrite = "clients.write";
     public const string ScopesRead = "scopes.read";
     public const string ScopesWrite = "scopes.write";
+    public const string PermissionsRead = "permissions.read";
+    public const string PermissionsWrite = "permissions.write";
 
     public const string ScopeApi = "api";
 }

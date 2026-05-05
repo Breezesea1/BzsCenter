@@ -12,8 +12,8 @@ public sealed class PermissionClaimDestinationsHandlerTests
     [Fact]
     public async Task ApplyDestinationsAsync_WhenIdentityScopesGranted_AddsIdentityTokenDestinations()
     {
-        var service = Substitute.For<IPermissionScopeService>();
-        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+        var service = Substitute.For<IPermissionCatalogService>();
+        service.ResolveReleaseScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase));
 
         var identity = new ClaimsIdentity("test");
@@ -44,8 +44,8 @@ public sealed class PermissionClaimDestinationsHandlerTests
     [Fact]
     public async Task ApplyDestinationsAsync_WhenProfileAndEmailScopesMissing_DoesNotEmitNameOrEmailClaims()
     {
-        var service = Substitute.For<IPermissionScopeService>();
-        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+        var service = Substitute.For<IPermissionCatalogService>();
+        service.ResolveReleaseScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase));
 
         var identity = new ClaimsIdentity("test");
@@ -64,8 +64,8 @@ public sealed class PermissionClaimDestinationsHandlerTests
     [Fact]
     public async Task ApplyDestinationsAsync_WhenRoleScopeMissing_DoesNotEmitRoleClaim()
     {
-        var service = Substitute.For<IPermissionScopeService>();
-        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+        var service = Substitute.For<IPermissionCatalogService>();
+        service.ResolveReleaseScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase));
 
         var identity = new ClaimsIdentity("test");
@@ -80,10 +80,10 @@ public sealed class PermissionClaimDestinationsHandlerTests
     }
 
     [Fact]
-    public async Task ApplyDestinationsAsync_WhenPermissionScopeMatches_EmitsPermissionToAccessTokenOnly()
+    public async Task ApplyDestinationsAsync_WhenCatalogReleaseScopeMatches_EmitsPermissionToAccessTokenOnly()
     {
-        var service = Substitute.For<IPermissionScopeService>();
-        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+        var service = Substitute.For<IPermissionCatalogService>();
+        service.ResolveReleaseScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
             {
                 [PermissionConstants.UsersWrite] = [PermissionConstants.ScopeApi],
@@ -103,10 +103,10 @@ public sealed class PermissionClaimDestinationsHandlerTests
     }
 
     [Fact]
-    public async Task ApplyDestinationsAsync_WhenPermissionScopeMissing_DoesNotEmitPermissionClaim()
+    public async Task ApplyDestinationsAsync_WhenCatalogReleaseScopeMissing_DoesNotEmitPermissionClaim()
     {
-        var service = Substitute.For<IPermissionScopeService>();
-        service.ResolveScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
+        var service = Substitute.For<IPermissionCatalogService>();
+        service.ResolveReleaseScopesAsync(Arg.Any<IEnumerable<string>>(), Arg.Any<CancellationToken>())
             .Returns(new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
             {
                 [PermissionConstants.UsersWrite] = [PermissionConstants.ScopeApi],
@@ -123,3 +123,4 @@ public sealed class PermissionClaimDestinationsHandlerTests
         Assert.Empty(identity.FindFirst(PermissionConstants.ClaimType)!.GetDestinations());
     }
 }
+

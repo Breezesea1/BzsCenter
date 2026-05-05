@@ -17,6 +17,21 @@ public sealed class OidcClientUpsertRequest
     public string[] PostLogoutRedirectUris { get; init; } = [];
 }
 
+public sealed class OidcClientPresetRequest
+{
+    public OidcClientPresetKind Kind { get; init; }
+    public string? ClientId { get; init; }
+    public string? DisplayName { get; init; }
+    public string[] Scopes { get; init; } = [];
+}
+
+public enum OidcClientPresetKind
+{
+    Spa,
+    ServerWeb,
+    MachineToMachine,
+}
+
 public sealed class OidcClientResponse
 {
     public string ClientId { get; init; } = string.Empty;

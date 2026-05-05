@@ -7,11 +7,9 @@ namespace BzsOIDC.Idp.Infra;
 public sealed class IdpDbContext(DbContextOptions<IdpDbContext> options)
     : IdentityDbContext<BzsUser, BzsRole, Guid>(options)
 {
-    /// <summary>
-    /// 执行Set<PermissionScopeMapping>。
-    /// </summary>
-    /// <returns>执行结果。</returns>
-    public DbSet<PermissionScopeMapping> PermissionScopeMappings => Set<PermissionScopeMapping>();
+    public DbSet<ProtectedResource> ProtectedResources => Set<ProtectedResource>();
+    public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
+    public DbSet<PermissionReleaseScope> PermissionReleaseScopes => Set<PermissionReleaseScope>();
 
     /// <summary>
     /// 配置实体模型并应用程序集中的实体配置。

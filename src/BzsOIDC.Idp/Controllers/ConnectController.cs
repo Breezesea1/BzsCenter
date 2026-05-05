@@ -17,7 +17,7 @@ public sealed class ConnectController(
     SignInManager<BzsUser> signInManager,
     UserManager<BzsUser> userManager,
     IOpenIddictApplicationManager applicationManager,
-    IPermissionScopeService permissionScopeService,
+    IPermissionCatalogService permissionCatalogService,
     IOidcPrincipalFactory oidcPrincipalFactory) : ControllerBase
 {
     /// <summary>
@@ -57,7 +57,7 @@ public sealed class ConnectController(
 
         var principal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
         principal.SetScopes(oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()));
-        await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService, cancellationToken);
+        await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionCatalogService, cancellationToken);
 
         return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
@@ -101,7 +101,7 @@ public sealed class ConnectController(
 
             var refreshedPrincipal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
             refreshedPrincipal.SetScopes(principal.GetScopes());
-            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(refreshedPrincipal, permissionScopeService,
+            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(refreshedPrincipal, permissionCatalogService,
                 cancellationToken);
 
             return SignIn(refreshedPrincipal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
@@ -123,7 +123,7 @@ public sealed class ConnectController(
             var displayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken);
             var principal = oidcPrincipalFactory.CreateClientPrincipal(request.ClientId, displayName);
             principal.SetScopes(oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()));
-            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionScopeService,
+            await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionCatalogService,
                 cancellationToken);
 
             return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);

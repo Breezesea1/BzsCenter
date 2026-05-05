@@ -16,7 +16,7 @@ public sealed class IdentitySeederTests
     {
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
-        var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
@@ -33,7 +33,7 @@ public sealed class IdentitySeederTests
         var sut = new IdentitySeeder(
             roleService,
             rolePermissionService,
-            permissionScopeService,
+            permissionCatalogService,
             oidcScopeService,
             userService,
             options,
@@ -48,7 +48,7 @@ public sealed class IdentitySeederTests
     {
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
-        var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
@@ -82,17 +82,14 @@ public sealed class IdentitySeederTests
             {
                 [IdentitySeedConstants.UserRoleName] = ["users.read.self"],
             },
-            PermissionScopes = new Dictionary<string, string[]>
-            {
-                ["users.read.self"] = ["api"],
-            },
+            PermissionCatalog = [new() { ResourceKey = "api", Permissions = [new() { Name = "users.read.self", ReleaseScopes = ["api"] }] }],
         });
         var configuration = new ConfigurationBuilder().Build();
 
         var sut = new IdentitySeeder(
             roleService,
             rolePermissionService,
-            permissionScopeService,
+            permissionCatalogService,
             oidcScopeService,
             userService,
             options,
@@ -101,8 +98,8 @@ public sealed class IdentitySeederTests
 
         await sut.SeedAsync();
 
-        await permissionScopeService.Received(1)
-            .InitializeDefaultsIfEmptyAsync(options.Value.PermissionScopes, Arg.Any<CancellationToken>());
+        await permissionCatalogService.Received(1)
+            .InitializeDefaultsAsync(options.Value.PermissionCatalog, Arg.Any<CancellationToken>());
         await oidcScopeService.Received(1)
             .InitializeDefaultsIfMissingAsync(options.Value.AdditionalScopes, Arg.Any<CancellationToken>());
         await userService.Received(1)
@@ -118,7 +115,7 @@ public sealed class IdentitySeederTests
     {
         var roleService = Substitute.For<IRoleService>();
         var rolePermissionService = Substitute.For<IRolePermissionService>();
-        var permissionScopeService = Substitute.For<IPermissionScopeService>();
+        var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
         var userService = Substitute.For<IUserService>();
 
@@ -156,17 +153,14 @@ public sealed class IdentitySeederTests
             {
                 [IdentitySeedConstants.UserRoleName] = ["users.read.self"],
             },
-            PermissionScopes = new Dictionary<string, string[]>
-            {
-                ["users.read.self"] = ["api"],
-            },
+            PermissionCatalog = [new() { ResourceKey = "api", Permissions = [new() { Name = "users.read.self", ReleaseScopes = ["api"] }] }],
         });
         var configuration = new ConfigurationBuilder().Build();
 
         var sut = new IdentitySeeder(
             roleService,
             rolePermissionService,
-            permissionScopeService,
+            permissionCatalogService,
             oidcScopeService,
             userService,
             options,
@@ -183,3 +177,4 @@ public sealed class IdentitySeederTests
             .AddToRoleAsync(createdAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>());
     }
 }
+

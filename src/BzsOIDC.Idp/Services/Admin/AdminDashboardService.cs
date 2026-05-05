@@ -25,14 +25,15 @@ public sealed class AdminDashboardSummaryResponse
 internal sealed class AdminDashboardService(
     IUserService userService,
     IOidcClientService clientService,
-    IPermissionScopeService permissionScopeService,
+    IPermissionCatalogService permissionCatalogService,
     UserManager<BzsUser> userManager) : IAdminDashboardService
 {
     public async Task<AdminDashboardSummaryResponse> GetSummaryAsync(CancellationToken cancellationToken = default)
     {
         var users = await userService.GetAllAsync(cancellationToken);
         var clients = await clientService.GetAllAsync(cancellationToken);
-        var permissionMappings = await permissionScopeService.GetAllAsync(cancellationToken);
+        var resources = await permissionCatalogService.GetResourcesAsync(cancellationToken);
+        var permissions = resources.SelectMany(static resource => resource.Permissions).ToArray();
 
         var adminUsers = 0;
         foreach (var user in users)
@@ -51,8 +52,8 @@ internal sealed class AdminDashboardService(
             TotalClients = clients.Count,
             InteractiveClients = clients.Count(static client => client.AuthFlow == OidcClientAuthFlow.AuthorizationCode),
             MachineClients = clients.Count(static client => client.AuthFlow == OidcClientAuthFlow.ClientCredentials),
-            TotalPermissionMappings = permissionMappings.Count,
-            TotalConfiguredScopes = permissionMappings.Sum(static mapping => mapping.Scopes.Length),
+            TotalPermissionMappings = permissions.Length,
+            TotalConfiguredScopes = permissions.Sum(static permission => permission.ReleaseScopes.Length),
         };
     }
 }

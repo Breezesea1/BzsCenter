@@ -23,6 +23,7 @@ internal static class AppUi
     {
         await test.Page.GotoAsync(fixture.BuildUrl($"/login?returnUrl={Uri.EscapeDataString(returnPath)}"));
         await test.Expect(test.Page.Locator("#username")).ToBeVisibleAsync();
+        await WaitForAppReadyAsync(test);
 
         await test.Page.Locator("#username").FillAsync(userName);
         await test.Page.Locator("#password").FillAsync(password);
@@ -33,8 +34,27 @@ internal static class AppUi
             await rememberMeToggle.CheckAsync();
         }
 
-        await test.Page.Locator("form.login-form button[type='submit']").ClickAsync();
-        await test.Expect(test.Page.Locator("#username")).ToHaveCountAsync(0, new() { Timeout = 30000 });
+        await test.Page.Locator("form.login-form").EvaluateAsync("form => form.requestSubmit()");
+        try
+        {
+            await test.Expect(test.Page.Locator("#username")).ToHaveCountAsync(0, new() { Timeout = 30000 });
+        }
+        catch (PlaywrightException exception)
+        {
+            var loginErrorLocator = test.Page.Locator(".login-error");
+            var loginError = await loginErrorLocator.CountAsync().ConfigureAwait(false) > 0
+                ? await loginErrorLocator.First.TextContentAsync().ConfigureAwait(false)
+                : null;
+            var title = await test.Page.TitleAsync().ConfigureAwait(false);
+            var usernameCount = await test.Page.Locator("#username").CountAsync().ConfigureAwait(false);
+            var passwordCount = await test.Page.Locator("#password").CountAsync().ConfigureAwait(false);
+
+            throw new PlaywrightException(
+                $"Password login did not leave the login page. Url: {test.Page.Url}. Title: {title}. " +
+                $"Username inputs: {usernameCount}. Password inputs: {passwordCount}. Error: {loginError ?? "<none>"}.",
+                exception);
+        }
+
         await WaitForAppReadyAsync(test);
     }
 

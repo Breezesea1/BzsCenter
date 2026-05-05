@@ -6,7 +6,7 @@ using SharedPermissionConstants = BzsOIDC.Shared.Infrastructure.Authorization.Pe
 
 namespace BzsOIDC.Idp.Services.Oidc;
 
-internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService permissionScopeService)
+internal sealed class PermissionClaimDestinationsHandler(IPermissionCatalogService permissionCatalogService)
     : IOpenIddictServerHandler<OpenIddictServerEvents.ProcessSignInContext>
 {
     /// <summary>
@@ -21,14 +21,14 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
             return;
         }
 
-        await ApplyDestinationsAsync(context.Principal, permissionScopeService, context.CancellationToken);
+        await ApplyDestinationsAsync(context.Principal, permissionCatalogService, context.CancellationToken);
     }
 
     /// <summary>
     /// 为 principal 应用 claims destinations。
     /// </summary>
     /// <param name="principal">参数principal。</param>
-    /// <param name="permissionScopeService">参数permissionScopeService。</param>
+    /// <param name="permissionCatalogService">参数permissionCatalogService。</param>
     /// <param name="cancellationToken">参数cancellationToken。</param>
     /// <returns>执行结果。</returns>
     /// <remarks>
@@ -37,11 +37,11 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
     /// </remarks>
     internal static async Task ApplyDestinationsAsync(
         ClaimsPrincipal principal,
-        IPermissionScopeService permissionScopeService,
+        IPermissionCatalogService permissionCatalogService,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(principal);
-        ArgumentNullException.ThrowIfNull(permissionScopeService);
+        ArgumentNullException.ThrowIfNull(permissionCatalogService);
 
         var permissionValues = principal
             .FindAll(SharedPermissionConstants.ClaimType)
@@ -49,7 +49,7 @@ internal sealed class PermissionClaimDestinationsHandler(IPermissionScopeService
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-        var permissionScopes = await permissionScopeService.ResolveScopesAsync(permissionValues, cancellationToken);
+        var permissionScopes = await permissionCatalogService.ResolveReleaseScopesAsync(permissionValues, cancellationToken);
         var grantedScopes = principal.GetScopes().ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         principal.SetDestinations(claim =>

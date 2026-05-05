@@ -7,7 +7,7 @@ namespace BzsOIDC.Idp.Services.Identity;
 internal sealed class IdentitySeeder(
     IRoleService roleService,
     IRolePermissionService rolePermissionService,
-    IPermissionScopeService permissionScopeService,
+    IPermissionCatalogService permissionCatalogService,
     IOidcScopeService oidcScopeService,
     IUserService userService,
     IOptions<IdentitySeedOptions> identityOptions,
@@ -64,7 +64,7 @@ internal sealed class IdentitySeeder(
             EnsureSuccess(roleResult, $"创建角色 '{roleName}'");
         }
 
-        await permissionScopeService.InitializeDefaultsIfEmptyAsync(options.PermissionScopes, cancellationToken);
+        await permissionCatalogService.InitializeDefaultsAsync(options.PermissionCatalog, cancellationToken);
         await oidcScopeService.InitializeDefaultsIfMissingAsync(options.AdditionalScopes, cancellationToken);
         await SeedRolePermissionsAsync(options, cancellationToken);
 
@@ -114,7 +114,10 @@ internal sealed class IdentitySeeder(
             .SelectMany(static permissions => permissions)
             .Where(static permission => !string.IsNullOrWhiteSpace(permission))
             .Select(static permission => permission.Trim())
-            .Concat(options.PermissionScopes.Keys.Where(static permission => !string.IsNullOrWhiteSpace(permission))
+            .Concat(options.PermissionCatalog
+                .SelectMany(static resource => resource.Permissions)
+                .Select(static permission => permission.Name)
+                .Where(static permission => !string.IsNullOrWhiteSpace(permission))
                 .Select(static permission => permission.Trim()))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();

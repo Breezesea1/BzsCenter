@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using OpenIddict.Abstractions;
+using SharedPermissionConstants = BzsOIDC.Shared.Infrastructure.Authorization.PermissionConstants;
 
 namespace BzsOIDC.Idp.Services.Oidc;
 
@@ -108,6 +109,55 @@ public static class OidcClientDescriptorFactory
         }
 
         return errors;
+    }
+
+    /// <summary>
+    /// 创建推荐配置。
+    /// </summary>
+    /// <param name="preset">参数preset。</param>
+    /// <returns>执行结果。</returns>
+    public static OidcClientUpsertRequest CreatePreset(OidcClientPresetRequest preset)
+    {
+        ArgumentNullException.ThrowIfNull(preset);
+
+        return preset.Kind switch
+        {
+            OidcClientPresetKind.Spa => new OidcClientUpsertRequest
+            {
+                ClientId = preset.ClientId,
+                DisplayName = preset.DisplayName ?? "SPA client",
+                AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+                PublicClient = true,
+                RequireProofKeyForCodeExchange = true,
+                GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+                Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
+                RedirectUris = ["https://localhost:5001/signin-oidc"],
+                PostLogoutRedirectUris = ["https://localhost:5001/signout-callback-oidc"],
+            },
+            OidcClientPresetKind.ServerWeb => new OidcClientUpsertRequest
+            {
+                ClientId = preset.ClientId,
+                DisplayName = preset.DisplayName ?? "Server web client",
+                AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+                PublicClient = true,
+                RequireProofKeyForCodeExchange = true,
+                GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+                Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
+                RedirectUris = ["https://localhost:5001/signin-oidc"],
+                PostLogoutRedirectUris = ["https://localhost:5001/signout-callback-oidc"],
+            },
+            OidcClientPresetKind.MachineToMachine => new OidcClientUpsertRequest
+            {
+                ClientId = preset.ClientId,
+                DisplayName = preset.DisplayName ?? "Machine client",
+                AuthFlow = OidcClientAuthFlow.ClientCredentials,
+                PublicClient = false,
+                RequireProofKeyForCodeExchange = false,
+                GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+                Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
+            },
+            _ => throw new ArgumentOutOfRangeException(nameof(preset.Kind), preset.Kind, null),
+        };
     }
 
     /// <summary>
@@ -300,5 +350,16 @@ public static class OidcClientDescriptorFactory
 
         error = null;
         return true;
+    }
+
+    private static string[] NormalizeScopes(IEnumerable<string>? scopes, IReadOnlyList<string> fallbackScopes)
+    {
+        var normalized = (scopes ?? [])
+            .Where(static scope => !string.IsNullOrWhiteSpace(scope))
+            .Select(static scope => scope.Trim())
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        return normalized.Length > 0 ? normalized : fallbackScopes.ToArray();
     }
 }

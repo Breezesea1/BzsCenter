@@ -198,4 +198,49 @@ public class OidcClientDescriptorFactoryTests
         Assert.Matches("^[0-9A-F]{64}$", second.ClientSecret);
         Assert.NotEqual(first.ClientSecret, second.ClientSecret);
     }
+
+    [Fact]
+    public void CreatePreset_WhenSpa_UsesAuthorizationCodeProfileWithDefaultApiScope()
+    {
+        var preset = new OidcClientPresetRequest
+        {
+            Kind = OidcClientPresetKind.Spa,
+            ClientId = "spa-client",
+            DisplayName = "SPA",
+            Scopes = [],
+        };
+
+        var request = OidcClientDescriptorFactory.CreatePreset(preset);
+
+        Assert.Equal("spa-client", request.ClientId);
+        Assert.Equal("SPA", request.DisplayName);
+        Assert.True(request.PublicClient);
+        Assert.Equal(OidcClientAuthFlow.AuthorizationCode, request.AuthFlow);
+        Assert.Contains("api", request.Scopes, StringComparer.OrdinalIgnoreCase);
+        Assert.Contains(OpenIddictConstants.GrantTypes.AuthorizationCode, request.GrantTypes);
+        Assert.Contains(OpenIddictConstants.GrantTypes.RefreshToken, request.GrantTypes);
+    }
+
+    [Fact]
+    public void CreatePreset_WhenMachineToMachine_UsesClientCredentialsProfile()
+    {
+        var preset = new OidcClientPresetRequest
+        {
+            Kind = OidcClientPresetKind.MachineToMachine,
+            ClientId = "machine-client",
+            DisplayName = "Machine",
+            Scopes = ["custom"],
+        };
+
+        var request = OidcClientDescriptorFactory.CreatePreset(preset);
+
+        Assert.Equal("machine-client", request.ClientId);
+        Assert.Equal("Machine", request.DisplayName);
+        Assert.False(request.PublicClient);
+        Assert.Equal(OidcClientAuthFlow.ClientCredentials, request.AuthFlow);
+        Assert.Contains("custom", request.Scopes, StringComparer.OrdinalIgnoreCase);
+        Assert.DoesNotContain("api", request.Scopes, StringComparer.OrdinalIgnoreCase);
+        Assert.Single(request.GrantTypes);
+        Assert.Contains(OpenIddictConstants.GrantTypes.ClientCredentials, request.GrantTypes);
+    }
 }

@@ -39,13 +39,13 @@ public sealed class AppHostE2EOptimizationTests
     }
 
     [Theory]
-    [InlineData(true, 4)]
-    [InlineData(false, 7)]
-    public void ResolveSeedMode_ReturnsExpectedSeedShape(bool smokeEnabled, int expectedPermissionScopeCount)
+    [InlineData(true, 1)]
+    [InlineData(false, 1)]
+    public void ResolveSeedMode_ReturnsExpectedSeedShape(bool smokeEnabled, int expectedPermissionCatalogCount)
     {
         var options = SmokeIdentitySeedProfile.Resolve(smokeEnabled, new IdentitySeedOptions());
 
-        Assert.Equal(expectedPermissionScopeCount, options.PermissionScopes.Count);
+        Assert.Equal(expectedPermissionCatalogCount, options.PermissionCatalog.Length);
     }
 
     [Theory]
@@ -58,3 +58,4 @@ public sealed class AppHostE2EOptimizationTests
         Assert.Equal(expected, AppHostModelSettings.ShouldUsePersistentPostgresVolume(e2eEnabled));
     }
 }
+

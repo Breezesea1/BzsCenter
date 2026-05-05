@@ -11,54 +11,61 @@ using NSubstitute;
 
 namespace BzsOIDC.Idp.UnitTests.Components.Admin;
 
-public sealed class ScopeManagementPageTests
+public sealed class OidcTopologyPageTests
 {
     [Fact]
-    public void SearchInput_FiltersMatchingScopes()
+    public void Render_WhenAdminAccessGranted_ShowsClientAndScopeTopology()
     {
         using var context = CreateContext();
 
-        var scopes = new[]
-        {
-            new OidcScopeResponse { Name = "api.read", DisplayName = "Read API", Resources = ["api"] },
-            new OidcScopeResponse { Name = "api.write", DisplayName = "Write API", Resources = ["api"] },
-        };
-
-        var service = Substitute.For<IOidcScopeService>();
-        service.GetAllAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IReadOnlyList<OidcScopeResponse>>(scopes));
         var clientService = Substitute.For<IOidcClientService>();
         clientService.GetAllAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IReadOnlyList<OidcClientResponse>>([]));
+            .Returns(Task.FromResult<IReadOnlyList<OidcClientResponse>>([
+                new OidcClientResponse
+                {
+                    ClientId = "client-1",
+                    DisplayName = "Client 1",
+                    AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+                    Scopes = ["api"],
+                },
+            ]));
+
+        var scopeService = Substitute.For<IOidcScopeService>();
+        scopeService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<OidcScopeResponse>>([
+                new OidcScopeResponse { Name = "api", DisplayName = "API", Resources = ["resource"] },
+            ]));
+
         var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         permissionCatalogService.GetResourcesAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<IReadOnlyList<ProtectedResourceResponse>>([]));
+            .Returns(Task.FromResult<IReadOnlyList<ProtectedResourceResponse>>([
+                new ProtectedResourceResponse
+                {
+                    Key = "api",
+                    Permissions = [new PermissionDefinitionResponse { Name = "clients.read", ReleaseScopes = ["api"] }],
+                },
+            ]));
 
-        context.Services.AddSingleton<IOidcScopeService>(service);
         context.Services.AddSingleton<IOidcClientService>(clientService);
+        context.Services.AddSingleton<IOidcScopeService>(scopeService);
         context.Services.AddSingleton<IPermissionCatalogService>(permissionCatalogService);
         context.Services.AddSingleton<IStringLocalizer<ScopeManagement>, TestStringLocalizer<ScopeManagement>>();
         context.Services.AddSingleton<IHttpContextAccessor>(CreateAdminHttpContextAccessor());
 
-        var cut = context.Render<ScopeManagement>();
-
-        cut.WaitForAssertion(() => Assert.Contains("api.read", cut.Markup, StringComparison.Ordinal));
-
-        cut.Find("#scope-search").Input("write");
+        var cut = context.Render<OidcTopology>();
 
         cut.WaitForAssertion(() =>
         {
-            Assert.DoesNotContain("api.read", cut.Markup, StringComparison.Ordinal);
-            Assert.Contains("api.write", cut.Markup, StringComparison.Ordinal);
-        });
+            Assert.Contains("Client 1", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("api", cut.Markup, StringComparison.Ordinal);
+            Assert.Contains("clients.read", cut.Markup, StringComparison.Ordinal);
+        }, TimeSpan.FromSeconds(5));
     }
 
     private static BunitContext CreateContext()
     {
         var context = new BunitContext();
         context.JSInterop.Mode = JSRuntimeMode.Loose;
-        context.JSInterop.SetupModule("./Components/Admin/AdminDialogShell.razor.js")
-            .SetupVoid("activate", _ => true);
         return context;
     }
 

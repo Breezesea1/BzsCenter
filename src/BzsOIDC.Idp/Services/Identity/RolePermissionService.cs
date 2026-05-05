@@ -14,7 +14,9 @@ public interface IRolePermissionService
         CancellationToken cancellationToken = default);
 }
 
-internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : IRolePermissionService
+internal sealed class RolePermissionService(
+    RoleManager<BzsRole> roleManager,
+    IPermissionCatalogService permissionCatalogService) : IRolePermissionService
 {
     /// <summary>
     /// 获取数据。
@@ -50,6 +52,14 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(permission);
+        var normalizedPermission = permission.Trim().ToLowerInvariant();
+        var invalidPermissions = await permissionCatalogService.ValidateAssignablePermissionsAsync([normalizedPermission], cancellationToken);
+        if (invalidPermissions.Length > 0)
+        {
+            return IdentityResult.Failed(CreateError(
+                "PermissionNotAssignable",
+                $"权限 '{normalizedPermission}' 不存在或未启用。"));
+        }
 
         var role = await roleManager.FindByIdAsync(roleId.ToString());
         if (role is null)
@@ -57,7 +67,6 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
             return IdentityResult.Failed(CreateError("RoleNotFound", $"角色 '{roleId}' 不存在"));
         }
 
-        var normalizedPermission = permission.Trim();
         var claims = await roleManager.GetClaimsAsync(role);
         var exists = claims.Any(c =>
             string.Equals(c.Type, PermissionConstants.ClaimType, StringComparison.OrdinalIgnoreCase) &&
@@ -126,9 +135,17 @@ internal sealed class RolePermissionService(RoleManager<BzsRole> roleManager) : 
 
         var targetSet = permissions
             .Where(static p => !string.IsNullOrWhiteSpace(p))
-            .Select(static p => p.Trim())
+            .Select(static p => p.Trim().ToLowerInvariant())
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var invalidPermissions = await permissionCatalogService.ValidateAssignablePermissionsAsync(targetSet, cancellationToken);
+        if (invalidPermissions.Length > 0)
+        {
+            return IdentityResult.Failed(CreateError(
+                "PermissionNotAssignable",
+                $"以下权限不存在或未启用：{string.Join(", ", invalidPermissions)}"));
+        }
 
         var existingClaims = await roleManager.GetClaimsAsync(role);
         var existingSet = existingClaims

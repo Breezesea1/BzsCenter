@@ -21,7 +21,7 @@ using Microsoft.Extensions.Options;
 
 namespace BzsOIDC.Idp.IntegrationTests;
 
-public sealed class PermissionScopesApiIntegrationTests : IAsyncLifetime
+public sealed class PermissionCatalogApiIntegrationTests : IAsyncLifetime
 {
     private SqliteConnection _connection = null!;
     private WebApplication _app = null!;
@@ -30,7 +30,7 @@ public sealed class PermissionScopesApiIntegrationTests : IAsyncLifetime
     [Fact]
     public async Task GetAll_WithoutAuth_ReturnsUnauthorized()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/permissions/scopes");
+        using var request = new HttpRequestMessage(HttpMethod.Get, "/api/permission-catalog/resources");
 
         var response = await _client.SendAsync(request);
 
@@ -38,33 +38,43 @@ public sealed class PermissionScopesApiIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task PermissionScopesCrud_WithValidPermissionClaims_WorksEndToEnd()
+    public async Task PermissionCatalog_WithValidPermissionClaims_WorksEndToEnd()
     {
+        using var resourceRequest = CreateAuthorizedRequest(
+            HttpMethod.Put,
+            "/api/permission-catalog/resources/orders-api",
+            new ProtectedResourceUpsertRequest { DisplayName = "Orders API" });
+        using var resourceResponse = await _client.SendAsync(resourceRequest);
+        resourceResponse.EnsureSuccessStatusCode();
+
+        using var permissionRequest = CreateAuthorizedRequest(
+            HttpMethod.Put,
+            "/api/permission-catalog/resources/orders-api/permissions/orders.read",
+            new PermissionDefinitionUpsertRequest { DisplayName = "Read orders" });
+        using var permissionResponse = await _client.SendAsync(permissionRequest);
+        permissionResponse.EnsureSuccessStatusCode();
+
         using var upsertRequest = CreateAuthorizedRequest(
             HttpMethod.Put,
-            "/api/permissions/scopes/users.write",
-            new PermissionScopeUpsertRequest { Scopes = ["api", "internal"] });
+            "/api/permission-catalog/permissions/orders.read/release-scopes",
+            new PermissionReleaseScopesUpsertRequest { Scopes = ["api", "internal"] });
 
         using var upsertResponse = await _client.SendAsync(upsertRequest);
         upsertResponse.EnsureSuccessStatusCode();
 
-        var upsertPayload = await upsertResponse.Content.ReadFromJsonAsync<PermissionScopeResponse>();
+        var upsertPayload = await upsertResponse.Content.ReadFromJsonAsync<PermissionDefinitionResponse>();
         Assert.NotNull(upsertPayload);
-        Assert.Equal("users.write", upsertPayload.Permission);
-        Assert.Equal(["api", "internal"], upsertPayload.Scopes.OrderBy(static x => x).ToArray());
+        Assert.Equal("orders.read", upsertPayload.Name);
+        Assert.Equal(["api", "internal"], upsertPayload.ReleaseScopes.OrderBy(static x => x).ToArray());
 
-        using var getRequest = CreateAuthorizedRequest(HttpMethod.Get, "/api/permissions/scopes/users.write");
+        using var getRequest = CreateAuthorizedRequest(HttpMethod.Get, "/api/permission-catalog/resources/orders-api");
         using var getResponse = await _client.SendAsync(getRequest);
         getResponse.EnsureSuccessStatusCode();
 
-        var getPayload = await getResponse.Content.ReadFromJsonAsync<PermissionScopeResponse>();
+        var getPayload = await getResponse.Content.ReadFromJsonAsync<ProtectedResourceResponse>();
         Assert.NotNull(getPayload);
-        Assert.Equal("users.write", getPayload.Permission);
-
-        using var deleteRequest = CreateAuthorizedRequest(HttpMethod.Delete, "/api/permissions/scopes/users.write");
-        using var deleteResponse = await _client.SendAsync(deleteRequest);
-
-        Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
+        Assert.Equal("orders-api", getPayload.Key);
+        Assert.Contains(getPayload.Permissions, static permission => permission.Name == "orders.read");
     }
 
     public async Task InitializeAsync()
@@ -90,11 +100,11 @@ public sealed class PermissionScopesApiIntegrationTests : IAsyncLifetime
 
         builder.Services.AddMemoryCache();
         builder.Services.AddDbContext<IdpDbContext>(options => options.UseSqlite(_connection));
-        builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        builder.Services.AddScoped<IPermissionCatalogService, PermissionCatalogService>();
 
         builder.Services
             .AddControllers()
-            .AddApplicationPart(typeof(PermissionScopesController).Assembly);
+            .AddApplicationPart(typeof(PermissionCatalogController).Assembly);
 
         _app = builder.Build();
         _app.UseAuthentication();
@@ -124,7 +134,7 @@ public sealed class PermissionScopesApiIntegrationTests : IAsyncLifetime
     {
         var request = new HttpRequestMessage(method, url);
         request.Headers.Add(TestAuthHandler.UserHeader, "integration-user");
-        request.Headers.Add(TestAuthHandler.PermissionHeader, "roles.read,roles.write");
+        request.Headers.Add(TestAuthHandler.PermissionHeader, "permissions.read,permissions.write");
 
         if (content is not null)
         {

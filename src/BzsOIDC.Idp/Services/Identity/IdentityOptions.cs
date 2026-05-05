@@ -17,19 +17,28 @@ public sealed class IdentitySeedOptions
             [IdentitySeedConstants.UserRoleName] = [PermissionConstants.UsersReadSelf],
         };
 
-    public Dictionary<string, string[]> PermissionScopes { get; init; } =
-        new(StringComparer.OrdinalIgnoreCase)
+    public PermissionCatalogSeedResource[] PermissionCatalog { get; init; } =
+    [
+        new()
         {
-            [PermissionConstants.UsersReadSelf] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.UsersReadAll] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.UsersWrite] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.RolesRead] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.RolesWrite] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.ClientsRead] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.ClientsWrite] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.ScopesRead] = [PermissionConstants.ScopeApi],
-            [PermissionConstants.ScopesWrite] = [PermissionConstants.ScopeApi],
-        };
+            ResourceKey = PermissionConstants.ScopeApi,
+            DisplayName = "BzsOIDC Admin API",
+            Permissions =
+            [
+                new() { Name = PermissionConstants.UsersReadSelf, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.UsersReadAll, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.UsersWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.RolesRead, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.RolesWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.ClientsRead, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.ClientsWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.ScopesRead, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.ScopesWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.PermissionsRead, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                new() { Name = PermissionConstants.PermissionsWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+            ],
+        },
+    ];
 
     public string[] AdditionalScopes { get; init; } = [PermissionConstants.ScopeApi];
 }

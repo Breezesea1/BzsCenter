@@ -709,7 +709,7 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         builder.Services.AddScoped<IRoleService, RoleService>();
         builder.Services.AddScoped<IUserService, UserService>();
         builder.Services.AddScoped<IRolePermissionService, RolePermissionService>();
-        builder.Services.AddScoped<IPermissionScopeService, PermissionScopeService>();
+        builder.Services.AddScoped<IPermissionCatalogService, PermissionCatalogService>();
         builder.Services.AddScoped<IOidcPrincipalFactory, OidcPrincipalFactory>();
         builder.Services.AddScoped<IOidcClientService, OidcClientService>();
         builder.Services.AddScoped<IOidcScopeService, OidcScopeService>();
@@ -990,3 +990,4 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         return values.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 }
+

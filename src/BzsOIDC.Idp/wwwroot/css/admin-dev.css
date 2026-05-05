@@ -30,7 +30,7 @@
 
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 1.75rem;
     width: 100%;
     max-width: none;
     min-height: calc(100dvh - var(--layout-topbar-height, 3.6rem) - var(--layout-content-block-offset, 2.45rem) - 0.9rem);
@@ -121,6 +121,7 @@
 
 .admin-primary-button,
 .admin-ghost-button,
+.admin-secondary-button,
 .admin-icon-button,
 .admin-pagination-page-btn,
 .admin-filter-tab,
@@ -245,6 +246,7 @@
     align-items: end;
     gap: 1.1rem;
     padding: 0 0.35rem;
+    margin-top: 0.05rem;
 }
 
 .admin-search-stack {
@@ -297,6 +299,171 @@
     font-variant-numeric: tabular-nums;
 }
 
+.admin-overview-grid {
+    display: grid;
+    gap: 1.15rem;
+    margin: 0 0.35rem;
+}
+
+.admin-overview-card {
+    border: 1px solid var(--surface-stroke-light);
+    outline: 1px solid var(--surface-stroke-dark);
+    border-radius: 24px;
+    background: var(--app-bg);
+    box-shadow: var(--z-shadow-sm);
+    padding: 1rem 1.15rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.admin-overview-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+.admin-overview-card-header h2 {
+    margin: 0;
+    color: var(--z-primary);
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.admin-overview-card-header p {
+    margin: 0.35rem 0 0;
+    color: var(--z-muted-fg);
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.admin-overview-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+}
+
+.admin-overview-stats .admin-user-meta {
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--chip-border);
+    border-radius: 999px;
+    background: var(--chip-bg);
+    box-shadow: var(--control-shadow-xs);
+}
+
+.admin-scope-topology {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+.admin-scope-topology-lane {
+    display: grid;
+    gap: 0.25rem;
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--z-border);
+    border-radius: 16px;
+    background: var(--z-surface-subtle);
+    box-shadow: var(--control-shadow-xs);
+}
+
+.admin-scope-topology-lane.is-primary {
+    border-color: var(--status-info-border);
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
+}
+
+.admin-scope-topology-label {
+    color: var(--z-muted-fg);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.admin-scope-topology-lane strong {
+    color: var(--z-primary);
+    font-size: 1.35rem;
+    line-height: 1;
+}
+
+.admin-scope-topology-link {
+    width: 2.25rem;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, var(--z-border), transparent);
+    position: relative;
+}
+
+.admin-scope-topology-link::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 0;
+    width: 0.42rem;
+    height: 0.42rem;
+    border-top: 2px solid var(--z-border);
+    border-right: 2px solid var(--z-border);
+    transform: translateY(-50%) rotate(45deg);
+}
+
+.admin-scope-relation-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+    max-height: 31rem;
+    overflow: auto;
+    padding-right: 0.15rem;
+}
+
+.admin-scope-relation-card {
+    display: grid;
+    gap: 0.75rem;
+    min-width: 0;
+    padding: 0.85rem;
+    border: 1px solid var(--z-border);
+    border-radius: 18px;
+    background: var(--z-surface);
+    box-shadow: var(--control-shadow-xs);
+}
+
+.admin-scope-relation-node {
+    display: grid;
+    gap: 0.2rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--z-border);
+}
+
+.admin-scope-relation-node span,
+.admin-scope-relation-branches span {
+    color: var(--z-muted-fg);
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.admin-scope-relation-node strong {
+    min-width: 0;
+    color: var(--z-primary);
+    font-size: 0.95rem;
+    overflow-wrap: anywhere;
+}
+
+.admin-scope-relation-branches {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.admin-scope-relation-branches .admin-token-list {
+    margin-top: 0.35rem;
+}
+
 .admin-grid-toolbar-actions {
     display: flex;
     align-items: center;
@@ -309,6 +476,124 @@
     width: 1rem;
     height: 1rem;
     flex: none;
+}
+
+.admin-details-inline > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--z-border);
+    border-radius: 14px;
+    background: var(--z-surface-subtle);
+    color: var(--z-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    box-shadow: var(--z-shadow-xs);
+}
+
+.admin-details-inline > summary::-webkit-details-marker {
+    display: none;
+}
+
+.admin-details-inline[open] > summary {
+    background: var(--z-surface);
+    box-shadow: var(--z-shadow-sm);
+}
+
+.admin-details-stack {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.75rem;
+}
+
+.admin-permission-center {
+    display: grid;
+    grid-template-columns: minmax(18rem, 0.92fr) minmax(0, 1.58fr);
+    gap: 1rem;
+    margin: 0 0.35rem;
+    align-items: start;
+}
+
+.admin-permission-column {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.admin-permission-column-primary {
+    grid-template-rows: auto 1fr;
+}
+
+.admin-permission-column-secondary {
+    grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+.admin-permission-panel {
+    min-width: 0;
+}
+
+.admin-permission-panel-fill {
+    min-height: 0;
+}
+
+.admin-topology-list {
+    display: grid;
+    gap: 0.65rem;
+}
+
+.admin-topology-row {
+    display: grid;
+    gap: 0.45rem;
+    width: 100%;
+    padding: 0.85rem 0.95rem;
+    border: 1px solid var(--surface-stroke-light);
+    border-radius: 18px;
+    background: color-mix(in srgb, var(--surface-muted) 82%, white 18%);
+    color: var(--z-primary);
+    text-align: left;
+    box-shadow: var(--control-shadow-xs);
+}
+
+.admin-topology-row strong {
+    font-size: 0.92rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.admin-topology-button {
+    cursor: pointer;
+    transition: color var(--z-duration) var(--z-ease),
+                background-color var(--z-duration) var(--z-ease),
+                border-color var(--z-duration) var(--z-ease),
+                box-shadow var(--z-duration) var(--z-ease),
+                transform var(--z-duration) var(--z-ease);
+}
+
+.admin-topology-button:hover,
+.admin-topology-button.is-active {
+    border-color: rgba(68, 82, 159, 0.16);
+    background: color-mix(in srgb, var(--accent-primary) 8%, var(--surface-elevated));
+    box-shadow: var(--control-shadow-md);
+}
+
+.admin-topology-button:active {
+    transform: translateY(1px);
+    box-shadow: var(--surface-shadow-inset);
+}
+
+.admin-topology-button input[type="checkbox"] {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--accent-primary);
+}
+
+.admin-client-text-stack {
+    display: grid;
+    gap: 0.55rem;
 }
 
 .admin-table-shell {
@@ -547,7 +832,7 @@
 .admin-token-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: 0.5rem;
 }
 
 .admin-token {
@@ -561,6 +846,35 @@
     font-size: 11px;
     font-weight: 500;
     line-height: 1.4;
+}
+
+
+.admin-secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--z-border);
+    border-radius: 14px;
+    background: var(--z-surface-subtle);
+    color: var(--z-primary);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: var(--z-shadow-xs);
+}
+
+.admin-secondary-button:hover:not(:disabled) {
+    background: var(--z-surface);
+    box-shadow: var(--z-shadow-sm);
+}
+
+.admin-secondary-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }
 
 .admin-token-overflow {
@@ -763,6 +1077,7 @@
 
 .admin-primary-button:focus-visible,
 .admin-ghost-button:focus-visible,
+.admin-secondary-button:focus-visible,
 .admin-icon-button:focus-visible,
 .admin-pagination-page-btn:focus-visible,
 .admin-filter-tab:focus-visible,
@@ -799,6 +1114,7 @@
 }
 
 :root[data-theme="dark"] .admin-loading-card,
+:root[data-theme="dark"] .admin-overview-card,
 :root[data-theme="dark"] .admin-table-shell,
 :root[data-theme="dark"] .admin-table th,
 :root[data-theme="dark"] .admin-table-row,
@@ -806,6 +1122,7 @@
 :root[data-theme="dark"] .admin-page-size-field select,
 :root[data-theme="dark"] .admin-ghost-button,
 :root[data-theme="dark"] .admin-icon-button,
+:root[data-theme="dark"] .admin-secondary-button,
 :root[data-theme="dark"] .admin-pagination-page-btn,
 :root[data-theme="dark"] .admin-feedback {
     color-scheme: dark;
@@ -821,12 +1138,6 @@
     background: var(--feedback-error-bg);
     border-color: var(--feedback-error-border);
     color: var(--feedback-error-text);
-}
-
-:root[data-theme="dark"] .admin-token-overflow {
-    background: var(--status-info-bg);
-    border-color: var(--status-info-border);
-    color: var(--status-info-text);
 }
 
 :root[data-theme="dark"] .admin-secret-banner {
@@ -853,6 +1164,15 @@
 }
 
 @media (max-width: 1024px) {
+    .admin-permission-center {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-permission-column-primary,
+    .admin-permission-column-secondary {
+        grid-template-rows: auto;
+    }
+
     .admin-grid-toolbar,
     .admin-pagination-bar,
     .admin-hero {
@@ -864,6 +1184,25 @@
     .admin-hero-actions {
         justify-content: flex-start;
         flex-wrap: wrap;
+    }
+
+
+    .admin-scope-topology {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-scope-topology-link {
+        width: 2px;
+        height: 1.25rem;
+        justify-self: center;
+        background: linear-gradient(180deg, transparent, var(--z-border), transparent);
+    }
+
+    .admin-scope-topology-link::after {
+        top: auto;
+        right: 50%;
+        bottom: 0;
+        transform: translateX(50%) rotate(135deg);
     }
 
     .admin-table-shell {
@@ -955,6 +1294,7 @@
     .admin-page-shell,
     .admin-primary-button,
     .admin-ghost-button,
+    .admin-secondary-button,
     .admin-icon-button,
     .admin-pagination-page-btn,
     .admin-filter-tab,
@@ -988,6 +1328,7 @@
 }
 
 .admin-loading-card,
+.admin-overview-card,
 .admin-filter-tabs,
 .admin-table-shell,
 .admin-empty-state {
@@ -998,6 +1339,7 @@
 }
 
 .admin-loading-card,
+.admin-overview-card,
 .admin-table-shell,
 .admin-empty-state {
     border-radius: 24px;
@@ -1018,6 +1360,7 @@
 }
 
 .admin-ghost-button,
+.admin-secondary-button,
 .admin-icon-button,
 .admin-pagination-page-btn,
 .admin-page-size-field select {
@@ -1048,6 +1391,7 @@
 }
 
 .admin-ghost-button:hover,
+.admin-secondary-button:hover,
 .admin-icon-button:hover,
 .admin-pagination-page-btn:hover,
 .admin-page-size-field select:hover {
@@ -1056,6 +1400,7 @@
 
 .admin-primary-button:active,
 .admin-ghost-button:active,
+.admin-secondary-button:active,
 .admin-icon-button:active,
 .admin-pagination-page-btn:active,
 .admin-filter-tab:active {

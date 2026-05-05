@@ -13,8 +13,8 @@ public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : E2EPageTes
     {
         await AppUi.LoginAsAdminAsync(this, fixture);
 
-        await Expect(Page.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("用户|Users", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
-        await Expect(Page.GetByRole(AriaRole.Link, new() { NameRegex = new Regex("客户端|Clients", RegexOptions.IgnoreCase) })).ToBeVisibleAsync();
+        await Expect(Page.Locator("a.sidebar-nav-item[href='/admin/users']")).ToBeVisibleAsync();
+        await Expect(Page.Locator("a.sidebar-nav-item[href='/admin/clients']")).ToBeVisibleAsync();
 
         await Page.GotoAsync(fixture.BuildUrl("/admin/users"));
         await Page.Locator(".admin-table").WaitForAsync(new() { State = WaitForSelectorState.Visible, Timeout = 20000 });
@@ -64,8 +64,8 @@ public sealed class AdminExperienceE2ETests(AppHostFixture fixture) : E2EPageTes
         await Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("新建客户端|Register client|Create", RegexOptions.IgnoreCase) }).ClickAsync();
         await Page.Locator("#editor-client-id").FillAsync(clientId);
         await Page.Locator("#editor-display-name").FillAsync(displayName);
-        await Page.Locator("#editor-profile").ClickAsync();
-        await Page.GetByRole(AriaRole.Option, new() { NameRegex = new Regex("Daemon|机器调用|machine-to-machine", RegexOptions.IgnoreCase) }).ClickAsync();
+        await Page.Locator("#editor-auth-flow").ClickAsync();
+        await Page.Locator("#editor-auth-flow-option-1").ClickAsync();
         await Page.Locator("#editor-scopes").FillAsync("api");
         await Page.Locator("#editor-client-secret").FillAsync("machine-client-secret");
         await Page.Locator(".admin-dialog-shell .admin-primary-button").ClickAsync();

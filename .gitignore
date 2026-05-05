@@ -152,3 +152,6 @@ BenchmarkDotNet.Artifacts/
 # Generated files
 *.g.cs
 *.generated.cs
+
+
+**/.omx/

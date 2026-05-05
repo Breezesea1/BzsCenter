@@ -38,26 +38,25 @@ public sealed class AdminDashboardServiceTests
                 }
             ]);
 
-        var permissionScopeService = Substitute.For<IPermissionScopeService>();
-        permissionScopeService.GetAllAsync(Arg.Any<CancellationToken>())
+        var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
+        permissionCatalogService.GetResourcesAsync(Arg.Any<CancellationToken>())
             .Returns([
-                new PermissionScopeResponse
+                new ProtectedResourceResponse
                 {
-                    Permission = "clients.read",
-                    Scopes = ["api"]
+                    Key = "api",
+                    Permissions =
+                    [
+                        new PermissionDefinitionResponse { Name = "clients.read", ReleaseScopes = ["api"] },
+                        new PermissionDefinitionResponse { Name = "clients.write", ReleaseScopes = ["api", "jobs"] },
+                    ],
                 },
-                new PermissionScopeResponse
-                {
-                    Permission = "clients.write",
-                    Scopes = ["api", "jobs"]
-                }
             ]);
 
         var userManager = new TestUserManager((user, role) =>
             user.UserName == "admin-01" &&
             string.Equals(role, IdentitySeedConstants.AdminRoleName, StringComparison.Ordinal));
 
-        var sut = new AdminDashboardService(userService, clientService, permissionScopeService, userManager);
+        var sut = new AdminDashboardService(userService, clientService, permissionCatalogService, userManager);
 
         var result = await sut.GetSummaryAsync(CancellationToken.None);
 
@@ -81,3 +80,4 @@ public sealed class AdminDashboardServiceTests
         };
     }
 }
+

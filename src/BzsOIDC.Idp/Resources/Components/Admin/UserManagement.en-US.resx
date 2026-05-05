@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version='1.0' encoding='utf-8'?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -7,10 +7,10 @@
   <data name="PageTitle" xml:space="preserve"><value>User Management</value></data>
   <data name="AdminArea" xml:space="preserve"><value>Admin Area</value></data>
   <data name="CheckingAccess" xml:space="preserve"><value>Checking access</value></data>
-  <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session before loading user management.</value></data>
+  <data name="CheckingAccessLead" xml:space="preserve"><value>Verifying your session.</value></data>
   <data name="Identity" xml:space="preserve"><value>Identity</value></data>
   <data name="Overview" xml:space="preserve"><value>Overview</value></data>
-  <data name="HeroLead" xml:space="preserve"><value>Manage sign-in accounts, rotate passwords, and keep administrator access under control.</value></data>
+  <data name="HeroLead" xml:space="preserve"><value>Manage sign-in accounts.</value></data>
   <data name="FilterByRole" xml:space="preserve"><value>Filter by role</value></data>
   <data name="Refresh" xml:space="preserve"><value>Refresh</value></data>
   <data name="NewUser" xml:space="preserve"><value>New User</value></data>
@@ -20,13 +20,13 @@
   <data name="RoleSearchStandard" xml:space="preserve"><value>user standard</value></data>
   <data name="UserOverview" xml:space="preserve"><value>User overview</value></data>
   <data name="TotalUsers" xml:space="preserve"><value>Total users</value></data>
-  <data name="TotalUsersLead" xml:space="preserve"><value>All accounts currently provisioned in the IDP.</value></data>
+  <data name="TotalUsersLead" xml:space="preserve"><value>Provisioned accounts.</value></data>
   <data name="Admins" xml:space="preserve"><value>Admins</value></data>
-  <data name="AdminsLead" xml:space="preserve"><value>Users holding the reserved admin role.</value></data>
+  <data name="AdminsLead" xml:space="preserve"><value>Accounts in the admin role.</value></data>
   <data name="StandardUsers" xml:space="preserve"><value>Standard users</value></data>
-  <data name="StandardUsersLead" xml:space="preserve"><value>Accounts without elevated management permissions.</value></data>
+  <data name="StandardUsersLead" xml:space="preserve"><value>Accounts without admin role.</value></data>
   <data name="Accounts" xml:space="preserve"><value>Accounts</value></data>
-  <data name="AccountsLead" xml:space="preserve"><value>Filter the list, inspect privileges, and open any row for editing.</value></data>
+  <data name="AccountsLead" xml:space="preserve"><value>Search and edit accounts.</value></data>
   <data name="Search" xml:space="preserve"><value>Search</value></data>
   <data name="SearchPlaceholder" xml:space="preserve"><value>Search by username or email</value></data>
   <data name="RowsPerPage" xml:space="preserve"><value>Rows per page</value></data>
@@ -45,7 +45,7 @@
   <data name="Identifier" xml:space="preserve"><value>Identifier</value></data>
   <data name="Actions" xml:space="preserve"><value>Actions</value></data>
   <data name="NoMatchingUsers" xml:space="preserve"><value>No matching users</value></data>
-  <data name="NoMatchingUsersLead" xml:space="preserve"><value>Try another keyword or create a new account.</value></data>
+  <data name="NoMatchingUsersLead" xml:space="preserve"><value>Try another keyword or create an account.</value></data>
   <data name="CurrentSession" xml:space="preserve"><value>Current session</value></data>
   <data name="ManagedAccount" xml:space="preserve"><value>Managed account</value></data>
   <data name="Admin" xml:space="preserve"><value>Admin</value></data>
@@ -54,15 +54,15 @@
   <data name="Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="EditUser" xml:space="preserve"><value>Edit user</value></data>
   <data name="CreateUser" xml:space="preserve"><value>Create user</value></data>
-  <data name="EditUserLead" xml:space="preserve"><value>Update identity details, admin access, or password.</value></data>
-  <data name="CreateUserLead" xml:space="preserve"><value>Provision a new sign-in account for the platform.</value></data>
+  <data name="EditUserLead" xml:space="preserve"><value>Update account details.</value></data>
+  <data name="CreateUserLead" xml:space="preserve"><value>Create a sign-in account.</value></data>
   <data name="CouldNotSaveUser" xml:space="preserve"><value>Could not save this user.</value></data>
   <data name="NewPassword" xml:space="preserve"><value>New password</value></data>
   <data name="Password" xml:space="preserve"><value>Password</value></data>
   <data name="LeavePasswordBlankHelp" xml:space="preserve"><value>Leave blank to keep the current password.</value></data>
-  <data name="PasswordPolicyHelp" xml:space="preserve"><value>Password must satisfy the configured Identity policy.</value></data>
+  <data name="PasswordPolicyHelp" xml:space="preserve"><value>Must match the Identity password policy.</value></data>
   <data name="AdministratorAccess" xml:space="preserve"><value>Administrator access</value></data>
-  <data name="AdministratorAccessLead" xml:space="preserve"><value>Grant the reserved admin role.</value></data>
+  <data name="AdministratorAccessLead" xml:space="preserve"><value>Assign the admin role.</value></data>
   <data name="Reset" xml:space="preserve"><value>Reset</value></data>
   <data name="Saving" xml:space="preserve"><value>Saving...</value></data>
   <data name="Close" xml:space="preserve"><value>Close</value></data>

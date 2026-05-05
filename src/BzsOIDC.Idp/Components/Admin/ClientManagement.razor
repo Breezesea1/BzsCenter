@@ -9,6 +9,7 @@
 @using OpenIddict.Abstractions
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IOidcClientService ClientService
+@inject IOidcScopeService ScopeService
 @inject IStringLocalizer<ClientManagement> L
 @inject NavigationManager NavigationManager
 @inject IJSRuntime JS
@@ -316,6 +317,7 @@ else
                                 RedirectUrisTextChanged="HandleRedirectUrisTextChanged"
                                 PostLogoutRedirectUrisText="@_editor.PostLogoutRedirectUrisText"
                                 PostLogoutRedirectUrisTextChanged="HandlePostLogoutRedirectUrisTextChanged"
+                                AvailableScopeOptions="@_availableScopes"
                                 ClientSecret="@_editor.ClientSecret"
                                 ClientSecretChanged="HandleClientSecretChanged"
                                 FormErrors="@_formErrors"
@@ -328,6 +330,7 @@ else
 @code {
     private readonly List<OidcClientResponse> _clients = [];
     private readonly List<OidcClientResponse> _filteredClients = [];
+    private readonly List<string> _availableScopes = [];
     private readonly List<OidcClientResponse> _visibleClients = [];
     private readonly List<string> _formErrors = [];
     private static readonly int[] PageSizeOptions = [10, 20, 50];
@@ -419,6 +422,9 @@ else
         {
             _clients.Clear();
             _clients.AddRange(await ClientService.GetAllAsync());
+            _availableScopes.Clear();
+            _availableScopes.AddRange((await ScopeService.GetAllAsync()).Select(static scope => scope.Name));
+            _availableScopes.Sort(StringComparer.OrdinalIgnoreCase);
             ApplyFilter();
         }
         finally

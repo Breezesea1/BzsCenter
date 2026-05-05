@@ -18,13 +18,21 @@ public static class SmokeIdentitySeedProfile
             Admin = baseOptions.Admin,
             InitialRoles = [],
             RolePermissions = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase),
-            PermissionScopes = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
-            {
-                [PermissionConstants.UsersReadAll] = [PermissionConstants.ScopeApi],
-                [PermissionConstants.UsersWrite] = [PermissionConstants.ScopeApi],
-                [PermissionConstants.ClientsRead] = [PermissionConstants.ScopeApi],
-                [PermissionConstants.ClientsWrite] = [PermissionConstants.ScopeApi],
-            },
+            PermissionCatalog =
+            [
+                new()
+                {
+                    ResourceKey = PermissionConstants.ScopeApi,
+                    DisplayName = "Smoke API",
+                    Permissions =
+                    [
+                        new() { Name = PermissionConstants.UsersReadAll, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                        new() { Name = PermissionConstants.UsersWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                        new() { Name = PermissionConstants.ClientsRead, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                        new() { Name = PermissionConstants.ClientsWrite, ReleaseScopes = [PermissionConstants.ScopeApi] },
+                    ],
+                },
+            ],
             AdditionalScopes = [PermissionConstants.ScopeApi],
         };
     }

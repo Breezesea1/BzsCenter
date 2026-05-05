@@ -1,6 +1,8 @@
 @using BzsOIDC.Idp.Services.Oidc
+@using BzsOIDC.Shared.Infrastructure.Authorization
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.Extensions.Localization
+@using OpenIddict.Abstractions
 @inject IStringLocalizer<ClientManagement> L
 
 <AdminDialogShell IsOpen="@IsOpen"
@@ -61,16 +63,59 @@
             </NeoField>
 
             <NeoField Label="@L["Scopes"]" ForId="editor-scopes" Hint="@L["ScopesHelp"]">
-                <textarea id="editor-scopes"
-                          class="neo-textarea"
-                          rows="4"
-                          value="@ScopesText"
-                          @oninput="HandleScopesInput"
-                          placeholder="@L["ScopesPlaceholder"]"
-                          autocomplete="off"
-                          autocapitalize="off"
-                          autocorrect="off"
-                          spellcheck="false"></textarea>
+                <div class="admin-selection-stack">
+                    <div class="admin-token-list admin-token-list-wrap" role="group" aria-label="@L["Scopes"]">
+                        @foreach (var scope in AvailableScopeOptions)
+                        {
+                            <button type="button"
+                                    class="admin-token admin-token-toggle @(IsScopeSelected(scope) ? "is-active" : string.Empty)"
+                                    aria-pressed="@IsScopeSelected(scope)"
+                                    @onclick="() => ToggleScope(scope)">
+                                @scope
+                            </button>
+                        }
+                    </div>
+                    <textarea id="editor-scopes"
+                              class="neo-textarea"
+                              rows="3"
+                              value="@ScopesText"
+                              @oninput="HandleScopesInput"
+                              placeholder="@L["ScopesPlaceholder"]"
+                              autocomplete="off"
+                              autocapitalize="off"
+                              autocorrect="off"
+                              spellcheck="false"></textarea>
+                </div>
+            </NeoField>
+
+            <NeoField Label="@L["OpenIddictPermissions"]" ForId="editor-openiddict-permissions" Hint="@L["OpenIddictPermissionsHelp"]">
+                <div id="editor-openiddict-permissions" class="admin-token-list admin-token-list-wrap">
+                    @if (OpenIddictPermissions.Count == 0)
+                    {
+                        <span class="admin-user-meta">@L["OpenIddictPermissionsEmpty"]</span>
+                    }
+                    else
+                    {
+                        @foreach (var permission in OpenIddictPermissions)
+                        {
+                            <span class="admin-token admin-token-readonly">@permission</span>
+                        }
+                    }
+                </div>
+            </NeoField>
+
+            <NeoField Label="@L["Presets"]" ForId="editor-presets" Hint="@L["PresetHelp"]">
+                <div id="editor-presets" class="admin-preset-grid">
+                    <button type="button" class="admin-secondary-button" @onclick='() => ApplyPreset(OidcClientPresetKind.Spa)' disabled="@IsBusy">
+                        @L["PresetSpa"]
+                    </button>
+                    <button type="button" class="admin-secondary-button" @onclick='() => ApplyPreset(OidcClientPresetKind.ServerWeb)' disabled="@IsBusy">
+                        @L["PresetServerWeb"]
+                    </button>
+                    <button type="button" class="admin-secondary-button" @onclick='() => ApplyPreset(OidcClientPresetKind.MachineToMachine)' disabled="@IsBusy">
+                        @L["PresetMachineToMachine"]
+                    </button>
+                </div>
             </NeoField>
 
             @if (AuthFlow == OidcClientAuthFlow.AuthorizationCode)
@@ -155,6 +200,7 @@
     [Parameter] public EventCallback<string> RedirectUrisTextChanged { get; set; }
     [Parameter] public string PostLogoutRedirectUrisText { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> PostLogoutRedirectUrisTextChanged { get; set; }
+    [Parameter] public IReadOnlyList<string> AvailableScopeOptions { get; set; } = [];
     [Parameter] public IReadOnlyList<string> FormErrors { get; set; } = [];
     [Parameter] public EventCallback OnClose { get; set; }
     [Parameter] public EventCallback OnReset { get; set; }
@@ -169,6 +215,11 @@
         new(OidcClientAuthFlow.ClientCredentials, L["ClientCredentialsFlow"]),
     ];
 
+    private IReadOnlyList<string> OpenIddictPermissions => OidcClientDescriptorFactory
+        .BuildPermissions(BuildPreviewRequest())
+        .OrderBy(static permission => permission, StringComparer.OrdinalIgnoreCase)
+        .ToArray();
+
     private Task HandleClientIdInput(ChangeEventArgs args) => ClientIdChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
     private Task HandleClientSecretInput(ChangeEventArgs args) => ClientSecretChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
@@ -182,4 +233,84 @@
     private Task HandleRedirectUrisInput(ChangeEventArgs args) => RedirectUrisTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
     private Task HandleScopesInput(ChangeEventArgs args) => ScopesTextChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
+
+    private Task ToggleScope(string scope)
+    {
+        var scopes = ParseLines(ScopesText).ToList();
+        if (scopes.Contains(scope, StringComparer.OrdinalIgnoreCase))
+        {
+            scopes.RemoveAll(item => string.Equals(item, scope, StringComparison.OrdinalIgnoreCase));
+        }
+        else
+        {
+            scopes.Add(scope);
+        }
+
+        return ScopesTextChanged.InvokeAsync(string.Join(Environment.NewLine, scopes));
+    }
+
+    private Task ApplyPreset(OidcClientPresetKind kind)
+    {
+        var preset = OidcClientDescriptorFactory.CreatePreset(new OidcClientPresetRequest
+        {
+            Kind = kind,
+            ClientId = ClientId,
+            DisplayName = DisplayName,
+            Scopes = ParseLines(ScopesText),
+        });
+
+        return ApplyPresetAsync(preset);
+    }
+
+    private async Task ApplyPresetAsync(OidcClientUpsertRequest preset)
+    {
+        await ClientIdChanged.InvokeAsync(preset.ClientId ?? string.Empty);
+        await ClientSecretChanged.InvokeAsync(preset.ClientSecret ?? string.Empty);
+        await DisplayNameChanged.InvokeAsync(preset.DisplayName);
+        await AuthFlowChanged.InvokeAsync(preset.AuthFlow ?? OidcClientAuthFlow.AuthorizationCode);
+        await ScopesTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.Scopes));
+        await RedirectUrisTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.RedirectUris));
+        await PostLogoutRedirectUrisTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.PostLogoutRedirectUris));
+    }
+
+    private bool IsScopeSelected(string scope)
+    {
+        return ParseLines(ScopesText).Contains(scope, StringComparer.OrdinalIgnoreCase);
+    }
+
+    private OidcClientUpsertRequest BuildPreviewRequest()
+    {
+        var scopes = ParseLines(ScopesText);
+
+        return new OidcClientUpsertRequest
+        {
+            ClientId = string.IsNullOrWhiteSpace(ClientId) ? null : ClientId,
+            ClientSecret = string.IsNullOrWhiteSpace(ClientSecret) ? null : ClientSecret,
+            DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? "Preview client" : DisplayName,
+            AuthFlow = AuthFlow,
+            PublicClient = AuthFlow == OidcClientAuthFlow.AuthorizationCode,
+            RequireProofKeyForCodeExchange = AuthFlow == OidcClientAuthFlow.AuthorizationCode,
+            GrantTypes = AuthFlow == OidcClientAuthFlow.AuthorizationCode
+                ? [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken]
+                : [OpenIddictConstants.GrantTypes.ClientCredentials],
+            Scopes = scopes,
+            RedirectUris = ParseLines(RedirectUrisText),
+            PostLogoutRedirectUris = ParseLines(PostLogoutRedirectUrisText),
+        };
+    }
+
+    private static string[] ParseLines(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        return raw
+            .Split([',', '\r', '\n'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(static value => !string.IsNullOrWhiteSpace(value))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
 }
+

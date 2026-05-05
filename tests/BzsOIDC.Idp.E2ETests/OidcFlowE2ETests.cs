@@ -27,8 +27,8 @@ public sealed class OidcFlowE2ETests(AppHostFixture fixture) : E2EPageTest
         await Page.GetByRole(AriaRole.Button, new() { NameRegex = new Regex("新建客户端|Register client|Create", RegexOptions.IgnoreCase) }).ClickAsync();
         await Page.Locator("#editor-client-id").FillAsync(clientId);
         await Page.Locator("#editor-display-name").FillAsync("OIDC E2E Client");
-        await Page.Locator("#editor-profile").ClickAsync();
-        await Page.GetByRole(AriaRole.Option, new() { NameRegex = new Regex("SPA|用户登录型|user sign-in", RegexOptions.IgnoreCase) }).ClickAsync();
+        await Page.Locator("#editor-auth-flow").ClickAsync();
+        await Page.Locator("#editor-auth-flow-option-0").ClickAsync();
         await Page.Locator("#editor-scopes").FillAsync("openid\nprofile\nemail\nroles\noffline_access\napi");
         await Page.Locator("#editor-redirect-uris").FillAsync(redirectUri);
         await Page.Locator("#editor-post-logout-uris").FillAsync(redirectUri);

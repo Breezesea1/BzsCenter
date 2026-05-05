@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Bunit;
 using Bunit.JSInterop;
 using BzsOIDC.Idp.Components.Admin;
+using BzsOIDC.Idp.Services.Identity;
 using BzsOIDC.Idp.Services.Oidc;
 using BzsOIDC.Idp.UnitTests.TestDoubles;
 using Microsoft.AspNetCore.Http;
@@ -32,8 +33,12 @@ public sealed class ClientManagementPageTests
 
         var clientService = Substitute.For<IOidcClientService>();
         clientService.GetAllAsync(Arg.Any<CancellationToken>()).Returns(Task.FromResult<IReadOnlyList<OidcClientResponse>>(clients));
+        var scopeService = Substitute.For<IOidcScopeService>();
+        scopeService.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<IReadOnlyList<OidcScopeResponse>>([]));
 
-        context.Services.AddSingleton(clientService);
+        context.Services.AddSingleton<IOidcClientService>(clientService);
+        context.Services.AddSingleton<IOidcScopeService>(scopeService);
         context.Services.AddSingleton<IStringLocalizer<ClientManagement>, TestStringLocalizer<ClientManagement>>();
         context.Services.AddSingleton<IHttpContextAccessor>(CreateAdminHttpContextAccessor());
 

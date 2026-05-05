@@ -101,7 +101,6 @@ else
                         <header class="admin-overview-card-header">
                             <div>
                                 <h2>@L["Resources"]</h2>
-                                <p>@L["ResourcesLead"]</p>
                             </div>
                         </header>
                         <div class="admin-topology-list">
@@ -121,7 +120,6 @@ else
                         <header class="admin-overview-card-header">
                             <div>
                                 <h2>@L["BusinessPermissions"]</h2>
-                                <p>@L["BusinessPermissionsLead"]</p>
                             </div>
                             @if (SelectedResource is not null)
                             {
@@ -140,14 +138,20 @@ else
                                 @foreach (var permission in SelectedResource.Permissions.OrderBy(static permission => permission.Name, StringComparer.OrdinalIgnoreCase))
                                 {
                                     <button type="button"
-                                            class="admin-topology-row admin-topology-button @(IsSelectedPermission(permission) ? "is-active" : string.Empty)"
+                                            class="admin-topology-row admin-topology-button admin-permission-row @(IsSelectedPermission(permission) ? "is-active" : string.Empty)"
                                             @onclick="() => SelectPermission(permission.Name)">
-                                        <strong>@permission.Name</strong>
-                                        <span class="admin-user-meta">@permission.DisplayName · @(permission.IsActive ? L["Active"] : L["Inactive"])</span>
-                                        <div class="admin-token-list">
-                                            @foreach (var scope in permission.ReleaseScopes)
+                                        <div class="admin-permission-row-main">
+                                            <strong>@permission.Name</strong>
+                                            <span class="admin-user-meta">@permission.DisplayName · @(permission.IsActive ? L["Active"] : L["Inactive"])</span>
+                                        </div>
+                                        <div class="admin-token-list admin-permission-row-scopes">
+                                            @foreach (var scope in permission.ReleaseScopes.Take(2))
                                             {
                                                 <span class="admin-token">@scope</span>
+                                            }
+                                            @if (permission.ReleaseScopes.Length > 2)
+                                            {
+                                                <span class="admin-token admin-token-overflow">+@(permission.ReleaseScopes.Length - 2)</span>
                                             }
                                         </div>
                                     </button>
@@ -162,7 +166,6 @@ else
                         <header class="admin-overview-card-header">
                             <div>
                                 <h2>@L["ReleaseScopes"]</h2>
-                                <p>@L["ReleaseScopesLead"]</p>
                             </div>
                         </header>
                         @if (SelectedPermission is null)
@@ -171,16 +174,10 @@ else
                         }
                         else
                         {
-                            <div class="admin-token-list admin-token-list-wrap">
-                                @foreach (var scope in SelectedPermission.ReleaseScopes)
-                                {
-                                    <span class="admin-token">@scope</span>
-                                }
-                            </div>
                             <NeoField Label="@L["ReleaseScopes"]" ForId="release-scopes-editor" Hint="@L["ReleaseScopesEditorHelp"]">
                                 <textarea id="release-scopes-editor"
-                                          class="neo-textarea"
-                                          rows="3"
+                                          class="neo-textarea admin-release-scope-editor"
+                                          rows="2"
                                           value="@_releaseScopesText"
                                           @oninput="args => _releaseScopesText = args.Value?.ToString() ?? string.Empty"></textarea>
                             </NeoField>
@@ -194,7 +191,6 @@ else
                         <header class="admin-overview-card-header">
                             <div>
                                 <h2>@L["RoleAssignments"]</h2>
-                                <p>@L["RoleAssignmentsLead"]</p>
                             </div>
                         </header>
                         @if (SelectedPermission is null)
@@ -207,7 +203,7 @@ else
                                 @foreach (var role in _roles)
                                 {
                                     var assigned = IsAssignedToRole(role.Id);
-                                    <label class="admin-topology-row admin-topology-button">
+                                    <label class="admin-topology-row admin-topology-button admin-role-row">
                                         <input type="checkbox"
                                                checked="@assigned"
                                                @onchange="args => ToggleRolePermissionAsync(role.Id, args.Value is bool isChecked && isChecked)" />
@@ -223,47 +219,47 @@ else
                         <header class="admin-overview-card-header">
                             <div>
                                 <h2>@L["Topology"]</h2>
-                                <p>@L["TopologyLead"]</p>
                             </div>
                         </header>
-                        <div class="admin-scope-relation-preview">
-                            @foreach (var resource in FilteredResources)
-                            {
-                                @foreach (var permission in resource.Permissions)
-                                {
-                                    <article class="admin-scope-relation-card">
-                                        <div class="admin-scope-relation-node">
-                                            <span>@L["ResourceApi"]</span>
-                                            <strong>@resource.Key</strong>
+                        @if (SelectedPermission is null)
+                        {
+                            <p class="admin-user-meta">@L["SelectPermissionPrompt"]</p>
+                        }
+                        else
+                        {
+                            <div class="admin-scope-relation-preview">
+                                <article class="admin-scope-relation-card">
+                                    <div class="admin-scope-relation-node">
+                                        <span>@L["ResourceApi"]</span>
+                                        <strong>@SelectedPermission.ResourceKey</strong>
+                                    </div>
+                                    <div class="admin-scope-relation-branches">
+                                        <div>
+                                            <span>@L["BusinessPermission"]</span>
+                                            <div class="admin-token-list"><span class="admin-token">@SelectedPermission.Name</span></div>
                                         </div>
-                                        <div class="admin-scope-relation-branches">
-                                            <div>
-                                                <span>@L["BusinessPermission"]</span>
-                                                <div class="admin-token-list"><span class="admin-token">@permission.Name</span></div>
-                                            </div>
-                                            <div>
-                                                <span>@L["ReleaseScopes"]</span>
-                                                <div class="admin-token-list">
-                                                    @foreach (var scope in permission.ReleaseScopes)
-                                                    {
-                                                        <span class="admin-token">@scope</span>
-                                                    }
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <span>@L["RoleAssignments"]</span>
-                                                <div class="admin-token-list">
-                                                    @foreach (var role in permission.AssignedRoles)
-                                                    {
-                                                        <span class="admin-token">@role.RoleName</span>
-                                                    }
-                                                </div>
+                                        <div>
+                                            <span>@L["ReleaseScopes"]</span>
+                                            <div class="admin-token-list">
+                                                @foreach (var scope in SelectedPermission.ReleaseScopes)
+                                                {
+                                                    <span class="admin-token">@scope</span>
+                                                }
                                             </div>
                                         </div>
-                                    </article>
-                                }
-                            }
-                        </div>
+                                        <div>
+                                            <span>@L["RoleAssignments"]</span>
+                                            <div class="admin-token-list">
+                                                @foreach (var role in SelectedPermission.AssignedRoles)
+                                                {
+                                                    <span class="admin-token">@role.RoleName</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </article>
+                            </div>
+                        }
                     </section>
                 </div>
             </div>

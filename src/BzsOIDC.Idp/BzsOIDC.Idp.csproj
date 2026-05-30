@@ -59,8 +59,9 @@
 
     </ItemGroup>
 
-    <Target Name="NpmRestore" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" BeforeTargets="Publish">
-        <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('$(MSBuildProjectDirectory)/package-lock.json')" />
+    <Target Name="NpmRestore" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" BeforeTargets="Build;Publish">
+        <Exec Command="npm ci" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="Exists('$(MSBuildProjectDirectory)/package-lock.json') And (!Exists('$(MSBuildProjectDirectory)/node_modules/tailwindcss/package.json') Or !Exists('$(MSBuildProjectDirectory)/node_modules/gsap/package.json'))" />
+        <Exec Command="npm install" WorkingDirectory="$(MSBuildProjectDirectory)" Condition="!Exists('$(MSBuildProjectDirectory)/package-lock.json') And (!Exists('$(MSBuildProjectDirectory)/node_modules/tailwindcss/package.json') Or !Exists('$(MSBuildProjectDirectory)/node_modules/gsap/package.json'))" />
     </Target>
 
     <Target Name="BuildFrontendAssets" Condition="Exists('$(MSBuildProjectDirectory)/package.json')" DependsOnTargets="NpmRestore" BeforeTargets="Build;Publish">

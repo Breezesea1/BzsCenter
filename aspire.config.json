@@ -1,0 +1,5 @@
+{
+  "appHost": {
+    "path": "src/BzsOIDC.AppHost/BzsOIDC.AppHost.csproj"
+  }
+}

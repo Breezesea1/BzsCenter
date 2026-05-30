@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using BzsOIDC.Idp.Components;
 using BzsOIDC.Idp.Controllers;
 using BzsOIDC.Idp.Models;
@@ -200,6 +201,27 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task Authorize_WhenPostedWithoutAntiforgeryToken_ReturnsBadRequest()
+    {
+        await SignInAsAdminAsync();
+
+        using var response = await _client.PostAsync(
+            "/connect/authorize",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = WebClientId,
+                ["response_type"] = OpenIddictConstants.ResponseTypes.Code,
+                ["redirect_uri"] = WebRedirectUri.ToString(),
+                ["scope"] = OpenIddictConstants.Scopes.OpenId,
+                ["state"] = "test-state",
+                ["code_challenge"] = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                ["code_challenge_method"] = "S256",
+            }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
     public async Task RefreshTokenFlow_WhenRefreshTokenValid_ReturnsNewAccessToken()
     {
         await SignInAsAdminAsync();
@@ -228,6 +250,179 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.NotNull(refreshPayload);
         Assert.False(string.IsNullOrWhiteSpace(refreshPayload.RootElement.GetProperty("access_token").GetString()));
         Assert.Equal("Bearer", refreshPayload.RootElement.GetProperty("token_type").GetString());
+    }
+
+    [Fact]
+    public async Task Revocation_WhenRefreshTokenRevoked_PreventsRefreshTokenReuse()
+    {
+        await SignInAsAdminAsync();
+
+        var code = await RequestAuthorizationCodeAsync();
+        using var codeExchangeResponse = await ExchangeAuthorizationCodeAsync(code);
+        codeExchangeResponse.EnsureSuccessStatusCode();
+
+        using var codePayload = await codeExchangeResponse.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(codePayload);
+        var refreshToken = codePayload.RootElement.GetProperty("refresh_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(refreshToken));
+
+        using var revokeResponse = await _client.PostAsync(
+            "/connect/revocation",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = WebClientId,
+                ["token"] = refreshToken!,
+                ["token_type_hint"] = OpenIddictConstants.TokenTypeHints.RefreshToken,
+            }));
+
+        Assert.Equal(HttpStatusCode.OK, revokeResponse.StatusCode);
+
+        using var refreshResponse = await _client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = OpenIddictConstants.GrantTypes.RefreshToken,
+                ["client_id"] = WebClientId,
+                ["refresh_token"] = refreshToken!,
+            }));
+
+        Assert.Equal(HttpStatusCode.BadRequest, refreshResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task Introspection_WhenClientCredentialsValid_ReturnsActiveAndInactiveStates()
+    {
+        using var tokenResponse = await _client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = OpenIddictConstants.GrantTypes.ClientCredentials,
+                ["client_id"] = MachineClientId,
+                ["client_secret"] = MachineClientSecret,
+                ["scope"] = PermissionConstants.ScopeApi,
+            }));
+
+        tokenResponse.EnsureSuccessStatusCode();
+
+        using var tokenPayload = await tokenResponse.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(tokenPayload);
+        var accessToken = tokenPayload.RootElement.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        using var activeResponse = await IntrospectAsync(accessToken!);
+        activeResponse.EnsureSuccessStatusCode();
+        using var activePayload = await ResponseContentToJsonAsync(activeResponse);
+        Assert.True(activePayload.RootElement.GetProperty("active").GetBoolean());
+        Assert.False(activePayload.RootElement.TryGetProperty(PermissionConstants.ClaimType, out _));
+
+        using var inactiveResponse = await IntrospectAsync("not-a-valid-token");
+        inactiveResponse.EnsureSuccessStatusCode();
+        using var inactivePayload = await ResponseContentToJsonAsync(inactiveResponse);
+        Assert.False(inactivePayload.RootElement.GetProperty("active").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Introspection_WhenPublicClientAttempts_ReturnsUnauthorized()
+    {
+        using var tokenResponse = await _client.PostAsync(
+            "/connect/token",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = OpenIddictConstants.GrantTypes.ClientCredentials,
+                ["client_id"] = MachineClientId,
+                ["client_secret"] = MachineClientSecret,
+                ["scope"] = PermissionConstants.ScopeApi,
+            }));
+
+        tokenResponse.EnsureSuccessStatusCode();
+        using var tokenPayload = await tokenResponse.Content.ReadFromJsonAsync<JsonDocument>();
+        Assert.NotNull(tokenPayload);
+        var accessToken = tokenPayload.RootElement.GetProperty("access_token").GetString();
+        Assert.False(string.IsNullOrWhiteSpace(accessToken));
+
+        using var response = await _client.PostAsync(
+            "/connect/introspection",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = WebClientId,
+                ["token"] = accessToken!,
+            }));
+
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Introspection_WhenClientUnknown_ReturnsUnauthorized()
+    {
+        using var response = await _client.PostAsync(
+            "/connect/introspection",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = "missing-client",
+                ["client_secret"] = "missing-secret",
+                ["token"] = "not-a-valid-token",
+            }));
+
+        Assert.True(response.StatusCode is HttpStatusCode.BadRequest or HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task OidcClientPermissionBackfill_WhenLegacyEndpointPermissionsMissing_AddsExpectedPermissions()
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var applicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+        var backfillService = scope.ServiceProvider.GetRequiredService<OidcClientPermissionBackfillService>();
+
+        await CreateLegacyApplicationAsync(
+            applicationManager,
+            "legacy-refresh-client",
+            OpenIddictConstants.ClientTypes.Public,
+            null,
+            [
+                OpenIddictConstants.Permissions.Endpoints.Authorization,
+                OpenIddictConstants.Permissions.Endpoints.Token,
+                OpenIddictConstants.Permissions.ResponseTypes.Code,
+                OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.AuthorizationCode,
+                OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.RefreshToken,
+                OpenIddictConstants.Permissions.Prefixes.Scope + OpenIddictConstants.Scopes.OpenId,
+            ],
+            redirectUri: "https://localhost/legacy-refresh-callback");
+
+        await CreateLegacyApplicationAsync(
+            applicationManager,
+            "legacy-machine-client",
+            OpenIddictConstants.ClientTypes.Confidential,
+            "legacy-machine-secret",
+            [
+                OpenIddictConstants.Permissions.Endpoints.Token,
+                OpenIddictConstants.Permissions.Prefixes.GrantType + OpenIddictConstants.GrantTypes.ClientCredentials,
+                OpenIddictConstants.Permissions.Prefixes.Scope + PermissionConstants.ScopeApi,
+            ]);
+
+        var legacyRefreshClient = await applicationManager.FindByClientIdAsync("legacy-refresh-client");
+        var legacyMachineClient = await applicationManager.FindByClientIdAsync("legacy-machine-client");
+        Assert.NotNull(legacyRefreshClient);
+        Assert.NotNull(legacyMachineClient);
+
+        var legacyRefreshPermissionsBefore = await applicationManager.GetPermissionsAsync(legacyRefreshClient);
+        var legacyMachinePermissionsBefore = await applicationManager.GetPermissionsAsync(legacyMachineClient);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Revocation, legacyRefreshPermissionsBefore);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Introspection, legacyMachinePermissionsBefore);
+
+        await backfillService.EnsureBackfilledAsync();
+
+        legacyRefreshClient = await applicationManager.FindByClientIdAsync("legacy-refresh-client");
+        legacyMachineClient = await applicationManager.FindByClientIdAsync("legacy-machine-client");
+        Assert.NotNull(legacyRefreshClient);
+        Assert.NotNull(legacyMachineClient);
+
+        var legacyRefreshPermissionsAfter = await applicationManager.GetPermissionsAsync(legacyRefreshClient);
+        var legacyMachinePermissionsAfter = await applicationManager.GetPermissionsAsync(legacyMachineClient);
+
+        Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Revocation, legacyRefreshPermissionsAfter);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Introspection, legacyRefreshPermissionsAfter);
+        Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Introspection, legacyMachinePermissionsAfter);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Revocation, legacyMachinePermissionsAfter);
     }
 
     [Fact]
@@ -528,8 +723,159 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         Assert.Equal("interactive-client", client.ClientId);
         Assert.Equal("Interactive Client", client.DisplayName);
         Assert.Equal(OidcClientAuthFlow.AuthorizationCode, client.AuthFlow);
+        Assert.Equal(OidcClientConsentType.Implicit, client.ConsentType);
         Assert.Contains(OpenIddictConstants.GrantTypes.AuthorizationCode, client.GrantTypes);
         Assert.Contains(PermissionConstants.ScopeApi, client.Scopes);
+    }
+
+    [Fact]
+    public async Task ClientRegistration_WhenExplicitConsentRequested_ReadsBackConsentType()
+    {
+        await SignInAsAdminAsync();
+
+        var request = new OidcClientUpsertRequest
+        {
+            ClientId = "explicit-managed-client",
+            DisplayName = "Explicit Managed Client",
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+            PublicClient = true,
+            RequireProofKeyForCodeExchange = true,
+            ConsentType = OidcClientConsentType.Explicit,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+            Scopes = [OpenIddictConstants.Scopes.OpenId, PermissionConstants.ScopeApi],
+            RedirectUris = ["https://localhost/explicit-managed/callback"],
+        };
+
+        using var createResponse = await _client.PostAsJsonAsync("/api/oidc/clients", request);
+        Assert.Equal(HttpStatusCode.Created, createResponse.StatusCode);
+
+        using var getResponse = await _client.GetAsync("/api/oidc/clients/explicit-managed-client");
+        getResponse.EnsureSuccessStatusCode();
+
+        var client = await getResponse.Content.ReadFromJsonAsync<OidcClientResponse>();
+        Assert.NotNull(client);
+        Assert.Equal(OidcClientConsentType.Explicit, client.ConsentType);
+    }
+
+    [Fact]
+    public async Task AuthorizationCodeFlow_WhenClientRequiresExplicitConsent_ApprovalCreatesAuthorizationAndDenialReturnsAccessDenied()
+    {
+        await SignInAsAdminAsync();
+        await EnsureExplicitConsentClientAsync("explicit-consent-client", "https://localhost/explicit-callback");
+
+        using var consentPageResponse = await RequestAuthorizationResponseAsync(
+            "explicit-consent-client",
+            "https://localhost/explicit-callback");
+
+        consentPageResponse.EnsureSuccessStatusCode();
+        var consentPage = await consentPageResponse.Content.ReadAsStringAsync();
+        Assert.Contains("Allow explicit-consent-client", consentPage, StringComparison.OrdinalIgnoreCase);
+
+        var token = ExtractAntiforgeryToken(consentPage);
+        var consentCookies = GetCookieHeader(consentPageResponse);
+
+        using var approveResponse = await PostConsentAsync(
+            "explicit-consent-client",
+            "https://localhost/explicit-callback",
+            "accept",
+            token,
+            consentCookies);
+
+        Assert.Equal(HttpStatusCode.Found, approveResponse.StatusCode);
+        Assert.NotNull(approveResponse.Headers.Location);
+        var approveQuery = QueryHelpers.ParseQuery(approveResponse.Headers.Location.Query);
+        Assert.True(approveQuery.TryGetValue("code", out var codeValues));
+        Assert.False(string.IsNullOrWhiteSpace(codeValues.ToString()));
+
+        await using (var scope = _app.Services.CreateAsyncScope())
+        {
+            var authorizationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictAuthorizationManager>();
+            var authorizations = authorizationManager.FindBySubjectAsync(
+                (await GetAdminUserIdAsync())!);
+            var foundAuthorization = false;
+            await foreach (var _ in authorizations)
+            {
+                foundAuthorization = true;
+                break;
+            }
+
+            Assert.True(foundAuthorization);
+        }
+
+        await EnsureExplicitConsentClientAsync("explicit-deny-client", "https://localhost/explicit-deny-callback");
+        using var denyPageResponse = await RequestAuthorizationResponseAsync(
+            "explicit-deny-client",
+            "https://localhost/explicit-deny-callback");
+        denyPageResponse.EnsureSuccessStatusCode();
+        var denyPage = await denyPageResponse.Content.ReadAsStringAsync();
+        var denyToken = ExtractAntiforgeryToken(denyPage);
+        var denyCookies = GetCookieHeader(denyPageResponse);
+
+        using var denyResponse = await PostConsentAsync(
+            "explicit-deny-client",
+            "https://localhost/explicit-deny-callback",
+            "deny",
+            denyToken,
+            denyCookies);
+
+        Assert.Equal(HttpStatusCode.Found, denyResponse.StatusCode);
+        Assert.NotNull(denyResponse.Headers.Location);
+        var denyQuery = QueryHelpers.ParseQuery(denyResponse.Headers.Location.Query);
+        Assert.False(denyQuery.ContainsKey("code"));
+        Assert.Equal(OpenIddictConstants.Errors.AccessDenied, denyQuery["error"].ToString());
+    }
+
+    [Fact]
+    public async Task AuthorizationCodeFlow_WhenPromptConsentRequested_IgnoresExistingAuthorizationAndShowsConsentPage()
+    {
+        await SignInAsAdminAsync();
+        await EnsureExplicitConsentClientAsync("prompt-consent-client", "https://localhost/prompt-consent-callback");
+
+        using var consentPageResponse = await RequestAuthorizationResponseAsync(
+            "prompt-consent-client",
+            "https://localhost/prompt-consent-callback");
+
+        consentPageResponse.EnsureSuccessStatusCode();
+        var consentPage = await consentPageResponse.Content.ReadAsStringAsync();
+        var token = ExtractAntiforgeryToken(consentPage);
+        var consentCookies = GetCookieHeader(consentPageResponse);
+
+        using var approveResponse = await PostConsentAsync(
+            "prompt-consent-client",
+            "https://localhost/prompt-consent-callback",
+            "accept",
+            token,
+            consentCookies);
+
+        Assert.Equal(HttpStatusCode.Found, approveResponse.StatusCode);
+
+        using var promptConsentResponse = await RequestAuthorizationResponseAsync(
+            "prompt-consent-client",
+            "https://localhost/prompt-consent-callback",
+            KeyValuePair.Create("prompt", "consent"));
+
+        promptConsentResponse.EnsureSuccessStatusCode();
+        var promptConsentPage = await promptConsentResponse.Content.ReadAsStringAsync();
+        Assert.Contains("Allow prompt-consent-client", promptConsentPage, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task AuthorizationCodeFlow_WhenPromptNoneRequestedWithoutExistingAuthorization_ReturnsConsentRequired()
+    {
+        await SignInAsAdminAsync();
+        await EnsureExplicitConsentClientAsync("prompt-none-client", "https://localhost/prompt-none-callback");
+
+        using var response = await RequestAuthorizationResponseAsync(
+            "prompt-none-client",
+            "https://localhost/prompt-none-callback",
+            KeyValuePair.Create("prompt", "none"));
+
+        Assert.Equal(HttpStatusCode.Found, response.StatusCode);
+        Assert.NotNull(response.Headers.Location);
+
+        var query = QueryHelpers.ParseQuery(response.Headers.Location.Query);
+        Assert.Equal(OpenIddictConstants.Errors.ConsentRequired, query["error"].ToString());
+        Assert.False(query.ContainsKey("code"));
     }
 
     [Fact]
@@ -883,6 +1229,42 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         await applicationManager.CreateAsync(descriptor);
     }
 
+    private static async Task CreateLegacyApplicationAsync(
+        IOpenIddictApplicationManager applicationManager,
+        string clientId,
+        string clientType,
+        string? clientSecret,
+        IEnumerable<string> permissions,
+        string? redirectUri = null)
+    {
+        var existingApplication = await applicationManager.FindByClientIdAsync(clientId);
+        if (existingApplication is not null)
+        {
+            await applicationManager.DeleteAsync(existingApplication);
+        }
+
+        var descriptor = new OpenIddictApplicationDescriptor
+        {
+            ClientId = clientId,
+            ClientSecret = clientSecret,
+            ClientType = clientType,
+            ConsentType = string.Equals(clientType, OpenIddictConstants.ClientTypes.Confidential, StringComparison.OrdinalIgnoreCase)
+                ? OpenIddictConstants.ConsentTypes.External
+                : OpenIddictConstants.ConsentTypes.Implicit,
+            DisplayName = clientId,
+        };
+
+        descriptor.Permissions.UnionWith(permissions);
+
+        if (!string.IsNullOrWhiteSpace(redirectUri))
+        {
+            descriptor.RedirectUris.Add(new Uri(redirectUri));
+            descriptor.Requirements.Add(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange);
+        }
+
+        await applicationManager.CreateAsync(descriptor);
+    }
+
     private async Task SignInAsAdminAsync()
     {
         using var response = await _client.PostAsync(
@@ -917,6 +1299,51 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
 
         var updateResult = await userManager.UpdateAsync(admin);
         Assert.True(updateResult.Succeeded, string.Join(", ", updateResult.Errors.Select(static error => error.Description)));
+    }
+
+    private async Task<string?> GetAdminUserIdAsync()
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var userManager = scope.ServiceProvider.GetRequiredService<UserManager<BzsUser>>();
+        var admin = await userManager.FindByNameAsync("admin");
+        return admin is null ? null : await userManager.GetUserIdAsync(admin);
+    }
+
+    private async Task EnsureExplicitConsentClientAsync(string clientId, string redirectUri)
+    {
+        await using var scope = _app.Services.CreateAsyncScope();
+        var applicationManager = scope.ServiceProvider.GetRequiredService<IOpenIddictApplicationManager>();
+
+        await EnsureApplicationAsync(
+            applicationManager,
+            clientId,
+            new OidcClientUpsertRequest
+            {
+                DisplayName = clientId,
+                AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+                PublicClient = true,
+                RequireProofKeyForCodeExchange = true,
+                ConsentType = OidcClientConsentType.Explicit,
+                GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
+                Scopes = [
+                    OpenIddictConstants.Scopes.OpenId,
+                    OpenIddictConstants.Scopes.Profile,
+                    PermissionConstants.ScopeApi,
+                ],
+                RedirectUris = [redirectUri],
+            });
+    }
+
+    private Task<HttpResponseMessage> IntrospectAsync(string token)
+    {
+        return _client.PostAsync(
+            "/connect/introspection",
+            new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = MachineClientId,
+                ["client_secret"] = MachineClientSecret,
+                ["token"] = token,
+            }));
     }
 
     private async Task<string> RequestAuthorizationCodeAsync(IEnumerable<string>? scopes = null)
@@ -968,6 +1395,72 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         return code;
     }
 
+    private async Task<HttpResponseMessage> RequestAuthorizationResponseAsync(
+        string clientId,
+        string redirectUri,
+        params KeyValuePair<string, string>[] extraQueryParameters)
+    {
+        var query = new Dictionary<string, string?>
+        {
+            ["client_id"] = clientId,
+            ["response_type"] = OpenIddictConstants.ResponseTypes.Code,
+            ["redirect_uri"] = redirectUri,
+            ["scope"] = string.Join(' ', [
+                OpenIddictConstants.Scopes.OpenId,
+                OpenIddictConstants.Scopes.Profile,
+                PermissionConstants.ScopeApi,
+            ]),
+            ["state"] = "test-state",
+            ["code_challenge"] = "E9Melhoa2OwvFrEMTJguCHaoe1t8URWbuGJSstw-cM",
+            ["code_challenge_method"] = "S256",
+        };
+
+        foreach (var parameter in extraQueryParameters)
+        {
+            query[parameter.Key] = parameter.Value;
+        }
+
+        var authorizeUrl = QueryHelpers.AddQueryString("/connect/authorize", query);
+
+        var request = new HttpRequestMessage(HttpMethod.Get, authorizeUrl);
+        request.Headers.Accept.ParseAdd("text/html");
+
+        return await _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+    }
+
+    private Task<HttpResponseMessage> PostConsentAsync(
+        string clientId,
+        string redirectUri,
+        string consent,
+        string antiforgeryToken,
+        string consentCookies)
+    {
+        var request = new HttpRequestMessage(HttpMethod.Post, "/connect/authorize")
+        {
+            Content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["client_id"] = clientId,
+                ["response_type"] = OpenIddictConstants.ResponseTypes.Code,
+                ["redirect_uri"] = redirectUri,
+                ["scope"] = string.Join(' ', [
+                    OpenIddictConstants.Scopes.OpenId,
+                    OpenIddictConstants.Scopes.Profile,
+                    PermissionConstants.ScopeApi,
+                ]),
+                ["state"] = "test-state",
+                ["code_challenge"] = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM",
+                ["code_challenge_method"] = "S256",
+                ["__RequestVerificationToken"] = antiforgeryToken,
+                ["consent"] = consent,
+            }),
+        };
+
+        request.Headers.Add("Cookie", string.Join("; ", new[] { _authCookieHeader, consentCookies }
+            .Where(static cookie => !string.IsNullOrWhiteSpace(cookie))));
+
+        return _client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
+    }
+
     private Task<HttpResponseMessage> ExchangeAuthorizationCodeAsync(string code)
     {
         return _client.PostAsync(
@@ -987,6 +1480,27 @@ public sealed class ConnectControllerIntegrationTests : IAsyncLifetime
         var payload = await response.Content.ReadFromJsonAsync<JsonDocument>();
         Assert.NotNull(payload);
         return payload;
+    }
+
+    private static string ExtractAntiforgeryToken(string html)
+    {
+        var match = Regex.Match(
+            html,
+            "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"(?<token>[^\"]+)\"",
+            RegexOptions.IgnoreCase);
+
+        Assert.True(match.Success, "Consent page should contain an antiforgery token.");
+        return WebUtility.HtmlDecode(match.Groups["token"].Value);
+    }
+
+    private static string GetCookieHeader(HttpResponseMessage response)
+    {
+        if (!response.Headers.TryGetValues("Set-Cookie", out var values))
+        {
+            return string.Empty;
+        }
+
+        return string.Join("; ", values.Select(static value => value.Split(';', 2)[0]));
     }
 
     private static JsonDocument ReadJwtPayload(string token)

@@ -187,6 +187,8 @@ internal sealed class OidcClientService(IOpenIddictApplicationManager applicatio
                 await applicationManager.GetClientTypeAsync(application, cancellationToken),
                 OpenIddictConstants.ClientTypes.Public,
                 StringComparison.OrdinalIgnoreCase),
+            ConsentType = OidcClientDescriptorFactory.FromOpenIddictConsentType(
+                await applicationManager.GetConsentTypeAsync(application, cancellationToken)),
             GrantTypes = permissions
                 .Where(static permission => permission.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType,
                     StringComparison.OrdinalIgnoreCase))

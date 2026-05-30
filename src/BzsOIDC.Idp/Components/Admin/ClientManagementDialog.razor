@@ -62,6 +62,18 @@
                            Options="@AuthFlowOptions" />
             </NeoField>
 
+            @if (AuthFlow == OidcClientAuthFlow.AuthorizationCode)
+            {
+                <NeoField Label="@L["ConsentType"]" ForId="editor-consent-type" Hint="@L["ConsentTypeHelp"]">
+                    <NeoSelect TValue="OidcClientConsentType"
+                               Id="editor-consent-type"
+                               AriaLabel="@L["ConsentType"]"
+                               Value="ConsentType"
+                               ValueChanged="HandleConsentTypeChanged"
+                               Options="@ConsentTypeOptions" />
+                </NeoField>
+            }
+
             <NeoField Label="@L["Scopes"]" ForId="editor-scopes" Hint="@L["ScopesHelp"]">
                 <div class="admin-selection-stack">
                     <div class="admin-token-list admin-token-list-wrap" role="group" aria-label="@L["Scopes"]">
@@ -194,6 +206,8 @@
     [Parameter] public EventCallback<string> DisplayNameChanged { get; set; }
     [Parameter] public OidcClientAuthFlow AuthFlow { get; set; }
     [Parameter] public EventCallback<OidcClientAuthFlow> AuthFlowChanged { get; set; }
+    [Parameter] public OidcClientConsentType ConsentType { get; set; } = OidcClientConsentType.Implicit;
+    [Parameter] public EventCallback<OidcClientConsentType> ConsentTypeChanged { get; set; }
     [Parameter] public string ScopesText { get; set; } = string.Empty;
     [Parameter] public EventCallback<string> ScopesTextChanged { get; set; }
     [Parameter] public string RedirectUrisText { get; set; } = string.Empty;
@@ -214,6 +228,11 @@
         new(OidcClientAuthFlow.AuthorizationCode, L["AuthorizationCodeFlow"]),
         new(OidcClientAuthFlow.ClientCredentials, L["ClientCredentialsFlow"]),
     ];
+    private IReadOnlyList<NeoSelectOption<OidcClientConsentType>> ConsentTypeOptions =>
+    [
+        new(OidcClientConsentType.Implicit, L["ConsentImplicit"]),
+        new(OidcClientConsentType.Explicit, L["ConsentExplicit"]),
+    ];
 
     private IReadOnlyList<string> OpenIddictPermissions => OidcClientDescriptorFactory
         .BuildPermissions(BuildPreviewRequest())
@@ -225,6 +244,8 @@
     private Task HandleClientSecretInput(ChangeEventArgs args) => ClientSecretChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
     private Task HandleAuthFlowChanged(OidcClientAuthFlow value) => AuthFlowChanged.InvokeAsync(value);
+
+    private Task HandleConsentTypeChanged(OidcClientConsentType value) => ConsentTypeChanged.InvokeAsync(value);
 
     private Task HandleDisplayNameInput(ChangeEventArgs args) => DisplayNameChanged.InvokeAsync(args.Value?.ToString() ?? string.Empty);
 
@@ -268,6 +289,7 @@
         await ClientSecretChanged.InvokeAsync(preset.ClientSecret ?? string.Empty);
         await DisplayNameChanged.InvokeAsync(preset.DisplayName);
         await AuthFlowChanged.InvokeAsync(preset.AuthFlow ?? OidcClientAuthFlow.AuthorizationCode);
+        await ConsentTypeChanged.InvokeAsync(preset.ConsentType ?? OidcClientConsentType.Implicit);
         await ScopesTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.Scopes));
         await RedirectUrisTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.RedirectUris));
         await PostLogoutRedirectUrisTextChanged.InvokeAsync(string.Join(Environment.NewLine, preset.PostLogoutRedirectUris));
@@ -288,6 +310,7 @@
             ClientSecret = string.IsNullOrWhiteSpace(ClientSecret) ? null : ClientSecret,
             DisplayName = string.IsNullOrWhiteSpace(DisplayName) ? "Preview client" : DisplayName,
             AuthFlow = AuthFlow,
+            ConsentType = AuthFlow == OidcClientAuthFlow.AuthorizationCode ? ConsentType : OidcClientConsentType.External,
             PublicClient = AuthFlow == OidcClientAuthFlow.AuthorizationCode,
             RequireProofKeyForCodeExchange = AuthFlow == OidcClientAuthFlow.AuthorizationCode,
             GrantTypes = AuthFlow == OidcClientAuthFlow.AuthorizationCode
@@ -313,4 +336,3 @@
             .ToArray();
     }
 }
-

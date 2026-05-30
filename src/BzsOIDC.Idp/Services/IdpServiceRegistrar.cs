@@ -78,6 +78,9 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
     /// <returns>执行结果。</returns>
     internal IServiceCollection AddOidc()
     {
+        sc.AddScoped<IOidcConsentPageRenderer, OidcConsentPageRenderer>();
+        sc.AddScoped<OidcClientPermissionBackfillService>();
+
         var oidcOptions = cfg.GetSection(OidcSectionName).Get<OidcOptions>();
         var identityOptions = cfg.GetSection(IdentitySectionName).Get<IdentitySeedOptions>() ?? new IdentitySeedOptions();
 
@@ -200,6 +203,8 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
             .SetTokenEndpointUris("connect/token")
             .SetAuthorizationEndpointUris("connect/authorize")
             .SetEndSessionEndpointUris("connect/logout")
+            .SetRevocationEndpointUris("connect/revocation")
+            .SetIntrospectionEndpointUris("connect/introspection")
             .SetUserInfoEndpointUris("connect/userinfo")
             .AllowAuthorizationCodeFlow()
             .AllowRefreshTokenFlow()
@@ -218,6 +223,11 @@ internal sealed class IdpServiceRegistrar(IServiceCollection sc, IConfiguration 
         options.AddEventHandler<OpenIddictServerEvents.ProcessSignInContext>(builder =>
         {
             builder.UseScopedHandler<PermissionClaimDestinationsHandler>();
+        });
+
+        options.AddEventHandler<OpenIddictServerEvents.ValidateIntrospectionRequestContext>(builder =>
+        {
+            builder.UseScopedHandler<ConfidentialIntrospectionClientHandler>();
         });
     }
 

@@ -1,7 +1,9 @@
+using System.Collections.Immutable;
 using System.Security.Claims;
 using BzsOIDC.Idp.Models;
 using BzsOIDC.Idp.Services.Oidc;
 using BzsOIDC.Idp.Services.Identity;
+using Microsoft.AspNetCore.Antiforgery;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +19,9 @@ public sealed class ConnectController(
     SignInManager<BzsUser> signInManager,
     UserManager<BzsUser> userManager,
     IOpenIddictApplicationManager applicationManager,
+    IOpenIddictAuthorizationManager authorizationManager,
+    IAntiforgery antiforgery,
+    IOidcConsentPageRenderer consentPageRenderer,
     IPermissionCatalogService permissionCatalogService,
     IOidcPrincipalFactory oidcPrincipalFactory) : ControllerBase
 {
@@ -27,7 +32,6 @@ public sealed class ConnectController(
     /// <returns>执行结果。</returns>
     [HttpGet("~/connect/authorize")]
     [HttpPost("~/connect/authorize")]
-    [IgnoreAntiforgeryToken]
     public async Task<IActionResult> Authorize(CancellationToken cancellationToken)
     {
         var request = GetRequiredOpenIddictRequest();
@@ -55,11 +59,59 @@ public sealed class ConnectController(
             return Forbid(IdentityConstants.ApplicationScheme);
         }
 
+        if (HttpMethods.IsPost(Request.Method) && !await ValidateAntiforgeryRequestAsync())
+        {
+            return BadRequest(new
+            {
+                error = OpenIddictConstants.Errors.InvalidRequest,
+                error_description = "The authorization request could not be validated.",
+            });
+        }
+
         var principal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
-        principal.SetScopes(oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()));
+        var scopes = oidcPrincipalFactory.FilterRequestedScopes(request.GetScopes()).ToArray();
+        principal.SetScopes(scopes);
         await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(principal, permissionCatalogService, cancellationToken);
 
-        return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        var consentOutcome = await TryApplyConsentAsync(request, user, principal, scopes, cancellationToken);
+        if (consentOutcome == OidcConsentOutcome.Authorized)
+        {
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        if (consentOutcome == OidcConsentOutcome.ConsentRequired)
+        {
+            return Forbid(
+                new AuthenticationProperties(new Dictionary<string, string?>
+                {
+                    [".error"] = OpenIddictConstants.Errors.ConsentRequired,
+                    [".error_description"] = "The authorization request requires the user to consent.",
+                }),
+                OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        if (HttpMethods.IsPost(Request.Method))
+        {
+            if (string.Equals(Request.Form["consent"], "deny", StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid(
+                    new AuthenticationProperties(new Dictionary<string, string?>
+                    {
+                        [".error"] = OpenIddictConstants.Errors.AccessDenied,
+                        [".error_description"] = "The resource owner denied the authorization request.",
+                    }),
+                    OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+
+            if (string.Equals(Request.Form["consent"], "accept", StringComparison.OrdinalIgnoreCase))
+            {
+                await CreateAndAttachAuthorizationAsync(request, user, principal, scopes, cancellationToken);
+                return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            }
+        }
+
+        var clientDisplayName = await ResolveClientDisplayNameAsync(request, cancellationToken);
+        return consentPageRenderer.Render(HttpContext, Request.Query, clientDisplayName, scopes);
     }
 
     /// <summary>
@@ -101,6 +153,13 @@ public sealed class ConnectController(
 
             var refreshedPrincipal = await oidcPrincipalFactory.CreateUserPrincipalAsync(user);
             refreshedPrincipal.SetScopes(principal.GetScopes());
+
+            var authorizationId = principal.GetAuthorizationId();
+            if (!string.IsNullOrWhiteSpace(authorizationId))
+            {
+                refreshedPrincipal.SetAuthorizationId(authorizationId);
+            }
+
             await PermissionClaimDestinationsHandler.ApplyDestinationsAsync(refreshedPrincipal, permissionCatalogService,
                 cancellationToken);
 
@@ -220,5 +279,143 @@ public sealed class ConnectController(
         }
 
         return request;
+    }
+
+    private async Task<bool> ValidateAntiforgeryRequestAsync()
+    {
+        try
+        {
+            await antiforgery.ValidateRequestAsync(HttpContext);
+            return true;
+        }
+        catch (AntiforgeryValidationException)
+        {
+            return false;
+        }
+    }
+
+    private async Task<OidcConsentOutcome> TryApplyConsentAsync(
+        OpenIddictRequest request,
+        BzsUser user,
+        ClaimsPrincipal principal,
+        IReadOnlyList<string> scopes,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(request.ClientId))
+        {
+            return OidcConsentOutcome.Authorized;
+        }
+
+        var application = await applicationManager.FindByClientIdAsync(request.ClientId, cancellationToken);
+        if (application is null)
+        {
+            return OidcConsentOutcome.Authorized;
+        }
+
+        if (request.HasPromptValue("consent"))
+        {
+            return OidcConsentOutcome.ConsentPageRequired;
+        }
+
+        var consentType = await applicationManager.GetConsentTypeAsync(application, cancellationToken);
+        if (!string.Equals(consentType, OpenIddictConstants.ConsentTypes.Explicit, StringComparison.OrdinalIgnoreCase))
+        {
+            return OidcConsentOutcome.Authorized;
+        }
+
+        var applicationId = await applicationManager.GetIdAsync(application, cancellationToken);
+        if (string.IsNullOrWhiteSpace(applicationId))
+        {
+            return OidcConsentOutcome.Authorized;
+        }
+
+        var subject = await userManager.GetUserIdAsync(user);
+        var authorizations = authorizationManager.FindAsync(
+            subject,
+            applicationId,
+            OpenIddictConstants.Statuses.Valid,
+            OpenIddictConstants.AuthorizationTypes.Permanent,
+            // Consent is intentionally scope-specific: expanding requested scopes must prompt again.
+            scopes.ToImmutableArray(),
+            cancellationToken);
+
+        await foreach (var authorization in authorizations)
+        {
+            var authorizationId = await authorizationManager.GetIdAsync(authorization, cancellationToken);
+            if (!string.IsNullOrWhiteSpace(authorizationId))
+            {
+                principal.SetAuthorizationId(authorizationId);
+                return OidcConsentOutcome.Authorized;
+            }
+        }
+
+        return request.HasPromptValue("none")
+            ? OidcConsentOutcome.ConsentRequired
+            : OidcConsentOutcome.ConsentPageRequired;
+    }
+
+    private async Task CreateAndAttachAuthorizationAsync(
+        OpenIddictRequest request,
+        BzsUser user,
+        ClaimsPrincipal principal,
+        IReadOnlyList<string> scopes,
+        CancellationToken cancellationToken)
+    {
+        var application = string.IsNullOrWhiteSpace(request.ClientId)
+            ? null
+            : await applicationManager.FindByClientIdAsync(request.ClientId, cancellationToken);
+
+        var applicationId = application is null
+            ? null
+            : await applicationManager.GetIdAsync(application, cancellationToken);
+
+        if (string.IsNullOrWhiteSpace(applicationId))
+        {
+            throw new InvalidOperationException("An explicit consent authorization requires a valid OIDC application.");
+        }
+
+        var descriptor = new OpenIddictAuthorizationDescriptor
+        {
+            ApplicationId = applicationId,
+            Principal = principal,
+            Status = OpenIddictConstants.Statuses.Valid,
+            Subject = await userManager.GetUserIdAsync(user),
+            Type = OpenIddictConstants.AuthorizationTypes.Permanent,
+        };
+
+        descriptor.Scopes.UnionWith(scopes);
+
+        var authorization = await authorizationManager.CreateAsync(descriptor, cancellationToken);
+
+        var authorizationId = await authorizationManager.GetIdAsync(authorization, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(authorizationId))
+        {
+            principal.SetAuthorizationId(authorizationId);
+        }
+    }
+
+    private async Task<string> ResolveClientDisplayNameAsync(OpenIddictRequest request, CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(request.ClientId))
+        {
+            var application = await applicationManager.FindByClientIdAsync(request.ClientId, cancellationToken);
+            if (application is not null)
+            {
+                var displayName = await applicationManager.GetDisplayNameAsync(application, cancellationToken);
+                if (!string.IsNullOrWhiteSpace(displayName))
+                {
+                    return displayName;
+                }
+            }
+        }
+
+        return request.ClientId ?? "the client";
+    }
+
+    private enum OidcConsentOutcome
+    {
+        Authorized,
+        ConsentPageRequired,
+        ConsentRequired,
     }
 }

@@ -11,6 +11,7 @@ public sealed class OidcClientUpsertRequest
     public OidcClientAuthFlow? AuthFlow { get; init; }
     public bool PublicClient { get; init; }
     public bool RequireProofKeyForCodeExchange { get; init; } = true;
+    public OidcClientConsentType? ConsentType { get; init; }
     public string[] GrantTypes { get; init; } = [OpenIddictConstants.GrantTypes.AuthorizationCode];
     public string[] Scopes { get; init; } = [PermissionConstants.ScopeApi];
     public string[] RedirectUris { get; init; } = [];
@@ -38,6 +39,7 @@ public sealed class OidcClientResponse
     public string? DisplayName { get; init; }
     public OidcClientAuthFlow AuthFlow { get; init; }
     public bool PublicClient { get; init; }
+    public OidcClientConsentType ConsentType { get; init; }
     public string[] GrantTypes { get; init; } = [];
     public string[] Scopes { get; init; } = [];
     public string[] RedirectUris { get; init; } = [];
@@ -58,6 +60,14 @@ public enum OidcClientAuthFlow
 {
     AuthorizationCode,
     ClientCredentials,
+}
+
+public enum OidcClientConsentType
+{
+    Unknown = -1,
+    Implicit,
+    Explicit,
+    External,
 }
 
 public enum OidcClientCommandStatus

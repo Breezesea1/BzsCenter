@@ -16,6 +16,20 @@ public static class OidcClientDescriptorFactory
         var errors = new List<string>();
         var authFlow = ResolveAuthFlow(request, out var authFlowError);
 
+        if (request.AuthFlow is not null && !Enum.IsDefined(request.AuthFlow.Value))
+        {
+            errors.Add("AuthFlow is invalid.");
+        }
+
+        if (request.ConsentType is not null && !Enum.IsDefined(request.ConsentType.Value))
+        {
+            errors.Add("ConsentType is invalid.");
+        }
+        else if (request.ConsentType is OidcClientConsentType.Unknown)
+        {
+            errors.Add("ConsentType is invalid.");
+        }
+
         if (authFlowError is not null)
         {
             errors.Add(authFlowError);
@@ -53,6 +67,11 @@ public static class OidcClientDescriptorFactory
 
         if (authFlow is OidcClientAuthFlow.AuthorizationCode)
         {
+            if (request.ConsentType is OidcClientConsentType.External)
+            {
+                errors.Add("Authorization Code Flow clients only support implicit or explicit consent.");
+            }
+
             if (!request.PublicClient)
             {
                 errors.Add("Authorization Code Flow clients must be public clients in the current onboarding.");
@@ -75,6 +94,11 @@ public static class OidcClientDescriptorFactory
 
         if (authFlow is OidcClientAuthFlow.ClientCredentials)
         {
+            if (request.ConsentType is not null && request.ConsentType != OidcClientConsentType.External)
+            {
+                errors.Add("Client Credentials Flow clients must use external consent.");
+            }
+
             if (request.PublicClient)
             {
                 errors.Add("Client Credentials Flow clients must be confidential clients.");
@@ -129,6 +153,7 @@ public static class OidcClientDescriptorFactory
                 AuthFlow = OidcClientAuthFlow.AuthorizationCode,
                 PublicClient = true,
                 RequireProofKeyForCodeExchange = true,
+                ConsentType = OidcClientConsentType.Implicit,
                 GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
                 Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
                 RedirectUris = ["https://localhost:5001/signin-oidc"],
@@ -141,6 +166,7 @@ public static class OidcClientDescriptorFactory
                 AuthFlow = OidcClientAuthFlow.AuthorizationCode,
                 PublicClient = true,
                 RequireProofKeyForCodeExchange = true,
+                ConsentType = OidcClientConsentType.Implicit,
                 GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
                 Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
                 RedirectUris = ["https://localhost:5001/signin-oidc"],
@@ -153,6 +179,7 @@ public static class OidcClientDescriptorFactory
                 AuthFlow = OidcClientAuthFlow.ClientCredentials,
                 PublicClient = false,
                 RequireProofKeyForCodeExchange = false,
+                ConsentType = OidcClientConsentType.External,
                 GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
                 Scopes = NormalizeScopes(preset.Scopes, [SharedPermissionConstants.ScopeApi]),
             },
@@ -177,12 +204,7 @@ public static class OidcClientDescriptorFactory
             ClientType = request.PublicClient
                 ? OpenIddictConstants.ClientTypes.Public
                 : OpenIddictConstants.ClientTypes.Confidential,
-            ConsentType = authFlow switch
-            {
-                OidcClientAuthFlow.AuthorizationCode => OpenIddictConstants.ConsentTypes.Implicit,
-                OidcClientAuthFlow.ClientCredentials => OpenIddictConstants.ConsentTypes.External,
-                _ => OpenIddictConstants.ConsentTypes.Explicit,
-            },
+            ConsentType = ToOpenIddictConsentType(request.ConsentType ?? ResolveDefaultConsentType(authFlow)),
         };
 
         if (!request.PublicClient)
@@ -252,6 +274,11 @@ public static class OidcClientDescriptorFactory
         if (hasRefreshToken)
         {
             permissions.Add(OpenIddictConstants.Permissions.Endpoints.Revocation);
+        }
+
+        if (hasClientCredentials && !request.PublicClient)
+        {
+            permissions.Add(OpenIddictConstants.Permissions.Endpoints.Introspection);
         }
 
         if (request.PostLogoutRedirectUris.Any(static uri => !string.IsNullOrWhiteSpace(uri)))
@@ -329,6 +356,39 @@ public static class OidcClientDescriptorFactory
     private static string GenerateClientSecret()
     {
         return Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+    }
+
+    public static OidcClientConsentType ResolveDefaultConsentType(OidcClientAuthFlow? authFlow)
+    {
+        return authFlow switch
+        {
+            OidcClientAuthFlow.AuthorizationCode => OidcClientConsentType.Implicit,
+            OidcClientAuthFlow.ClientCredentials => OidcClientConsentType.External,
+            _ => OidcClientConsentType.Explicit,
+        };
+    }
+
+    public static string ToOpenIddictConsentType(OidcClientConsentType consentType)
+    {
+        return consentType switch
+        {
+            OidcClientConsentType.Implicit => OpenIddictConstants.ConsentTypes.Implicit,
+            OidcClientConsentType.Explicit => OpenIddictConstants.ConsentTypes.Explicit,
+            OidcClientConsentType.External => OpenIddictConstants.ConsentTypes.External,
+            _ => throw new ArgumentOutOfRangeException(nameof(consentType), consentType, null),
+        };
+    }
+
+    public static OidcClientConsentType FromOpenIddictConsentType(string? consentType)
+    {
+        return consentType switch
+        {
+            OpenIddictConstants.ConsentTypes.Implicit => OidcClientConsentType.Implicit,
+            OpenIddictConstants.ConsentTypes.External => OidcClientConsentType.External,
+            OpenIddictConstants.ConsentTypes.Explicit => OidcClientConsentType.Explicit,
+            null or "" => OidcClientConsentType.Explicit,
+            _ => OidcClientConsentType.Unknown,
+        };
     }
 
     /// <summary>

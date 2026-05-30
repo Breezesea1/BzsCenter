@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using NSubstitute;
+using OpenIddict.Abstractions;
 
 namespace BzsOIDC.Idp.UnitTests.Services.Identity;
 
@@ -18,6 +19,7 @@ public sealed class IdentitySeederTests
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
+        var oidcClientPermissionBackfillService = CreateOidcClientPermissionBackfillService();
         var userService = Substitute.For<IUserService>();
 
         var options = Options.Create(new IdentitySeedOptions
@@ -35,6 +37,7 @@ public sealed class IdentitySeederTests
             rolePermissionService,
             permissionCatalogService,
             oidcScopeService,
+            oidcClientPermissionBackfillService,
             userService,
             options,
             configuration,
@@ -50,6 +53,7 @@ public sealed class IdentitySeederTests
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
+        var oidcClientPermissionBackfillService = CreateOidcClientPermissionBackfillService();
         var userService = Substitute.For<IUserService>();
 
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -91,6 +95,7 @@ public sealed class IdentitySeederTests
             rolePermissionService,
             permissionCatalogService,
             oidcScopeService,
+            oidcClientPermissionBackfillService,
             userService,
             options,
             configuration,
@@ -117,6 +122,7 @@ public sealed class IdentitySeederTests
         var rolePermissionService = Substitute.For<IRolePermissionService>();
         var permissionCatalogService = Substitute.For<IPermissionCatalogService>();
         var oidcScopeService = Substitute.For<IOidcScopeService>();
+        var oidcClientPermissionBackfillService = CreateOidcClientPermissionBackfillService();
         var userService = Substitute.For<IUserService>();
 
         roleService.GetByNameAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
@@ -162,6 +168,7 @@ public sealed class IdentitySeederTests
             rolePermissionService,
             permissionCatalogService,
             oidcScopeService,
+            oidcClientPermissionBackfillService,
             userService,
             options,
             configuration,
@@ -176,5 +183,20 @@ public sealed class IdentitySeederTests
         await userService.Received(1)
             .AddToRoleAsync(createdAdmin.Id, IdentitySeedConstants.AdminRoleName, Arg.Any<CancellationToken>());
     }
-}
 
+    private static OidcClientPermissionBackfillService CreateOidcClientPermissionBackfillService()
+    {
+        var applicationManager = Substitute.For<IOpenIddictApplicationManager>();
+        applicationManager
+            .ListAsync(Arg.Any<int?>(), Arg.Any<int?>(), Arg.Any<CancellationToken>())
+            .Returns(EmptyApplications());
+
+        return new OidcClientPermissionBackfillService(applicationManager);
+    }
+
+    private static async IAsyncEnumerable<object> EmptyApplications()
+    {
+        await Task.CompletedTask;
+        yield break;
+    }
+}

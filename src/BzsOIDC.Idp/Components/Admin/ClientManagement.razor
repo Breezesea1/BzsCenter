@@ -116,6 +116,7 @@ else
                 <colgroup>
                     <col data-column-key="client" />
                     <col data-column-key="authFlow" />
+                    <col data-column-key="consentType" />
                     <col data-column-key="grantTypes" />
                     <col data-column-key="scopes" />
                     <col data-column-key="redirectUris" />
@@ -133,6 +134,12 @@ else
                             <div class="admin-column-head">
                                 <button type="button" class="admin-sort-btn" @onclick='() => ToggleSort(ClientSortField.AuthFlow)'>@L["AuthFlow"] <span class="admin-sort-indicator" aria-hidden="true">@GetSortIndicator(ClientSortField.AuthFlow)</span></button>
                                 <span class="admin-col-resizer" data-column-key="authFlow" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["AuthFlow"]]'></span>
+                            </div>
+                        </th>
+                        <th data-column-key="consentType" data-min-width="156">
+                            <div class="admin-column-head">
+                                <span class="admin-column-label">@L["ConsentType"]</span>
+                                <span class="admin-col-resizer" data-column-key="consentType" role="separator" aria-orientation="vertical" tabindex="0" aria-label='@L["ResizeColumn", L["ConsentType"]]'></span>
                             </div>
                         </th>
                         <th data-column-key="grantTypes" data-min-width="176">
@@ -165,7 +172,7 @@ else
                     @if (_filteredClients.Count == 0)
                     {
                         <tr class="admin-empty-row">
-                            <td colspan="6">
+                            <td colspan="7">
                                 <div class="admin-empty-state">
                                     <strong>@L["NoMatchingClients"]</strong>
                                     <p>@L["NoMatchingClientsLead"]</p>
@@ -190,6 +197,11 @@ else
                                 <td data-label='@L["AuthFlow"].Value'>
                                     <span class="admin-badge @(client.AuthFlow == OidcClientAuthFlow.AuthorizationCode ? "is-admin" : "is-standard")">
                                         @FormatAuthFlow(client.AuthFlow)
+                                    </span>
+                                </td>
+                                <td data-label='@L["ConsentType"].Value'>
+                                    <span class="admin-badge @(client.ConsentType == OidcClientConsentType.Explicit ? "is-admin" : "is-standard")">
+                                        @FormatConsentType(client.ConsentType)
                                     </span>
                                 </td>
                                 <td data-label='@L["GrantTypes"].Value'>
@@ -311,6 +323,8 @@ else
                                 DisplayNameChanged="HandleDisplayNameChanged"
                                 AuthFlow="@_editor.AuthFlow"
                                 AuthFlowChanged="HandleAuthFlowChanged"
+                                ConsentType="@_editor.ConsentType"
+                                ConsentTypeChanged="HandleConsentTypeChanged"
                                 ScopesText="@_editor.ScopesText"
                                 ScopesTextChanged="HandleScopesTextChanged"
                                 RedirectUrisText="@_editor.RedirectUrisText"
@@ -456,6 +470,7 @@ else
                         client.ClientId,
                         client.DisplayName,
                         FormatAuthFlow(client.AuthFlow),
+                        FormatConsentType(client.ConsentType),
                         string.Join(' ', client.GrantTypes),
                         string.Join(' ', client.Scopes),
                         string.Join(' ', client.RedirectUris),
@@ -502,6 +517,7 @@ else
             ClientId = client.ClientId,
             DisplayName = client.DisplayName ?? string.Empty,
             AuthFlow = client.AuthFlow,
+            ConsentType = client.ConsentType,
             ScopesText = string.Join(Environment.NewLine, client.Scopes),
             RedirectUrisText = string.Join(Environment.NewLine, client.RedirectUris),
             PostLogoutRedirectUrisText = string.Join(Environment.NewLine, client.PostLogoutRedirectUris),
@@ -656,6 +672,7 @@ else
                 AuthFlow = OidcClientAuthFlow.AuthorizationCode,
                 PublicClient = true,
                 RequireProofKeyForCodeExchange = true,
+                ConsentType = _editor.ConsentType,
                 GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode, OpenIddictConstants.GrantTypes.RefreshToken],
                 Scopes = scopes,
                 RedirectUris = ParseLines(_editor.RedirectUrisText),
@@ -671,6 +688,7 @@ else
             AuthFlow = OidcClientAuthFlow.ClientCredentials,
             PublicClient = false,
             RequireProofKeyForCodeExchange = false,
+            ConsentType = OidcClientConsentType.External,
             GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
             Scopes = scopes,
         };
@@ -719,9 +737,11 @@ else
             "Authorization code clients must provide at least one redirect URI." => L["AuthorizationCodeRedirectRequired"].Value,
             "Authorization Code Flow clients must be public clients in the current onboarding." => L["AuthorizationCodeClientsMustBePublic"].Value,
             "Authorization Code Flow clients only support authorization_code and refresh_token grants." => L["AuthorizationCodeClientsGrantTypesInvalid"].Value,
+            "Authorization Code Flow clients only support implicit or explicit consent." => L["AuthorizationCodeClientsConsentInvalid"].Value,
             "Authorization Code Flow clients must require PKCE." => L["AuthorizationCodeClientsMustRequirePkce"].Value,
             "Client Credentials Flow clients must be confidential clients." => L["ClientCredentialsClientsMustBeConfidential"].Value,
             "Client Credentials Flow clients only support the client_credentials grant." => L["ClientCredentialsClientsGrantTypesInvalid"].Value,
+            "Client Credentials Flow clients must use external consent." => L["ClientCredentialsClientsConsentInvalid"].Value,
             "Client Credentials Flow clients must not configure redirect URIs." => L["ClientCredentialsClientsMustNotConfigureRedirectUris"].Value,
             "Client Credentials Flow clients must not configure post logout redirect URIs." => L["ClientCredentialsClientsMustNotConfigurePostLogoutRedirectUris"].Value,
             "Current onboarding only supports Authorization Code Flow (public + auth code/refresh token + PKCE) and Client Credentials Flow (confidential + client_credentials) clients." => L["UnsupportedAuthFlow"].Value,
@@ -750,6 +770,18 @@ else
             OidcClientAuthFlow.AuthorizationCode => L["AuthorizationCodeFlow"].Value,
             OidcClientAuthFlow.ClientCredentials => L["ClientCredentialsFlow"].Value,
             _ => authFlow.ToString(),
+        };
+    }
+
+    private string FormatConsentType(OidcClientConsentType consentType)
+    {
+        return consentType switch
+        {
+            OidcClientConsentType.Implicit => L["ConsentImplicit"].Value,
+            OidcClientConsentType.Explicit => L["ConsentExplicit"].Value,
+            OidcClientConsentType.External => L["ConsentExternal"].Value,
+            OidcClientConsentType.Unknown => L["ConsentUnknown"].Value,
+            _ => consentType.ToString(),
         };
     }
 
@@ -859,11 +891,16 @@ else
         if (value == OidcClientAuthFlow.AuthorizationCode)
         {
             _editor.ClientSecret = string.Empty;
+            if (_editor.ConsentType == OidcClientConsentType.External)
+            {
+                _editor.ConsentType = OidcClientConsentType.Implicit;
+            }
         }
         else
         {
             _editor.RedirectUrisText = string.Empty;
             _editor.PostLogoutRedirectUrisText = string.Empty;
+            _editor.ConsentType = OidcClientConsentType.External;
         }
 
         return Task.CompletedTask;
@@ -872,6 +909,12 @@ else
     private Task HandleScopesTextChanged(string value)
     {
         _editor.ScopesText = value;
+        return Task.CompletedTask;
+    }
+
+    private Task HandleConsentTypeChanged(OidcClientConsentType value)
+    {
+        _editor.ConsentType = value;
         return Task.CompletedTask;
     }
 
@@ -969,6 +1012,7 @@ else
         public string ClientSecret { get; set; } = string.Empty;
         public string DisplayName { get; set; } = string.Empty;
         public OidcClientAuthFlow AuthFlow { get; set; }
+        public OidcClientConsentType ConsentType { get; set; } = OidcClientConsentType.Implicit;
         public string ScopesText { get; set; } = string.Empty;
         public string RedirectUrisText { get; set; } = string.Empty;
         public string PostLogoutRedirectUrisText { get; set; } = string.Empty;

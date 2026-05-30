@@ -30,6 +30,7 @@ public class OidcClientDescriptorFactoryTests
         Assert.Contains(OpenIddictConstants.Permissions.Prefixes.Scope + "api",
             descriptor.Permissions);
         Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Token, descriptor.Permissions);
+        Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Introspection, descriptor.Permissions);
         Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Authorization, descriptor.Permissions);
         Assert.Empty(descriptor.RedirectUris);
         Assert.Empty(descriptor.PostLogoutRedirectUris);
@@ -55,7 +56,27 @@ public class OidcClientDescriptorFactoryTests
         Assert.Contains(OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange, descriptor.Requirements);
         Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Authorization, descriptor.Permissions);
         Assert.Contains(OpenIddictConstants.Permissions.Endpoints.Token, descriptor.Permissions);
+        Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Introspection, descriptor.Permissions);
         Assert.DoesNotContain(OpenIddictConstants.Permissions.Endpoints.Revocation, descriptor.Permissions);
+    }
+
+    [Fact]
+    public void CreateDescriptor_WhenExplicitConsentRequested_MapsConsentType()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Explicit Consent Client",
+            PublicClient = true,
+            RequireProofKeyForCodeExchange = true,
+            ConsentType = OidcClientConsentType.Explicit,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            Scopes = ["api"],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var descriptor = OidcClientDescriptorFactory.CreateDescriptor(request, "client-explicit");
+
+        Assert.Equal(OpenIddictConstants.ConsentTypes.Explicit, descriptor.ConsentType);
     }
 
     [Fact]
@@ -115,6 +136,41 @@ public class OidcClientDescriptorFactoryTests
     }
 
     [Fact]
+    public void ValidateRequest_ReturnsErrors_ForInvalidEnumValues()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Invalid Enum Client",
+            AuthFlow = (OidcClientAuthFlow)999,
+            ConsentType = (OidcClientConsentType)999,
+            PublicClient = true,
+            RequireProofKeyForCodeExchange = true,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors, static error => error.Contains("AuthFlow is invalid", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(errors, static error => error.Contains("ConsentType is invalid", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ToOpenIddictConsentType_WhenEnumInvalid_Throws()
+    {
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            OidcClientDescriptorFactory.ToOpenIddictConsentType((OidcClientConsentType)999));
+    }
+
+    [Fact]
+    public void FromOpenIddictConsentType_WhenStoredValueUnknown_ReturnsUnknownSentinel()
+    {
+        var consentType = OidcClientDescriptorFactory.FromOpenIddictConsentType("unknown-consent");
+
+        Assert.Equal(OidcClientConsentType.Unknown, consentType);
+    }
+
+    [Fact]
     public void ResolveAuthFlow_InfersAuthorizationCodeAndClientCredentialsFlows()
     {
         var interactive = new OidcClientUpsertRequest
@@ -158,6 +214,44 @@ public class OidcClientDescriptorFactoryTests
 
         Assert.Contains(errors,
             static e => e.Contains("must require PKCE", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ValidateRequest_ReturnsErrors_WhenAuthorizationCodeClientUsesExternalConsent()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Interactive Client",
+            AuthFlow = OidcClientAuthFlow.AuthorizationCode,
+            PublicClient = true,
+            RequireProofKeyForCodeExchange = true,
+            ConsentType = OidcClientConsentType.External,
+            GrantTypes = [OpenIddictConstants.GrantTypes.AuthorizationCode],
+            RedirectUris = ["https://localhost/callback"],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors,
+            static e => e.Contains("implicit or explicit consent", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void ValidateRequest_ReturnsErrors_WhenClientCredentialsClientUsesExplicitConsent()
+    {
+        var request = new OidcClientUpsertRequest
+        {
+            DisplayName = "Machine Client",
+            AuthFlow = OidcClientAuthFlow.ClientCredentials,
+            PublicClient = false,
+            ConsentType = OidcClientConsentType.Explicit,
+            GrantTypes = [OpenIddictConstants.GrantTypes.ClientCredentials],
+        };
+
+        var errors = OidcClientDescriptorFactory.ValidateRequest(request);
+
+        Assert.Contains(errors,
+            static e => e.Contains("external consent", StringComparison.OrdinalIgnoreCase));
     }
 
     [Fact]

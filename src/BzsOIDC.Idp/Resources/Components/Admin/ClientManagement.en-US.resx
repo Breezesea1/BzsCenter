@@ -345,4 +345,28 @@
   <data name="OpenIddictPermissions" xml:space="preserve">
     <value>OpenIddict application permissions</value>
   </data>
+  <data name="ConsentType" xml:space="preserve">
+    <value>Consent behavior</value>
+  </data>
+  <data name="ConsentTypeHelp" xml:space="preserve">
+    <value>Choose whether interactive users approve this client the first time it requests scopes.</value>
+  </data>
+  <data name="ConsentImplicit" xml:space="preserve">
+    <value>Seamless (implicit)</value>
+  </data>
+  <data name="ConsentExplicit" xml:space="preserve">
+    <value>Prompt for consent</value>
+  </data>
+  <data name="ConsentExternal" xml:space="preserve">
+    <value>External/system-managed</value>
+  </data>
+  <data name="AuthorizationCodeClientsConsentInvalid" xml:space="preserve">
+    <value>Authorization Code Flow clients only support implicit or explicit consent.</value>
+  </data>
+  <data name="ClientCredentialsClientsConsentInvalid" xml:space="preserve">
+    <value>Client Credentials Flow clients must use external consent.</value>
+  </data>
+  <data name="ConsentUnknown" xml:space="preserve">
+    <value>Unknown/legacy</value>
+  </data>
 </root>

@@ -9,6 +9,7 @@ internal sealed class IdentitySeeder(
     IRolePermissionService rolePermissionService,
     IPermissionCatalogService permissionCatalogService,
     IOidcScopeService oidcScopeService,
+    OidcClientPermissionBackfillService oidcClientPermissionBackfillService,
     IUserService userService,
     IOptions<IdentitySeedOptions> identityOptions,
     IConfiguration configuration,
@@ -100,6 +101,8 @@ internal sealed class IdentitySeeder(
 
             logger.LogInformation("Identity seeding granted admin role to: {UserName}", adminUserName);
         }
+
+        await oidcClientPermissionBackfillService.EnsureBackfilledAsync(cancellationToken);
     }
 
     /// <summary>

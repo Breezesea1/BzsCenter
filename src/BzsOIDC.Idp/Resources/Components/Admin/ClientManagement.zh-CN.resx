@@ -345,4 +345,28 @@
   <data name="OpenIddictPermissions" xml:space="preserve">
     <value>OpenIddict 应用权限</value>
   </data>
+  <data name="ConsentType" xml:space="preserve">
+    <value>同意授权方式</value>
+  </data>
+  <data name="ConsentTypeHelp" xml:space="preserve">
+    <value>选择交互式用户首次请求 scope 时是否需要确认授权。</value>
+  </data>
+  <data name="ConsentImplicit" xml:space="preserve">
+    <value>无感授权（implicit）</value>
+  </data>
+  <data name="ConsentExplicit" xml:space="preserve">
+    <value>提示用户授权</value>
+  </data>
+  <data name="ConsentExternal" xml:space="preserve">
+    <value>外部/系统托管</value>
+  </data>
+  <data name="AuthorizationCodeClientsConsentInvalid" xml:space="preserve">
+    <value>Authorization Code Flow 客户端仅支持 implicit 或 explicit consent。</value>
+  </data>
+  <data name="ClientCredentialsClientsConsentInvalid" xml:space="preserve">
+    <value>Client Credentials Flow 客户端必须使用 external consent。</value>
+  </data>
+  <data name="ConsentUnknown" xml:space="preserve">
+    <value>未知/旧数据</value>
+  </data>
 </root>
